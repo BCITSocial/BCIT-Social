@@ -3847,11 +3847,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\joshu\\Desktop\\term4\\4957-mireala\\termproject\\project\\project.csproj",
+      "projectUniqueName": "C:\\Users\\joshu\\Desktop\\term4\\4957-mireala\\termproject\\BCIT-Social\\project\\project.csproj",
       "projectName": "project",
-      "projectPath": "C:\\Users\\joshu\\Desktop\\term4\\4957-mireala\\termproject\\project\\project.csproj",
+      "projectPath": "C:\\Users\\joshu\\Desktop\\term4\\4957-mireala\\termproject\\BCIT-Social\\project\\project.csproj",
       "packagesPath": "C:\\Users\\joshu\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\joshu\\Desktop\\term4\\4957-mireala\\termproject\\project\\obj\\",
+      "outputPath": "C:\\Users\\joshu\\Desktop\\term4\\4957-mireala\\termproject\\BCIT-Social\\project\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
