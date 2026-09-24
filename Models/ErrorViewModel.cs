@@ -1,4 +1,4 @@
-namespace project.Models;
+namespace BCIT_Social.Models;
 
 public class ErrorViewModel
 {

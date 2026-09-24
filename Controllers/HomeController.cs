@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using project.Models;
+using BCIT_Social.Models;
 
-namespace project.Controllers;
+namespace BCIT_Social.Controllers;
 
 public class HomeController : Controller
 {
@@ -13,11 +13,7 @@ public class HomeController : Controller
 
     public IActionResult Privacy()
     {
-        return View();
-    }
-
-    public IActionResult UserPage()
-    {
+        
         return View();
     }
 

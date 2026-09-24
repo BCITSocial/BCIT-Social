@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace project.Models.NW;
+namespace BCIT_Social.NW;
 
 public partial class NorthwindContext : DbContext
 {

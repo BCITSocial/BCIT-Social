@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace project.Models.NW;
+namespace BCIT_Social.NW;
 
 public partial class CommunityMessage
 {
