@@ -1,0 +1,101 @@
+@model IEnumerable<project.Models.NW.User>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PasswordHash)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreatedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Bookmarks)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Comments)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Communities)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CommunityMembers)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CommunityMessages)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Events)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Posts)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Profile)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Roles)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(model => item.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.PasswordHash)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.CreatedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Bookmarks)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Comments)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Communities)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.CommunityMembers)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.CommunityMessages)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Events)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Posts)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Profile)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Roles)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
