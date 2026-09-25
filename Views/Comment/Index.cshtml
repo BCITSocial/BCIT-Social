@@ -1,0 +1,83 @@
+@model IEnumerable<BCIT_Social.NW.Comment>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.PostId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AuthorId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ParentCommentId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Content)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreatedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Author)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.InverseParentComment)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ParentComment)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Post)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(model => item.PostId)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.AuthorId)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.ParentCommentId)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Content)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.CreatedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Author)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.InverseParentComment)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.ParentComment)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Post)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
