@@ -1,3 +1,4 @@
+@using BCIT_Social.NW
 @model BCIT_Social.NW.Post
 
 @{
@@ -17,7 +18,7 @@
                 <label asp-for="AuthorId" class="control-label"></label>
                 <input asp-for="AuthorId" class="form-control" />
                 <span asp-validation-for="AuthorId" class="text-danger"></span>
-            </div>
+            </div> 
 
             <div class="form-group">
                 <label asp-for="CommunityId" class="control-label"></label>
@@ -41,19 +42,20 @@
                 <label asp-for="DateOfDel" class="control-label"></label>
                 <input asp-for="DateOfDel" class="form-control" />
                 <span asp-validation-for="DateOfDel" class="text-danger"></span>
-            </div>
+            </div> 
 
             <div class="form-group">
                 <label asp-for="Author" class="control-label"></label>
-                <input asp-for="Author" class="form-control" />
+                <input asp-for="Author" class="form-control"/>
                 <span asp-validation-for="Author" class="text-danger"></span>
-            </div>
+            </div> 
 
-            <div class="form-group">
+        <div class="form-group">
                 <label asp-for="Bookmarks" class="control-label"></label>
                 <input asp-for="Bookmarks" class="form-control" />
                 <span asp-validation-for="Bookmarks" class="text-danger"></span>
             </div>
+
 
             <div class="form-group">
                 <label asp-for="Comments" class="control-label"></label>
@@ -65,7 +67,7 @@
                 <label asp-for="Community" class="control-label"></label>
                 <input asp-for="Community" class="form-control" />
                 <span asp-validation-for="Community" class="text-danger"></span>
-            </div>
+            </div> 
 
             <div class="form-group">
                 <label asp-for="Tags" class="control-label"></label>

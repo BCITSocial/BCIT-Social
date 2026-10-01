@@ -2,18 +2,22 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BCIT_Social.NW;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 public class PostController : Controller
 {
     private readonly NorthwindContext _context;
+    private readonly UserManager<IdentityUser> _userManager;
 
-    public PostController(NorthwindContext context)
+    public PostController(NorthwindContext context, UserManager<IdentityUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     // GET: POSTS
-    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Index()
     {
         return View(await _context.Posts.ToListAsync());
     }
@@ -37,6 +41,7 @@ public class PostController : Controller
     }
 
     // GET: POSTS/Create
+    [Authorize]
     public IActionResult Create()
     {
         return View();
@@ -86,8 +91,12 @@ public class PostController : Controller
             return NotFound();
         }
 
+
+
         if (ModelState.IsValid)
         {
+
+
             try
             {
                 _context.Update(post);

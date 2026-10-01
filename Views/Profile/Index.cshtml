@@ -1,0 +1,9 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<h3>@User.Identity?.Name's @ViewData["Title"]</h3>
+
+
