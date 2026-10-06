@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 
 namespace BCIT_Social.Models;
 
@@ -11,7 +10,7 @@ public class Chatbox
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public IdentityUser Creator { get; set; } = null!;
+    public ApplicationUser Creator { get; set; } = null!;
 
     public ICollection<Message> Messages { get; set; }
         = new List<Message>();

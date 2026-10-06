@@ -17,5 +17,5 @@ public class CommunityMessage
 
     public Community Community { get; set; } = null!;
 
-    public IdentityUser Sender { get; set; } = null!;
+    public ApplicationUser Sender { get; set; } = null!;
 }

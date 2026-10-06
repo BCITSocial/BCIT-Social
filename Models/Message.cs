@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 
 namespace BCIT_Social.Models;
 
@@ -17,5 +16,5 @@ public class Message
     // Navigation properties
     public Chatbox Chatbox { get; set; } = null!;
 
-    public IdentityUser Sender { get; set; } = null!;
+    public ApplicationUser Sender { get; set; } = null!;
 }

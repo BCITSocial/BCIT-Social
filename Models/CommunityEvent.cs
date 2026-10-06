@@ -15,7 +15,7 @@ public class CommunityEvent
 
     public DateTime EventDate { get; set; }
 
-    public IdentityUser Creator { get; set; } = null!;
+    public ApplicationUser Creator { get; set; } = null!;
 
     public Community? Community { get; set; }
 }
