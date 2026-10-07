@@ -1,0 +1,28 @@
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="page-heading">
+    <h1>Home</h1>
+    <button class="primary-button" type="button" disabled>Create post</button>
+</div>
+<div class="home-columns">
+    <section class="panel feed" aria-labelledby="feed-heading">
+        <h2 id="feed-heading">Feed</h2>
+        @* Render a typed post partial here after agreeing on the view model. *@
+        <div class="empty-state">
+            <p>Posts will appear here.</p>
+        </div>
+    </section>
+    <aside aria-label="Community information">
+        <section class="panel" aria-labelledby="events-heading">
+            <h2 id="events-heading">Upcoming events</h2>
+            <p>Events will appear here.</p>
+        </section>
+        <section class="panel" aria-labelledby="communities-heading">
+            <h2 id="communities-heading">Discover communities</h2>
+            <p>Communities will appear here.</p>
+        </section>
+    </aside>
+</div>
