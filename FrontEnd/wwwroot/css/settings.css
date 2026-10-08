@@ -11,6 +11,8 @@
     --color-selected: #edf2ff;
     --color-input: #f3f5f8;
     --color-transparent: transparent;
+    --color-danger: #b42318;
+    --color-danger-surface: #fef3f2;
 
     --font-family: Arial, Helvetica, sans-serif;
     --font-size-body: 1rem;

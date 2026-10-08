@@ -1,0 +1,72 @@
+@model EventsViewModel
+@{
+    ViewData["Title"] = "Events";
+    var heading = Model.Scope switch
+    {
+        EventsViewModel.ThisWeek => "Events this week",
+        EventsViewModel.Past => "Past events",
+        _ => "Upcoming events",
+    };
+}
+
+<div class="page-heading">
+    <h1>Events</h1>
+    <button class="primary-button" type="button" disabled>Create event</button>
+</div>
+<div class="events-columns">
+    <section class="panel" aria-labelledby="event-list-heading">
+        <nav class="segmented" aria-label="Event time range">
+            @foreach (var (value, label) in EventsViewModel.Scopes)
+            {
+                <a asp-action="Index" asp-route-scope="@value" asp-route-campus="@Model.Campus" aria-current="@(Model.Scope == value ? "page" : null)">@label</a>
+            }
+        </nav>
+        <h2 id="event-list-heading">
+            @heading
+            @if (Model.Campus is not null)
+            {
+                <span class="filter-summary">&middot; @Model.Campus campus</span>
+            }
+        </h2>
+        @if (Model.Events.Count == 0)
+        {
+            <div class="empty-state">
+                <p>@(Model.Campus is null ? "Events will appear here." : "No events match this filter.")</p>
+            </div>
+        }
+        else
+        {
+            <ul class="event-list">
+                @foreach (var item in Model.Events)
+                {
+                    <li><partial name="_EventCard" model="item" /></li>
+                }
+            </ul>
+        }
+    </section>
+    <aside aria-label="Event filters and information">
+        <section class="panel" aria-labelledby="filter-heading">
+            <h2 id="filter-heading">Filter events</h2>
+            <form class="filter-form" method="get" asp-action="Index">
+                <input type="hidden" name="scope" value="@Model.Scope" />
+                <label for="campus-filter">Campus</label>
+                <select id="campus-filter" name="campus">
+                    <option value="">All campuses</option>
+                    @foreach (var campus in EventsViewModel.Campuses)
+                    {
+                        <option value="@campus" selected="@(campus == Model.Campus)">@campus</option>
+                    }
+                </select>
+                <button class="primary-button" type="submit">Apply filter</button>
+                @if (Model.Campus is not null)
+                {
+                    <a asp-action="Index" asp-route-scope="@Model.Scope">Clear filter</a>
+                }
+            </form>
+        </section>
+        <section class="panel" aria-labelledby="hosting-heading">
+            <h2 id="hosting-heading">Hosting an event?</h2>
+            <p>Club and community organizers will be able to publish and manage events here.</p>
+        </section>
+    </aside>
+</div>

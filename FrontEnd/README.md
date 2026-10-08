@@ -16,6 +16,7 @@ Open the localhost address printed in the terminal. Alternatively, open `BCITSoc
 ## Where to work
 
 - `Views/Home/Index.cshtml`: Home feed skeleton and empty content areas.
+- `Views/Events/Index.cshtml` and `_EventCard.cshtml`: Events page (time range and campus filters via query string, event card layout, empty state). `EventsViewModel` and `EventCardViewModel` are a proposed presentation contract; agree on them with the backend team.
 - `Views/Shared/_Layout.cshtml`: shared document layout.
 - `Views/Shared/_Header.cshtml` and `_Navigation.cshtml`: reusable app shell.
 - `wwwroot/css/settings.css`: global colors, image references, font family, sizes, weights, and line heights.

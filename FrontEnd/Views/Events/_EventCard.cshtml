@@ -1,0 +1,41 @@
+@using System.Globalization
+@model EventCardViewModel
+@{
+    var culture = CultureInfo.InvariantCulture;
+    var when = Model.StartsAt.ToString("ddd, MMM d · h:mm tt", culture);
+    if (Model.EndsAt is { } end)
+    {
+        when += " – " + end.ToString(end.Date == Model.StartsAt.Date ? "h:mm tt" : "ddd, MMM d · h:mm tt", culture);
+    }
+    var where = string.Join(", ", new[] { Model.Location, Model.Campus }.Where(s => !string.IsNullOrWhiteSpace(s)));
+}
+<article class="event-card@(Model.IsCancelled ? " is-cancelled" : "")">
+    <time class="event-date" datetime="@Model.StartsAt.ToString("yyyy-MM-dd'T'HH:mm", culture)">
+        <span class="event-month">@Model.StartsAt.ToString("MMM", culture)</span>
+        <span class="event-day">@Model.StartsAt.ToString("dd", culture)</span>
+    </time>
+    <div class="event-body">
+        <h3>
+            @Model.Title
+            @if (Model.IsCancelled)
+            {
+                <span class="badge badge-danger">Cancelled</span>
+            }
+        </h3>
+        @if (!string.IsNullOrWhiteSpace(Model.HostName))
+        {
+            <p class="event-host">Hosted by @Model.HostName</p>
+        }
+        <dl class="event-meta">
+            <div><dt>When</dt><dd>@when</dd></div>
+            @if (where.Length > 0)
+            {
+                <div><dt>Where</dt><dd>@where</dd></div>
+            }
+        </dl>
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <p class="event-description">@Model.Description</p>
+        }
+    </div>
+</article>
