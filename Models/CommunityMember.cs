@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace BCIT_Social.Models
 {
+    [PrimaryKey(nameof(UserId), nameof(CommunityId))]
     public class CommunityMember
     {
         [ForeignKey(nameof(User))]
