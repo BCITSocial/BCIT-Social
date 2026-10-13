@@ -9,7 +9,7 @@ public class ChatboxUser
     public int ChatboxId { get; set; }
 
     // Navigation properties
-    public IdentityUser User { get; set; } = null!;
+    public ApplicationUser User { get; set; } = null!;
 
     public Chatbox Chatbox { get; set; } = null!;
 }

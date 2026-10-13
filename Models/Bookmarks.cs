@@ -4,9 +4,12 @@ namespace BCIT_Social.Models;
 
 public class Bookmarks
 {
-    public string User_Id { get; set; } = null!;
+    public string UserId { get; set; } = null!;
 
-    public int Post_Id { get; set; }
+    public ApplicationUser User { get; set; } = null!;
 
-    public DateTime Saved_At { get; set; } = DateTime.UtcNow;
+    public int PostId { get; set; }
+    public Post Post { get; set; } = null!;
+
+    public DateTime SavedAt { get; set; } = DateTime.UtcNow;
 }
