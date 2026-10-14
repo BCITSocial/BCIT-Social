@@ -4,9 +4,8 @@
     ViewData["Title"] = "Create a Community";
 }
 
-<h1>Create</h1>
+<h1>@ViewData["Title"]</h1>
 
-<h4>Community</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -32,18 +31,7 @@
 
                 <span asp-validation-for="Type" class="text-danger"></span>
             </div>
-@* 
-            <div class="form-group">
-                <label asp-for="Creator" class="control-label"></label>
-                <input asp-for="Creator" class="form-control" />
-                <span asp-validation-for="Creator" class="text-danger"></span>
-            </div>
 
-            <div class="form-group">
-                <label asp-for="Members" class="control-label"></label>
-                <input asp-for="Members" class="form-control" />
-                <span asp-validation-for="Members" class="text-danger"></span>
-            </div> *@
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
