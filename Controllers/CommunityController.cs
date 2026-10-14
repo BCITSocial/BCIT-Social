@@ -3,18 +3,24 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BCIT_Social.Models;
 using BCIT_Social.Data;
+using Microsoft.AspNetCore.Authorization;
+using BCIT_Social.ViewModels;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 public class CommunityController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public CommunityController(ApplicationDbContext context)
+    public CommunityController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     // GET: COMMUNITYS
-    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Index()
     {
         return View(await _context.Communities.ToListAsync());
     }
@@ -40,7 +46,7 @@ public class CommunityController : Controller
     // GET: COMMUNITYS/Create
     public IActionResult Create()
     {
-        return View();
+        return View(new CreateCommunityViewModel());
     }
 
     // POST: COMMUNITYS/Create
@@ -48,15 +54,32 @@ public class CommunityController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,CreatorId,Name,Type,Creator,Members")] Community community)
+    [Authorize]
+    public async Task<IActionResult> Create(CreateCommunityViewModel viewModel)
     {
+        string? creatorId = _userManager.GetUserId(User);
+
+        if (creatorId == null)
+        {
+            return Challenge();
+        }
+
+        var community = new Community
+        {
+            CreatorId = creatorId,
+            Name = viewModel.Name,
+            Type = viewModel.Type,
+        };
         if (ModelState.IsValid)
         {
             _context.Add(community);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Details), new
+            {
+                community.Id
+            });
         }
-        return View(community);
+        return View(viewModel);
     }
 
     // GET: COMMUNITYS/Edit/5
