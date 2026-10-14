@@ -102,7 +102,7 @@ public class CommunityController : Controller
         {
             return Forbid();
         }
-        return View(community);
+        return View(ViewModelFromCommunity(community));
     }
 
     // POST: COMMUNITYS/Edit/5
@@ -111,15 +111,19 @@ public class CommunityController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Edit(int? id, [Bind("Id,CreatorId,Name,Type,Creator,Members")] Community community)
+    public async Task<IActionResult> Edit(int? id, CommunityViewModel viewModel)
     {
-        if (id != community.Id)
+        var community = await _context.Communities.FindAsync(id);
+
+        if (community == null)
         {
             return NotFound();
         }
 
         if (ModelState.IsValid)
         {
+            community.Name = viewModel.Name;
+            community.Type = viewModel.Type;
             try
             {
                 _context.Update(community);
