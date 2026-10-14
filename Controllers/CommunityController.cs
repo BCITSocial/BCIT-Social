@@ -46,7 +46,7 @@ public class CommunityController : Controller
     // GET: COMMUNITYS/Create
     public IActionResult Create()
     {
-        return View(new CreateCommunityViewModel());
+        return View(new CommunityViewModel());
     }
 
     // POST: COMMUNITYS/Create
@@ -55,7 +55,7 @@ public class CommunityController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Create(CreateCommunityViewModel viewModel)
+    public async Task<IActionResult> Create(CommunityViewModel viewModel)
     {
         string? creatorId = _userManager.GetUserId(User);
 
@@ -83,6 +83,7 @@ public class CommunityController : Controller
     }
 
     // GET: COMMUNITYS/Edit/5
+    [Authorize]
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null)
@@ -90,10 +91,16 @@ public class CommunityController : Controller
             return NotFound();
         }
 
+        string? creatorId = _userManager.GetUserId(User);
+
         var community = await _context.Communities.FindAsync(id);
         if (community == null)
         {
             return NotFound();
+        }
+        if (community.CreatorId != creatorId)
+        {
+            return Forbid();
         }
         return View(community);
     }
@@ -103,6 +110,7 @@ public class CommunityController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize]
     public async Task<IActionResult> Edit(int? id, [Bind("Id,CreatorId,Name,Type,Creator,Members")] Community community)
     {
         if (id != community.Id)
@@ -131,6 +139,16 @@ public class CommunityController : Controller
             return RedirectToAction(nameof(Index));
         }
         return View(community);
+    }
+
+    private CommunityViewModel ViewModelFromCommunity(Community community)
+    {
+        var viewModel = new CommunityViewModel
+        {
+            Name = community.Name,
+            Type = community.Type,
+        };
+        return viewModel;
     }
 
     // GET: COMMUNITYS/Delete/5

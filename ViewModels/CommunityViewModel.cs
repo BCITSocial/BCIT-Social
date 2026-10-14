@@ -8,7 +8,7 @@ namespace BCIT_Social.ViewModels;
 /// Last Revised: Oct 13, 2026
 /// Description: Holds parameters for user facing inputs when creating a new community.
 /// </summary>
-public class CreateCommunityViewModel
+public class CommunityViewModel
 {
     [Required]
     public string Name { get; set; } = null!;
@@ -16,7 +16,7 @@ public class CreateCommunityViewModel
     public string Type { get; set; } = null!;
     public SelectList Types { get; set; }
 
-    public CreateCommunityViewModel()
+    public CommunityViewModel()
     {
         List<SelectListItem> typesList =
         [
