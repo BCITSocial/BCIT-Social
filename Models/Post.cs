@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace BCIT_Social.Models;
 
@@ -17,6 +17,4 @@ public class Post
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? DateOfDel { get; set; }
-
-
 }
