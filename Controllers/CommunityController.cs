@@ -114,10 +114,15 @@ public class CommunityController : Controller
     public async Task<IActionResult> Edit(int? id, CommunityViewModel viewModel)
     {
         var community = await _context.Communities.FindAsync(id);
+        string? creatorId = _userManager.GetUserId(User);
 
         if (community == null)
         {
             return NotFound();
+        }
+        if (community.CreatorId != creatorId)
+        {
+            return Forbid();
         }
 
         if (ModelState.IsValid)
@@ -158,6 +163,7 @@ public class CommunityController : Controller
     // GET: COMMUNITYS/Delete/5
     public async Task<IActionResult> Delete(int? id)
     {
+        string? creatorId = _userManager.GetUserId(User);
         if (id == null)
         {
             return NotFound();
@@ -169,6 +175,10 @@ public class CommunityController : Controller
         {
             return NotFound();
         }
+        if (community.CreatorId != creatorId)
+        {
+            return Forbid();
+        }
 
         return View(community);
     }
@@ -178,9 +188,14 @@ public class CommunityController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int? id)
     {
+        string? creatorId = _userManager.GetUserId(User);
         var community = await _context.Communities.FindAsync(id);
         if (community != null)
         {
+            if (community.CreatorId != creatorId)
+            {
+                return Forbid();
+            }
             _context.Communities.Remove(community);
         }
 
