@@ -21,6 +21,12 @@ public class BookmarksController : Controller
         _userManager = userManager;
     }
 
+    /**
+    * Save a bookmark for the current user and the specified post.
+    * If the bookmark already exists, it will not be added again.
+    * @param postId The ID of the post to bookmark.
+    * @return Redirects to the post details page.
+    */
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Save(int postId)
@@ -52,6 +58,12 @@ public class BookmarksController : Controller
         return RedirectToAction("Details", "Post", new { id = postId });
     }
 
+    /**
+    * Remove a bookmark for the current user and the specified post.
+    * If the bookmark does not exist, no action will be taken.
+    * @param postId The ID of the post to remove the bookmark from.
+    * @return Redirects to the post details page.
+    */
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Remove(int postId)

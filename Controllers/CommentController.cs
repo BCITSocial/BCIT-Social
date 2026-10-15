@@ -7,6 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BCIT_Social.Controllers;
 
+/**
+ * Controller for managing comments on posts.
+ * This controller allows authenticated users to create comments on posts.
+ */
 [Authorize]
 public class CommentController : Controller
 {
@@ -21,6 +25,14 @@ public class CommentController : Controller
         _userManager = userManager;
     }
 
+    /**
+    * Create a new comment for the specified post.
+    * If a parent comment ID is provided, the new comment will be a reply to that comment.
+    * @param postId The ID of the post to comment on.
+    * @param content The content of the comment.
+    * @param parentCommentId (Optional) The ID of the parent comment if this is a reply.
+    * @return Redirects to the post details page.
+    */
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(int postId, string content, int? parentCommentId)
