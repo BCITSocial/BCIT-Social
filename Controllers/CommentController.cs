@@ -8,6 +8,10 @@ using Microsoft.EntityFrameworkCore;
 namespace BCIT_Social.Controllers;
 
 /**
+ * @author: Asher Drybrough
+ */
+ 
+/**
  * Controller for managing comments on posts.
  * This controller allows authenticated users to create comments on posts.
  */

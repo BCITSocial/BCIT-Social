@@ -7,6 +7,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BCIT_Social.Controllers;
 
+/**
+ * @author: Asher Drybrough
+ */
+ 
+/**
+ * Controller for managing bookmarks for posts.
+ * This controller allows authenticated users to save and remove bookmarks for posts.
+ */
 [Authorize]
 public class BookmarksController : Controller
 {
