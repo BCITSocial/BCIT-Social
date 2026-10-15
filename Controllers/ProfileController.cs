@@ -55,6 +55,13 @@ public class ProfileController : Controller
     // POST: PROFILES/Create
     // To protect from overposting attacks, enable the specific properties you want to bind to.
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    /// <summary>
+    /// Author: Joshua Trepanier
+    /// Last Revised: Oct 15, 2026
+    /// Description: Creation of the profile
+    /// </summary>
+    /// <param name="viewModel"></param>
+    /// <returns></returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ProfileViewModel viewModel)
