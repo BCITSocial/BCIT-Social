@@ -11,8 +11,9 @@
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 
 @{
+    Layout = "_HomeLayout";
     var jsonPath = System.IO.Path.Combine(Env.WebRootPath, "content", "communities-text.json");
-    var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
+    using var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
     var text = jsonDoc.RootElement;
     var featured = text.GetProperty("featured");
 
