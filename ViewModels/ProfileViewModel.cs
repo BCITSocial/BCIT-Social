@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
-using BCIT_Social.Models;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BCIT_Social.ViewModels;
 
-/// <summary>
-/// View model for creating Profile model (The profile itself)
+/// </summary>
+/// Author: Joshua Trepanier
+/// Last Revised: Oct 15, 2026
+/// Description: View model for creating Profile model (The profile itself)
 /// </summary>
 public class ProfileViewModel
 {
