@@ -12,6 +12,8 @@ public class Post
     public int? CommunityId { get; set; }
     public Community? Community { get; set; }
 
+    public ICollection<PostTags> PostTags { get; set; } = new List<PostTags>();
+
     public string Content { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using BCIT_Social.Models;
 
 namespace BCIT_Social.ViewModels;
@@ -14,8 +15,11 @@ public class CreatePostViewModel
 	//[StringLength(150)]
 	//public string Title { get; set; } = null!;
 
-	[Required]
+	[Display(Name = "Post Type")]
+	[Range(1, int.MaxValue, ErrorMessage = "Please select a post type.")]
 	public int TagId { get; set; }
+
+	public List<SelectListItem> PostTypes { get; set; } = new();
 
 	[Required]
 	public string Content { get; set; } = null!;
