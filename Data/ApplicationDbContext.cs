@@ -25,6 +25,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Chatbox> Chatboxes { get; set; }
     public DbSet<ChatboxUser> ChatboxUsers { get; set; }
     public DbSet<Message> Messages { get; set; }
+    public DbSet<PostPhoto> PostPhotos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -105,12 +106,40 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(p => p.AuthorId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Supports retrieving an author's posts ordered by creation date.
+        builder.Entity<Post>()
+            .HasIndex(p => new
+            {
+                p.AuthorId,
+                p.CreatedAt
+            });
+
         // One Community can have many Posts, and a Post may exist without a Community.
         builder.Entity<Post>()
             .HasOne(p => p.Community)
             .WithMany()
             .HasForeignKey(p => p.CommunityId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Configures the one-to-many relationship between a Post and its photos.
+        builder.Entity<PostPhoto>()
+            .HasOne(photo => photo.Post)
+            .WithMany(post => post.Photos)
+            .HasForeignKey(photo => photo.PostId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Supports retrieving a post's photos in display order.
+        builder.Entity<PostPhoto>()
+            .HasIndex(photo => new
+            {
+                photo.PostId,
+                photo.DisplayOrder
+            });
+
+        // Ensures each stored photo key refers to only one PostPhoto record.
+        builder.Entity<PostPhoto>()
+            .HasIndex(photo => photo.StorageKey)
+            .IsUnique();
 
         // One ApplicationUser can author many Comments.
         builder.Entity<Comments>()
@@ -219,5 +248,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(m => m.SenderId)
             .OnDelete(DeleteBehavior.Restrict);
+
     }
 }

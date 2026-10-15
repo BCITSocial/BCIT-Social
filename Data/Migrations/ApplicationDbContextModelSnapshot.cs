@@ -189,6 +189,21 @@ namespace BCIT_Social.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BannerPhotoContentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("BannerPhotoFileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("BannerPhotoOriginalFileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BannerPhotoStorageKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("BannerPhotoUpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CreatorId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -347,13 +362,59 @@ namespace BCIT_Social.Data.Migrations
                     b.Property<DateTime?>("DateOfDel")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("Id");
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasIndex("AuthorId");
+                    b.HasKey("Id");
 
                     b.HasIndex("CommunityId");
 
+                    b.HasIndex("AuthorId", "CreatedAt");
+
                     b.ToTable("Posts");
+                });
+
+            modelBuilder.Entity("BCIT_Social.Models.PostPhoto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StorageKey")
+                        .IsUnique();
+
+                    b.HasIndex("PostId", "DisplayOrder");
+
+                    b.ToTable("PostPhotos");
                 });
 
             modelBuilder.Entity("BCIT_Social.Models.PostTags", b =>
@@ -387,6 +448,21 @@ namespace BCIT_Social.Data.Migrations
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProfilePhotoContentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("ProfilePhotoFileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ProfilePhotoOriginalFileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProfilePhotoStorageKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ProfilePhotoUpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Program")
                         .IsRequired()
@@ -730,6 +806,17 @@ namespace BCIT_Social.Data.Migrations
                     b.Navigation("Community");
                 });
 
+            modelBuilder.Entity("BCIT_Social.Models.PostPhoto", b =>
+                {
+                    b.HasOne("BCIT_Social.Models.Post", "Post")
+                        .WithMany("Photos")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+                });
+
             modelBuilder.Entity("BCIT_Social.Models.PostTags", b =>
                 {
                     b.HasOne("BCIT_Social.Models.Post", "Post")
@@ -826,6 +913,11 @@ namespace BCIT_Social.Data.Migrations
             modelBuilder.Entity("BCIT_Social.Models.Community", b =>
                 {
                     b.Navigation("Members");
+                });
+
+            modelBuilder.Entity("BCIT_Social.Models.Post", b =>
+                {
+                    b.Navigation("Photos");
                 });
 #pragma warning restore 612, 618
         }

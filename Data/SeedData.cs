@@ -275,6 +275,7 @@ public static class SeedData
                 {
                     AuthorId = users[i].Id,
                     CommunityId = communities[i].Id,
+                    Title = $"Sample post title {i + 1:00}",
                     Content = content,
                     CreatedAt = DateTime.UtcNow.AddDays(-i)
                 };

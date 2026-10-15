@@ -20,5 +20,5 @@ public class Post
 
     public DateTime? DateOfDel { get; set; }
 
-
+    public ICollection<PostPhoto> Photos { get; set; } = new List<PostPhoto>();
 }
