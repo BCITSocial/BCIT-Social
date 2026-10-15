@@ -202,7 +202,7 @@ public class CommunityController : Controller
     /// <summary>
     /// Author: Tin Trinh
     /// Last Revised: Oct. 14, 2026
-    /// Description: Checks if user has access rights to the call, otherwise calls Forbid.
+    /// Description: Checks if user has access rights to the call.
     /// </summary>
     /// <param name="ownerOnly">bool if access is only for the owner of the Community, otherwise moderators also have access</param>
     /// <return>A bool, true if access, false otherwise</return>
