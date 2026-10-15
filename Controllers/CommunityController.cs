@@ -90,15 +90,12 @@ public class CommunityController : Controller
         {
             return NotFound();
         }
-
-        string? creatorId = _userManager.GetUserId(User);
-
         var community = await _context.Communities.FindAsync(id);
         if (community == null)
         {
             return NotFound();
         }
-        if (community.CreatorId != creatorId)
+        if (!CommunityAccessChecker(true, community))
         {
             return Forbid();
         }
@@ -114,13 +111,12 @@ public class CommunityController : Controller
     public async Task<IActionResult> Edit(int? id, CommunityViewModel viewModel)
     {
         var community = await _context.Communities.FindAsync(id);
-        string? creatorId = _userManager.GetUserId(User);
 
         if (community == null)
         {
             return NotFound();
         }
-        if (community.CreatorId != creatorId)
+        if (!CommunityAccessChecker(true, community))
         {
             return Forbid();
         }
@@ -163,7 +159,6 @@ public class CommunityController : Controller
     // GET: COMMUNITYS/Delete/5
     public async Task<IActionResult> Delete(int? id)
     {
-        string? creatorId = _userManager.GetUserId(User);
         if (id == null)
         {
             return NotFound();
@@ -175,7 +170,7 @@ public class CommunityController : Controller
         {
             return NotFound();
         }
-        if (community.CreatorId != creatorId)
+        if (!CommunityAccessChecker(true, community))
         {
             return Forbid();
         }
@@ -188,14 +183,10 @@ public class CommunityController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int? id)
     {
-        string? creatorId = _userManager.GetUserId(User);
         var community = await _context.Communities.FindAsync(id);
         if (community != null)
         {
-            if (community.CreatorId != creatorId)
-            {
-                return Forbid();
-            }
+            CommunityAccessChecker(true, community);
             _context.Communities.Remove(community);
         }
 
@@ -207,4 +198,34 @@ public class CommunityController : Controller
     {
         return _context.Communities.Any(e => e.Id == id);
     }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 14, 2026
+    /// Description: Checks if user has access rights to the call, otherwise calls Forbid.
+    /// </summary>
+    /// <param name="ownerOnly">bool if access is only for the owner of the Community, otherwise moderators also have access</param>
+    /// <return>A bool, true if access, false otherwise</return>
+    private bool CommunityAccessChecker(bool ownerOnly, Community community)
+    {
+        string? currentUserId = _userManager.GetUserId(User);
+        // Check if owner
+        if (currentUserId == community.CreatorId)
+        {
+            return true;
+        }
+        // if owner flag is off, check if moderator
+        if (!ownerOnly)
+        {
+            foreach (CommunityMember member in community.Members)
+            {
+                if (member.UserId == currentUserId && member.IsModerator)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 }
