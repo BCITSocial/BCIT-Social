@@ -14,9 +14,17 @@ public class CommunityController : Controller
     }
 
     // GET: COMMUNITYS
-    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Index()
     {
-        return View(await _context.Communities.ToListAsync());
+        try
+        {
+            return View(await _context.Communities.ToListAsync());
+        }
+        catch
+        {
+            // Fallback on macOS since I can't connect to the DB!
+            return View(new List<Community>());
+        }
     }
 
     // GET: COMMUNITYS/Details/5

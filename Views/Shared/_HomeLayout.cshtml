@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - BCIT Social</title>
+    <link rel="stylesheet" href="~/css/settings.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <partial name="_Header" />
+    <div class="app-shell">
+        <partial name="_Navigation" />
+        <main id="main-content" tabindex="-1">
+            @RenderBody()
+        </main>
+    </div>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
