@@ -1,0 +1,41 @@
+name: Strict Quality Gate
+
+on:
+  push:
+    branches:
+      - Dev
+      - dev
+  pull_request:
+    branches:
+      - Dev
+      - dev
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: strict-gate-${{ github.workflow }}-${{ github.ref }}
+  # Cancel superseded PR runs; never cancel runs for pushes to Dev
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PROJECT_PATH: BCIT-Social.csproj
+
+jobs:
+  strict-analysis:
+    name: Strict Roslyn Analysis
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Environment & Cache
+        uses: ./.github/actions/setup-dotnet-cached
+
+      - name: Roslyn Format Validation
+        run: dotnet format "${{ env.PROJECT_PATH }}" --no-restore --verify-no-changes --verbosity minimal
+
+      - name: Strict Roslyn Build (Warnings as Errors)
+        run: dotnet build "${{ env.PROJECT_PATH }}" --no-restore -c Release /p:TreatWarningsAsErrors=true

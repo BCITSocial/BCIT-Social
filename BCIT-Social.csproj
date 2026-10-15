@@ -20,4 +20,12 @@
     </PackageReference>
   </ItemGroup>
 
+  <!-- Keep the nested test project out of the web app's build/publish output. -->
+  <ItemGroup>
+    <Compile Remove="BCIT-Social.Tests\**" />
+    <Content Remove="BCIT-Social.Tests\**" />
+    <EmbeddedResource Remove="BCIT-Social.Tests\**" />
+    <None Remove="BCIT-Social.Tests\**" />
+  </ItemGroup>
+
 </Project>
