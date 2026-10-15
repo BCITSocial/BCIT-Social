@@ -10,7 +10,7 @@ namespace BCIT_Social.Controllers;
 /**
  * @author: Asher Drybrough
  */
- 
+
 /**
  * Controller for managing comments on posts.
  * This controller allows authenticated users to create comments on posts.
@@ -74,7 +74,8 @@ public class CommentController : Controller
             AuthorId = userId,
             PostId = postId,
             Content = content.Trim(),
-            ParentCommentId = parentCommentId
+            ParentCommentId = parentCommentId,
+            CreatedAt = DateTime.UtcNow
         });
 
         await _context.SaveChangesAsync();

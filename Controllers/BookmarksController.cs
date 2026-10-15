@@ -57,7 +57,8 @@ public class BookmarksController : Controller
             _context.Bookmarks.Add(new Bookmarks
             {
                 UserId = userId,
-                PostId = postId
+                PostId = postId,
+                SavedAt = DateTime.UtcNow
             });
 
             await _context.SaveChangesAsync();
