@@ -1,0 +1,298 @@
+/* wwwroot/css/communities.css */
+:root {
+    /* backgrounds */
+    --bg-page: rgba(208, 194, 153, 0.503);
+    --bg-surface: rgb(255, 255, 255);
+    --bg-subtle: hsla(210, 20%, 96%, 1);
+    --bg-pill-hover: hsla(215, 16%, 90%, 1);
+
+    /* text colors */
+    --text-primary: rgb(17, 24, 39);
+    --text-secondary: rgb(75, 85, 99);
+    --text-muted: rgb(107, 114, 128);
+    --text-on-brand: rgb(255, 255, 255);
+
+    /* Brand */
+    --brand-blue: rgb(37, 99, 235);
+    --brand-blue-hover: rgb(29, 78, 216);
+    --accent-yellow: rgb(250, 204, 21);
+    --accent-yellow-hover: rgb(234, 179, 8);
+
+    /* category/status tags */
+    --tag-default-bg: hsla(217, 91%, 60%, 0.18);
+    --tag-default-text: rgb(29, 78, 216);
+
+    /* status tag */
+    --tag-status-bg: hsla(124, 74%, 55%, 0.205);
+    --tag-status-text: rgb(68, 146, 56);
+
+    /* time tag */
+    --tag-time-bg: hsla(38, 92%, 50%, 0.2);
+    --tag-time-text: rgb(180, 83, 9);
+
+    /* borders & shadows */
+    --border-color: hsla(214, 20%, 88%, 1);
+    --shadow-card: 0 1px 3px hsla(0, 0%, 0%, 0.06);
+
+    /* layouts */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-pill: 9999px;
+}
+
+.communities-wrapper {
+    background-color: var(--bg-page);
+    padding: 1.75rem;
+    border-radius: var(--radius-lg);
+    color: var(--text-primary);
+}
+
+/* Header */
+.communities-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+}
+
+.communities-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.communities-subtitle {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin: 0.25rem 0 0 0;
+}
+
+.btn-create {
+    background-color: var(--accent-yellow);
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 0.5rem 1.1rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    border: none;
+    transition: background-color 0.15s ease;
+}
+
+.btn-create:hover {
+    background-color: var(--accent-yellow-hover);
+    color: var(--text-primary);
+}
+
+/* Category Pills & Search */
+.filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.filter-pill {
+    background-color: var(--bg-surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    padding: 0.35rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.filter-pill:hover {
+    background-color: var(--bg-pill-hover);
+}
+
+.filter-pill.active {
+    background-color: var(--brand-blue);
+    color: var(--text-on-brand);
+    border-color: var(--brand-blue);
+}
+
+.search-bar-row {
+    margin-bottom: 1.25rem;
+}
+
+.search-input {
+    width: 100%;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.search-input:focus {
+    outline: 2px solid var(--brand-blue);
+    border-color: transparent;
+}
+
+/* Main Layout */
+.communities-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+/* Featured Banner */
+.featured-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-card);
+}
+
+.featured-header-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+}
+
+.category-badge {
+    background-color: var(--tag-default-bg);
+    color: var(--tag-default-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm);
+}
+
+.status-badge {
+    background-color: var(--tag-status-bg);
+    color: var(--tag-status-text);
+}
+
+.time-badge {
+    background-color: var(--tag-time-bg);
+    color: var(--tag-time-text);
+}
+
+/* auto hides the badge box if JSON text is left blank */
+.category-badge:empty {
+    display: none;
+}
+
+.featured-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.featured-heading {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+
+.featured-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0;
+}
+
+/* Section Headings */
+.section-heading {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.85rem;
+    color: var(--text-primary);
+}
+
+/* Browse Grid */
+.browse-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .browse-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.community-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.community-card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+}
+
+.badge-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.6rem;
+}
+
+.member-count {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.community-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.card-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.btn-join {
+    background-color: var(--bg-subtle);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.35rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+
+.btn-join:hover {
+    background-color: var(--bg-pill-hover);
+    color: var(--text-primary);
+}
+
+.admin-links a {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    margin-left: 0.5rem;
+}
+
+.admin-links a:hover {
+    color: var(--brand-blue);
+}
