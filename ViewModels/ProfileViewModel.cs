@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using BCIT_Social.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BCIT_Social.ViewModels;

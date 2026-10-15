@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using BCIT_Social.Models;
 using BCIT_Social.Data;
 using Microsoft.AspNetCore.Identity;
+using BCIT_Social.ViewModels;
 
 public class ProfileController : Controller
 {
@@ -48,7 +49,7 @@ public class ProfileController : Controller
     // GET: PROFILES/Create
     public IActionResult Create()
     {
-        return View();
+        return View(new ProfileViewModel());
     }
 
     // POST: PROFILES/Create
@@ -56,22 +57,32 @@ public class ProfileController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("UserId,DisplayName,Bio,Program,Campus,User")] Profile profile)
+    public async Task<IActionResult> Create(ProfileViewModel viewModel)
     {
+        string? userID = _userManager.GetUserId(User);
+        if (userID == null)
+        {
+            return Challenge();
+        }
+
+        var profile = new Profile
+        {
+            UserId = userID,
+            DisplayName = viewModel.DisplayName,
+            Bio = viewModel.Bio,
+            Program = viewModel.Program,
+            Campus = viewModel.Campus,
+        };
+
         if (ModelState.IsValid)
         {
             _context.Add(profile);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-        string? userID = _userManager.GetUserId(User);
-        if (userID == null)
-        {
-            return Challenge();
-        }
-        return View(profile);
-
+        return View(viewModel);
     }
+
     // GET: PROFILES/Edit/5
     public async Task<IActionResult> Edit(string? userid)
     {
