@@ -9,8 +9,6 @@ namespace BCIT_Social.ViewModels;
 /// </summary>
 public class ProfileViewModel
 {
-    [Required]
-    public string UserId { get; set; } = null!;
 
     [Required]
     public string DisplayName { get; set; } = null!;
