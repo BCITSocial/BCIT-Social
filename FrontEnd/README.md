@@ -16,7 +16,7 @@ Open the localhost address printed in the terminal. Alternatively, open `BCITSoc
 ## Where to work
 
 - `Views/Home/Index.cshtml`: Home feed skeleton and empty content areas.
-- `Views/Events/Index.cshtml` and `_EventCard.cshtml`: Events page (time range and campus filters via query string, event card layout, empty state). `EventsViewModel` and `EventCardViewModel` are a proposed presentation contract; agree on them with the backend team.
+- `Views/Events/Index.cshtml` and `_EventCard.cshtml`: Events page (banner, status chips, Discover/My calendar tabs, filter toolbar, card grid). Cards are not hard-coded: each entry in `wwwroot/content/events-text.json` (`{ "events": [ ... ] }`) makes one card, and with no entries no cards are shown. Entry fields mirror `EventCardViewModel`: `title`, `description`, `startsAt`/`endsAt` (ISO, e.g. `2026-10-08T17:30:00`), `hostName`, `location`, `campus`, `coverImageUrl`, `coverImageAlt`, `goingCount`, `attendees` (`name`, `photoUrl`), `rsvp` (`None`, `Interested`, `Going` or `Hosting`), `isCancelled`. A row is left out when its value is empty. The JSON is read on every request, so edit and refresh. Filters are a GET form bound to `EventsQuery`, but they do not filter the JSON entries yet. Search for `TODO(BE)` to find where backend replaces the JSON with real events, communities and the RSVP/manage endpoints. `EventsViewModel`, `EventCardViewModel` and `AttendeeViewModel` are the presentation contract; agree on them with the backend team.
 - `Views/Shared/_Layout.cshtml`: shared document layout.
 - `Views/Shared/_Header.cshtml` and `_Navigation.cshtml`: reusable app shell.
 - `wwwroot/css/settings.css`: global colors, image references, font family, sizes, weights, and line heights.
