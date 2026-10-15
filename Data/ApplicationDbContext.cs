@@ -166,7 +166,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         // One Post can have many PostTags entries.
         builder.Entity<PostTags>()
             .HasOne(pt => pt.Post)
-            .WithMany()
+            .WithMany(p => p.PostTags)
             .HasForeignKey(pt => pt.PostId)
             .OnDelete(DeleteBehavior.Cascade);
 
