@@ -25,7 +25,7 @@ env:
 
 jobs:
   quick-check:
-    name: Lint & Fast Build
+    name: Quick Build
     runs-on: windows-latest
     steps:
       - name: Checkout Repository

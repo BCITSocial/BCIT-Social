@@ -1,4 +1,4 @@
-name: Strict Quality Gate
+name: Strict Quality Scan For Dev/Main Branches
 
 on:
   push:
