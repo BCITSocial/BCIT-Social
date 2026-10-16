@@ -1,0 +1,30 @@
+/* Global visual settings. Keep colors, fonts, and decorative image URLs here.
+   Use rem sizes so browser text-size preferences continue to work. */
+:root {
+    --color-background: #f5f4ef;
+    --color-surface: #ffffff;
+    --color-text: #172033;
+    --color-muted: #566579;
+    --color-border: #dce3ec;
+    --color-accent: #245be8;
+    --color-focus: #245be8;
+    --color-selected: #edf2ff;
+    --color-input: #f3f5f8;
+    --color-transparent: transparent;
+
+    --font-family: Arial, Helvetica, sans-serif;
+    --font-size-body: 1rem;
+    --font-size-brand: 1.125rem;
+    --font-size-title: 2rem;
+    --font-size-section: 1rem;
+    --font-weight-normal: 400;
+    --font-weight-bold: 700;
+    --line-height-body: 1.5;
+    --line-height-heading: 1.3;
+
+    /* Set to url("../images/your-file.webp") to add a decorative background.
+       Keep none for a plain background. Add future decorative image variables here. */
+    --image-page-background: none;
+
+    --radius: 12px;
+}
