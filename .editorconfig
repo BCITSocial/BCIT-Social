@@ -5,19 +5,16 @@ root = true
 indent_style = space
 indent_size = 4
 
-#### ------------------------------------------------------------------
 #### Brace Placement Rules
 #### "Place opening and closing braces on their own lines. Indent the code inside them."
-#### ------------------------------------------------------------------
+
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
 csharp_new_line_before_catch = true
 csharp_new_line_before_finally = true
 csharp_indent_braces = false
 
-#### ------------------------------------------------------------------
 #### Naming Conventions
-#### ------------------------------------------------------------------
 
 # 1. Classes: PascalCase (e.g. AnimalZoo)
 dotnet_naming_rule.classes_should_be_pascal_case.symbols = classes
@@ -76,8 +73,7 @@ dotnet_naming_style.underscore_camel_case_style.capitalization = camel_case
 dotnet_naming_style.underscore_camel_case_style.required_prefix = _
 dotnet_naming_style.uppercase_style.capitalization = all_upper
 
-#### ------------------------------------------------------------------
 #### Documentation Comment Diagnostics
-#### ------------------------------------------------------------------
+
 # Require XML documentation comments for visible API elements
 dotnet_diagnostic.CS1591.severity = warning

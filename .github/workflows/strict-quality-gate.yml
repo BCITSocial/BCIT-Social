@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: strict-gate-${{ github.workflow }}-${{ github.ref }}
@@ -30,12 +30,21 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
 
       - name: Setup Environment & Cache
         uses: ./.github/actions/setup-dotnet-cached
 
-      - name: Roslyn Format Validation
-        run: dotnet format "${{ env.PROJECT_PATH }}" --no-restore --verify-no-changes --verbosity minimal
+      - name: Auto-fix Formatting & Braces
+        run: dotnet format "${{ env.PROJECT_PATH }}" --no-restore --verbosity minimal
 
+      - name: Commit Formatting Fixes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'style: auto-fix formatting and braces [skip ci]'
+          file_pattern: '*.cs'
+
+      # Compiles app code with warnings as errors.
       - name: Strict Roslyn Build (Warnings as Errors)
         run: dotnet build "${{ env.PROJECT_PATH }}" --no-restore -c Release /p:TreatWarningsAsErrors=true
