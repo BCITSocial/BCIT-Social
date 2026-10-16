@@ -53,6 +53,6 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: "BOTSocial" # Updated from BCITSocial to match your exact Azure container identifier
+          app-name: "BCITSocial" # Updated from BCITSocial to match your exact Azure container identifier
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }} # Authenticates seamlessly via token
           package: .
