@@ -1,0 +1,30 @@
+{
+    "pageTitle": "Communities",
+    "pageSubtitle": "Your communities!, Join any that are listed below.",
+    "createButton": "+ Create",
+    "searchPlaceholder": "Search communities...",
+    "categories": [
+        "All",
+        "Technology",
+        "Arts & Design",
+        "Outdoors",
+        "Sports",
+        "Academic",
+        "Social",
+        "Hackathon"
+    ],
+    "featured": {
+        "label": "THIS WEEK",
+        "heading": "Placeholder, title of community post.",
+        "description": "This will be where you can have a short description of the post for users to see.",
+        "tag": "Technology",
+        "statusTag": "Going",
+        "timeTag": "Starting Soon"
+    },
+    "browseHeading": "Browse communities",
+    "defaultDescription": "Connect with fellow BCIT students, share resources, and collaborate.",
+    "membersLabel": "members",
+    "joinButton": "Join",
+    "editLabel": "Edit",
+    "deleteLabel": "Delete"
+}

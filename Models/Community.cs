@@ -19,5 +19,15 @@ namespace BCIT_Social.Models
         
         public virtual ApplicationUser Creator { get; set; } = null!;
         public virtual ICollection<CommunityMember> Members { get; set; } = new List<CommunityMember>();
+
+        public string? BannerPhotoStorageKey { get; set; }
+
+        public string? BannerPhotoOriginalFileName { get; set; }
+
+        public string? BannerPhotoContentType { get; set; }
+
+        public long? BannerPhotoFileSizeBytes { get; set; }
+
+        public DateTime? BannerPhotoUpdatedAt { get; set; }
     }
 }

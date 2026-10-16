@@ -1,59 +1,130 @@
+@*
+- This is the frontend view for Communities page.
+*
+- author: jaspreet bath
+*@
+
+@* Getting the Community object data. *@
 @model IEnumerable<BCIT_Social.Models.Community>
+@using System.IO
+@using System.Text.Json
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 
 @{
-    ViewData["Title"] = "Index";
+    Layout = "_HomeLayout";
+    var jsonPath = System.IO.Path.Combine(Env.WebRootPath, "content", "communities-text.json");
+    using var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
+    var text = jsonDoc.RootElement;
+    var featured = text.GetProperty("featured");
+    ViewData["Title"] = text.GetProperty("pageTitle").GetString();
 }
 
-<h1>Index</h1>
+<!-- asp-append saves the browser cache in a unique hash.
+- Set to true, so that when color is changed, the page
+- is auto updated.
+-->
+<link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatorId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Type)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Creator)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Members)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.CreatorId)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Type)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Creator)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Members)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="communities-wrapper">
+    <!-- this will be the top header div. -->
+    <div class="communities-header">
+        <div>
+            <h1 class="communities-title" data-text="page-title">@text.GetProperty("pageTitle").GetString()</h1>
+            <p class="communities-subtitle" data-text="page-subtitle">@text.GetProperty("pageSubtitle").GetString()</p>
+        </div>
+        <a asp-action="Create" class="btn-create"
+           data-text="create-button">@text.GetProperty("createButton").GetString()</a>
+    </div>
+
+    <!-- this will be the filtering div. -->
+    <div id="category-pills" class="filter-pills">
+        @{
+            var isFirst = true;
+            foreach (var category in text.GetProperty("categories").EnumerateArray())
+            {
+                <button type="button" class="filter-pill @(isFirst ? "active" : "")" data-category="@category.GetString()">
+                    @category.GetString()
+                </button>
+                isFirst = false;
+            }
+        }
+    </div>
+
+    <!-- this will be the search bar div. -->
+    <div class="search-bar-row">
+        <input type="text" id="community-search" class="search-input"
+               placeholder="@text.GetProperty("searchPlaceholder").GetString()" />
+    </div>
+
+    <!-- this will be the main content div. -->
+    <div class="communities-layout">
+        <!-- left side column. -->
+        <div>
+            <div class="featured-card">
+                <div class="featured-header-row">
+                    <div class="featured-label" data-text="featured-label">@featured.GetProperty("label").GetString()
+                    </div>
+                    <div class="category-badge" data-text="featured-tag">@featured.GetProperty("tag").GetString()</div>
+                    <div class="category-badge status-badge" data-text="featured-status">
+                        @featured.GetProperty("statusTag").GetString()</div>
+                        <div class="category-badge time-badge" data-text="featured-time">
+                            @featured.GetProperty("timeTag").GetString()</div>
+                        </div>
+                        <h2 class="featured-heading" data-text="featured-heading">@featured.GetProperty("heading").GetString()
+                        </h2>
+                        <p class="featured-desc" data-text="featured-desc">@featured.GetProperty("description").GetString()</p>
+                    </div>
+
+                    <h2 class="section-heading" data-text="browse-heading">
+                        @text.GetProperty("browseHeading").GetString() (@(Model?.Count() ?? 0))
+                    </h2>
+
+                    <div id="browse-grid" class="browse-grid">
+
+                        @* Model: Gets the actual variables from CommunityController.cs
+                - Checks if Model does have data before going into foreach loop
+                - and causing a NullReferenceException.
+                *@
+                        @if (Model != null)
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <div class="community-card" data-name="@item.Name?.ToLower()" data-type="@item.Type?.ToLower()">
+                                    <div>
+                                        <h3 class="community-card-title">@item.Name</h3>
+                                        <div class="badge-row">
+                                            <span class="category-badge">@item.Type</span>
+                                        </div>
+                                        <div class="member-count">
+
+                                            <!-- Checks to see if item.Memebers is full.
+                                    - If not, then it safely becomes null.
+                                    - The fallback is value is "0". -->
+                                            @(item.Members?.Count ?? 0) <span
+                                            data-text="members-label">@text.GetProperty("membersLabel").GetString()</span>
+                                        </div>
+                                        <p class="community-desc" data-text="default-desc">
+                                            @text.GetProperty("defaultDescription").GetString()</p>
+                                        </div>
+                                        <div class="card-actions">
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="btn-join"
+                                               data-text="join-btn">@text.GetProperty("joinButton").GetString()</a>
+                                            <div class="admin-links">
+                                                <a asp-action="Edit" asp-route-id="@item.Id"
+                                                   data-text="edit-label">@text.GetProperty("editLabel").GetString()</a>
+                                                <a asp-action="Delete" asp-route-id="@item.Id"
+                                                   data-text="delete-label">@text.GetProperty("deleteLabel").GetString()</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- this is for possible usecase in communities.js for backend. -->
+            @* @section Scripts {
+    <script src="~/js/communities.js" asp-append-version="true"></script>
+} *@

@@ -25,6 +25,9 @@
                 @Html.DisplayNameFor(model => model.Community)
             </th>
             <th>
+                Post Type
+            </th> 
+            <th>
                 @Html.DisplayNameFor(model => model.Content)
             </th>
             <th>
@@ -50,6 +53,9 @@
             </td>
             <td>
                 @Html.DisplayFor(model => item.Community)
+            </td>
+            <td>
+                @item.PostTags.FirstOrDefault()?.Tag.Name
             </td>
             <td>
                 @Html.DisplayFor(model => item.Content)

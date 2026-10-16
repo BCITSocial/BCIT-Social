@@ -15,5 +15,15 @@ namespace BCIT_Social.Models
         public string Campus { get; set; } = null!;
         
         public virtual ApplicationUser User { get; set; } = null!;
+
+        public string? ProfilePhotoStorageKey { get; set; }
+
+        public string? ProfilePhotoOriginalFileName { get; set; }
+
+        public string? ProfilePhotoContentType { get; set; }
+
+        public long? ProfilePhotoFileSizeBytes { get; set; }
+
+        public DateTime? ProfilePhotoUpdatedAt { get; set; }
     }
 }
