@@ -1,66 +1,48 @@
-@model BCIT_Social.Models.Post
+@model BCIT_Social.ViewModels.CreatePostViewModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Post";
 }
 
-<h1>Create</h1>
+<h1>Create Post</h1>
 
-<h4>Post</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<form asp-action="Create" method="post">
 
-            <div class="form-group">
-                <label asp-for="AuthorId" class="control-label"></label>
-                <input asp-for="AuthorId" class="form-control" />
-                <span asp-validation-for="AuthorId" class="text-danger"></span>
-            </div>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-            <div class="form-group">
-                <label asp-for="Author" class="control-label"></label>
-                <input asp-for="Author" class="form-control" />
-                <span asp-validation-for="Author" class="text-danger"></span>
-            </div>
+    <div class="form-group">
+        <div class="form-group">
+            <label asp-for="TagId" class="control-label"></label>
 
-            <div class="form-group">
-                <label asp-for="CommunityId" class="control-label"></label>
-                <input asp-for="CommunityId" class="form-control" />
-                <span asp-validation-for="CommunityId" class="text-danger"></span>
-            </div>
+            <select asp-for="TagId"
+                    asp-items="Model.PostTypes"
+                    class="form-control">
+                <option value="">Select post type...</option>
+            </select>
 
-            <div class="form-group">
-                <label asp-for="Community" class="control-label"></label>
-                <input asp-for="Community" class="form-control" />
-                <span asp-validation-for="Community" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Content" class="control-label"></label>
-                <input asp-for="Content" class="form-control" />
-                <span asp-validation-for="Content" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="CreatedAt" class="control-label"></label>
-                <input asp-for="CreatedAt" class="form-control" />
-                <span asp-validation-for="CreatedAt" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="DateOfDel" class="control-label"></label>
-                <input asp-for="DateOfDel" class="form-control" />
-                <span asp-validation-for="DateOfDel" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+            <span asp-validation-for="TagId" class="text-danger"></span>
+        </div>
+            <span asp-validation-for="TagId" class="text-danger"></span>
     </div>
-</div>
+
+    <div class="form-group">
+        <label asp-for="Content"></label>
+        <textarea asp-for="Content" class="form-control" rows="6"></textarea>
+        <span asp-validation-for="Content" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Create Post
+    </button>
+
+</form>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Back to Posts</a>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
