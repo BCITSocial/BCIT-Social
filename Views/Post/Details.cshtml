@@ -1,0 +1,31 @@
+@model BCIT_Social.Models.Post
+
+@{
+    ViewData["Title"] = "Post";
+}
+
+<h1>Post</h1>
+
+<div>
+    <p>
+        <strong>Author:</strong>
+        @Model.Author?.UserName
+    </p>
+
+    <p>
+        <strong>Created:</strong>
+        @Model.CreatedAt
+    </p>
+
+    <hr />
+
+    <p>
+        @Model.Content
+    </p>
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+    |
+    <a asp-action="Index">Back to Posts</a>
+</div>

@@ -1,20 +1,26 @@
-"# BCIT-Social"
+# BCIT Social
 
-## Development sample data
+One ASP.NET Core MVC application targeting .NET 10. Run commands from this directory:
 
-When the app runs in the Development environment, startup applies pending EF Core
-migrations and seeds sample users, profiles, communities, posts, comments, events,
-messages, tags, and their related records. Seeding is idempotent; restarting the app
-does not duplicate the sample data. It seeds at least 20 records in each application
-data table, including the join tables. Identity framework system tables such as
-claims and external logins are not populated because the sample data does not need them.
+```sh
+dotnet restore
+dotnet watch run
+```
 
-The seeded demo users can sign in with any of these email addresses:
+The application uses the existing SQL Server connection configuration and ASP.NET Core Identity. Open `BCIT-Social.csproj` in Visual Studio, or use the localhost URL printed by the CLI.
 
-- `maya.chen@example.com`
-- `noah.patel@example.com`
-- `ava.williams@example.com`
-- `liam.garcia@example.com`
+## Project structure
 
-The shared local-development password is `Demo123!`. These accounts are only
-created in Development and should not be used in a deployed environment."
+- `Controllers/`: MVC controllers, including the single Home controller.
+- `Models/`: database models and view models.
+- `Data/`: database context and Entity Framework migrations.
+- `Views/`: all MVC views and shared layouts/partials.
+- `Areas/Identity/`: Identity Razor Pages configuration.
+- `wwwroot/`: CSS, JavaScript, static content, and third-party libraries.
+- `Properties/`: local launch profiles.
+- `docs/`: UI development notes.
+- `Program.cs`: application startup, authentication, database registration, and routing.
+
+The Home starter UI is now `Views/Home/Index.cshtml`, using `Views/Shared/_HomeLayout.cshtml` and `wwwroot/css/home.css`. The other pages retain `_Layout.cshtml` and `site.css`. These layouts serve different existing page designs. There is no separate frontend project or startup process.
+
+See [Home UI notes](docs/home-ui.md) for styling conventions. Build with `dotnet build`.

@@ -8,12 +8,12 @@ namespace BCIT_Social.Models
     {
         [ForeignKey(nameof(User))]
         public string UserId { get; set; } = null!;
-        
+
         [ForeignKey(nameof(Community))]
         public int CommunityId { get; set; }
-        
-        public bool IsModerator { get; set; } 
-        
+
+        public bool IsModerator { get; set; }
+
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation Properties

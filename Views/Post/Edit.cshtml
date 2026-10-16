@@ -1,0 +1,55 @@
+@model BCIT_Social.ViewModels.EditPostViewModel
+
+@{
+    ViewData["Title"] = "Edit Post";
+}
+
+<h1>Edit Post</h1>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+
+    <input asp-for="Id" type="hidden" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group">
+        <label asp-for="TagId" class="control-label"></label>
+
+        <select asp-for="TagId"
+                asp-items="Model.PostTypes"
+                class="form-control">
+            <option value="">Select post type...</option>
+        </select>
+
+        <span asp-validation-for="TagId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Content" class="control-label"></label>
+
+        <textarea asp-for="Content"
+                  class="form-control"
+                  rows="6"></textarea>
+
+        <span asp-validation-for="Content" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">
+            Save Changes
+        </button>
+
+        <a asp-action="Details"
+           asp-route-id="@Model.Id"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+    </div>
+
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

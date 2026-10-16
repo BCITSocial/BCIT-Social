@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace BCIT_Social.Models;
 
@@ -13,6 +13,7 @@ public class Post
     public Community? Community { get; set; }
 
     public string Title { get; set; } = null!;
+    public ICollection<PostTags> PostTags { get; set; } = new List<PostTags>();
 
     public string Content { get; set; } = null!;
 
