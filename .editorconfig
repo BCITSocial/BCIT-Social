@@ -1,0 +1,79 @@
+# EditorConfig for Roslyn analyzer & team conventions
+root = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+
+#### Brace Placement Rules
+#### "Place opening and closing braces on their own lines. Indent the code inside them."
+
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_indent_braces = false
+
+#### Naming Conventions
+
+# 1. Classes: PascalCase (e.g. AnimalZoo)
+dotnet_naming_rule.classes_should_be_pascal_case.symbols = classes
+dotnet_naming_rule.classes_should_be_pascal_case.style = pascal_case_style
+dotnet_naming_rule.classes_should_be_pascal_case.severity = error
+
+dotnet_naming_symbols.classes.applicable_kinds = class
+dotnet_naming_symbols.classes.applicable_accessibilities = *
+
+# 2. Methods: PascalCase (e.g. OpenDoors)
+dotnet_naming_rule.methods_should_be_pascal_case.symbols = methods
+dotnet_naming_rule.methods_should_be_pascal_case.style = pascal_case_style
+dotnet_naming_rule.methods_should_be_pascal_case.severity = error
+
+dotnet_naming_symbols.methods.applicable_kinds = method
+dotnet_naming_symbols.methods.applicable_accessibilities = *
+
+# 3. Properties: PascalCase (e.g. AnimalSupplies)
+dotnet_naming_rule.properties_should_be_pascal_case.symbols = properties
+dotnet_naming_rule.properties_should_be_pascal_case.style = pascal_case_style
+dotnet_naming_rule.properties_should_be_pascal_case.severity = error
+
+dotnet_naming_symbols.properties.applicable_kinds = property
+dotnet_naming_symbols.properties.applicable_accessibilities = *
+
+# 4. Private fields: _camelCase (e.g. _animalSupplies)
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.style = underscore_camel_case_style
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.severity = error
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_fields.required_modifiers = 
+
+# 5. Non-private / Public / Protected fields: camelCase (e.g. animalSupplies)
+dotnet_naming_rule.public_fields_should_be_camel_case.symbols = non_private_fields
+dotnet_naming_rule.public_fields_should_be_camel_case.style = camel_case_style
+dotnet_naming_rule.public_fields_should_be_camel_case.severity = error
+
+dotnet_naming_symbols.non_private_fields.applicable_kinds = field
+dotnet_naming_symbols.non_private_fields.applicable_accessibilities = public, internal, protected, protected_internal
+dotnet_naming_symbols.non_private_fields.required_modifiers = 
+
+# 6. Constants: UPPERCASE (e.g. LOCATION)
+dotnet_naming_rule.constants_should_be_uppercase.symbols = constants
+dotnet_naming_rule.constants_should_be_uppercase.style = uppercase_style
+dotnet_naming_rule.constants_should_be_uppercase.severity = error
+
+dotnet_naming_symbols.constants.applicable_kinds = field, local
+dotnet_naming_symbols.constants.required_modifiers = const
+
+#### Styles definitions
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case_style.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case_style.required_prefix = _
+dotnet_naming_style.uppercase_style.capitalization = all_upper
+
+#### Documentation Comment Diagnostics
+
+# Require XML documentation comments for visible API elements
+dotnet_diagnostic.CS1591.severity = warning

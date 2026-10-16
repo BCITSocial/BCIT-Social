@@ -1,0 +1,49 @@
+name: PR Quick Scan
+
+on:
+  pull_request:
+    branches-ignore:
+      - main
+      - Dev
+      - dev
+  push:
+    branches-ignore:
+      - main
+      - Dev
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: quick-scan-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROJECT_PATH: BCIT-Social.csproj
+
+jobs:
+  quick-check:
+    name: Quick Build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+
+      - name: Setup Environment & Cache
+        uses: ./.github/actions/setup-dotnet-cached
+
+      - name: Auto-fix Formatting & Braces
+        run: dotnet format "${{ env.PROJECT_PATH }}" --no-restore --verbosity minimal
+
+      - name: Commit Formatting Fixes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'style: auto-fix formatting and braces [skip ci]'
+          file_pattern: '*.cs'
+
+      - name: Fast Compilation Check
+        run: dotnet build "${{ env.PROJECT_PATH }}" --no-restore -c Debug /p:TreatWarningsAsErrors=false
