@@ -16,48 +16,9 @@
     using var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
     var text = jsonDoc.RootElement;
     var featured = text.GetProperty("featured");
-@*
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Type)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Members)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Type)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Members)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
     ViewData["Title"] = text.GetProperty("pageTitle").GetString();
 }
-*@
+
 <!-- asp-append saves the browser cache in a unique hash.
 - Set to true, so that when color is changed, the page
 - is auto updated.
