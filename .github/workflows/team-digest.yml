@@ -1,0 +1,61 @@
+name: Team Digest
+
+on:
+  schedule:
+    # Cron is UTC. 15:00 UTC = 08:00 PDT / 07:00 PST.
+    - cron: "0 15 * * 1,2,3,5"   # daily digest Mon/Tue/Wed/Fri (Monday covers the weekend)
+    - cron: "30 15 * * 4"        # weekly digest Thursday, before the 9:30 exec meeting
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "daily or weekly"
+        type: choice
+        options: [daily, weekly]
+        default: daily
+      hours:
+        description: "Look-back window in hours (blank = default for the mode)"
+        required: false
+        default: ""
+      dry_run:
+        description: "Only write the job summary, do not post to Discord"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+concurrency:
+  group: team-digest
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tools/team-digest/requirements.txt
+
+      - run: pip install -r tools/team-digest/requirements.txt
+
+      - name: Build and post digest
+        env:
+          # Same-repo setup uses the built-in token; a separate repo needs the DIGEST_GH_TOKEN secret.
+          GH_TOKEN: ${{ secrets.DIGEST_GH_TOKEN || github.token }}
+          GITHUB_REPO: ${{ vars.DIGEST_TARGET_REPO || github.repository }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_GUILD_ID: ${{ vars.DISCORD_GUILD_ID }}
+          DISCORD_DIGEST_CHANNEL_ID: ${{ vars.DISCORD_DIGEST_CHANNEL_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DIGEST_MODEL: ${{ vars.DIGEST_MODEL }}
+          DIGEST_MODE: ${{ inputs.mode || (github.event.schedule == '30 15 * * 4' && 'weekly' || 'daily') }}
+          DIGEST_HOURS: ${{ inputs.hours }}
+          DIGEST_DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+        run: python tools/team-digest/digest.py
