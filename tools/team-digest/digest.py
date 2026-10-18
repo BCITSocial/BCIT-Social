@@ -602,6 +602,7 @@ TEAM_STYLE = {
     "qa & usability": ("🧪", 0xDD6B20),
 }
 STATUS_ICON = {"on_track": "🟢", "slow": "🟡", "blocked": "🔴"}
+SUPPRESS_EMBEDS = 1 << 2  # message flag: no link previews
 
 
 def linkify(text, repo):
@@ -834,7 +835,8 @@ def main():
         discord.post_message(channel, {"embeds": batch, "allowed_mentions": {"parse": []}})
     for content, ids in render_reminders(digest, roster, repo):
         # Only the people named in a reminder are pinged; never @everyone or roles.
-        discord.post_message(channel, {"content": content,
+        # SUPPRESS_EMBEDS stops Discord from attaching a GitHub preview card for every PR link.
+        discord.post_message(channel, {"content": content, "flags": SUPPRESS_EMBEDS,
                                        "allowed_mentions": {"parse": [], "users": sorted(ids)[:100]}})
     print(f"Posted digest to channel {channel}", file=sys.stderr)
 
