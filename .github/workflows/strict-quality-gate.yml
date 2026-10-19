@@ -1,0 +1,50 @@
+name: Strict Quality Scan For Dev/Main Branches
+
+on:
+  push:
+    branches:
+      - Dev
+      - dev
+  pull_request:
+    branches:
+      - Dev
+      - dev
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: strict-gate-${{ github.workflow }}-${{ github.ref }}
+  # Cancel superseded PR runs; never cancel runs for pushes to Dev
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PROJECT_PATH: BCIT-Social.csproj
+
+jobs:
+  strict-analysis:
+    name: Strict Roslyn Analysis
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+
+      - name: Setup Environment & Cache
+        uses: ./.github/actions/setup-dotnet-cached
+
+      - name: Auto-fix Formatting & Braces
+        run: dotnet format "${{ env.PROJECT_PATH }}" --no-restore --verbosity minimal
+
+      - name: Commit Formatting Fixes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'style: auto-fix formatting and braces [skip ci]'
+          file_pattern: '*.cs'
+
+      # Compiles app code with warnings as errors.
+      - name: Strict Roslyn Build (Warnings as Errors)
+        run: dotnet build "${{ env.PROJECT_PATH }}" --no-restore -c Release /p:TreatWarningsAsErrors=true
