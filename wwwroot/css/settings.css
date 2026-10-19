@@ -1,3 +1,8 @@
+/*
+author: Andre Di Lascio
+Defines shared colors, typography, and decorative image settings for the Home shell.
+*/
+
 /* Global visual settings. Keep colors, fonts, and decorative image URLs here.
    Use rem sizes so browser text-size preferences continue to work. */
 :root {

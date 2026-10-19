@@ -1,3 +1,8 @@
+/*
+author: Andre Di Lascio
+Styles the shared Home shell, content panels, navigation, and responsive layout.
+*/
+
 * { box-sizing: border-box; }
 body { margin: 0; background-color: var(--color-background); background-image: var(--image-page-background); color: var(--color-text); font-family: var(--font-family); font-size: var(--font-size-body); font-weight: var(--font-weight-normal); line-height: var(--line-height-body); }
 a { color: var(--color-accent); }

@@ -1,7 +1,26 @@
+@*
+author: Andre Di Lascio
+Renders the shared brand, search placeholder, and account links.
+*@
+
 <header class="site-header">
     <a class="brand" asp-controller="Home" asp-action="Index">BCIT Social</a>
     <label class="header-search">
         <span class="visually-hidden">Search BCIT Social (unavailable)</span>
         <input type="search" placeholder="Search BCIT Social" disabled />
     </label>
+    <nav class="account-links" aria-label="Account">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <span class="account-name">@User.Identity.Name</span>
+            <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                <button type="submit">Log out</button>
+            </form>
+        }
+        else
+        {
+            <a asp-area="Identity" asp-page="/Account/Login">Log in</a>
+            <a asp-area="Identity" asp-page="/Account/Register">Sign up</a>
+        }
+    </nav>
 </header>
