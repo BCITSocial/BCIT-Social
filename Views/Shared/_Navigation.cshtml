@@ -11,6 +11,6 @@ Renders sidebar navigation and marks the active controller route.
     @* Replace disabled controls with route links as the team adds each screen. *@
     <a asp-controller="Community" asp-action="Index" aria-current="@(currentController == "Community" ? "page" : null)">Communities</a>
     <a asp-controller="Events" asp-action="Index" aria-current="@(currentController == "Events" ? "page" : null)">Events</a>
-    <button type="button" disabled>Profile</button>
+    <a asp-controller="Profile" asp-action="Index" aria-current="@(currentController == "Profile" ? "page" : null)">My profile</a>
     <button type="button" disabled>Messages</button>
 </nav>
