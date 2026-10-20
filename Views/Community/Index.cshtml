@@ -16,7 +16,6 @@
     using var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
     var text = jsonDoc.RootElement;
     var featured = text.GetProperty("featured");
-
     ViewData["Title"] = text.GetProperty("pageTitle").GetString();
 }
 

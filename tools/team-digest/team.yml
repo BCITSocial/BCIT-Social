@@ -1,0 +1,120 @@
+# Team Digest configuration for BCIT Social.
+# Fill in each member's GitHub username and Discord username (NOT the display name;
+# in Discord: click the profile -> the lowercase name under the display name).
+# Members without handles still work, but their activity shows up under the raw handle.
+
+# Used only when running locally; in GitHub Actions the repo comes from GITHUB_REPO.
+repo: BCITSocial/BCIT-Social
+
+# Language the digest is written in.
+language: English
+
+# Time zone used for dates in the digest and for the "Monday covers the weekend" rule.
+timezone: America/Vancouver
+
+teams:
+  - Frontend
+  - Backend
+  - Database
+  - DevOps
+  - QA & Usability
+
+discord:
+  # Channels to read, by name. Leave empty ([]) to read every text channel the bot can see.
+  # Threads and forum posts inside these channels are included automatically.
+  channels: []
+  # Channels never read (the digest channel is always excluded automatically).
+  exclude:
+    - team-digest
+    - off-topic
+    - learning-materials
+    - announcements
+  # Optional hint so the summary knows which team a channel belongs to.
+  channel_team:
+    frontend: Frontend
+    backend: Backend
+    database: Database
+    dev-ops: DevOps
+    usability: QA & Usability
+    qa: QA & Usability
+
+# GitHub branch -> team hint (prefix match). Feature branches like "frontend/feed" also match.
+branch_team:
+  Frontend: Frontend
+  frontend: Frontend
+  Backend: Backend
+  backend: Backend
+  database: Database
+  db: Database
+  devops: DevOps
+  ci: DevOps
+  feature/fe: Frontend
+  feature/be: Backend
+  feature/db: Database
+
+# Team workflow rules. "Friendly reminders" only flag things that break one of these
+# (or a rule agreed in Discord). Add a line whenever the team agrees on something new.
+conventions:
+  - Repository configuration (.github/workflows, CODEOWNERS, branch protection, other repo-level config) is owned by DevOps and is committed directly to main on purpose; this is expected, not a skipped review.
+  - Feature work goes on feature/* branches and reaches the team branches (Frontend, Backend, Database) through a PR.
+  - Backend: 1 peer review before merging into Backend; review requests go in #code-review with the PR number or link.
+  - Dev -> main merges are done by the PM / DevOps at the end of each coding stage.
+
+# Roster from "V2 Project Proposal 2026" section 4.1.
+members:
+  - name: Andre
+    github: "adilascio"
+    discord: "dedecodl"
+    teams: [Frontend (lead), QA & Usability]
+  - name: Jun
+    github: "JunDotGit"
+    discord: "ubermainichi"
+    teams: [Frontend]
+  - name: Joshua
+    github: "Fossa88"
+    discord: "fossa808"
+    teams: [Frontend, Backend]
+  - name: Tin
+    github: "ttrinh0"
+    discord: "stattty"
+    teams: [Frontend, Backend]
+  - name: Jonathan
+    github: "SoSv1"
+    discord: "sos8297"
+    teams: [Frontend, Database]
+  - name: Livjot
+    github: "Livjot-BCIT"
+    discord: "kingend"
+    teams: [Backend (lead)]
+  - name: Asher
+    github: "cheecharoo"
+    discord: "cheecharoo"
+    teams: [Backend, QA & Usability]
+  - name: Stan
+    github: "ImInsideYourComputer"
+    discord: "euphoricmelancholy"
+    teams: [Backend, DevOps]
+  - name: Jacob
+    github: "jprice916"
+    discord: "froggu0312"
+    teams: [Backend, Database]
+  - name: Cameron
+    github: "cmorris49"
+    discord: "4cameron4"
+    teams: [Database (lead), DevOps]
+  - name: Justin
+    github: "justinrchik"
+    discord: "choyces"
+    teams: [Database]
+  - name: Rodrigo
+    github: "rodrigo-aaron"
+    discord: "cicrox"
+    teams: [QA & Usability (lead), DevOps]
+  - name: Angus
+    github: "Purple-Towel"
+    discord: "purple_towel"
+    teams: [QA & Usability, DevOps]
+  - name: Jaspreet
+    github: "Glonkz"
+    discord: "glonkz."
+    teams: [DevOps (lead)]
