@@ -42,7 +42,10 @@
             @Html.DisplayNameFor(model => model.Members)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Members)
+        @foreach (var member in Model.Members)
+        {
+            <li>@member.User.UserName</li>
+        }
         </dd>
     </dl>
 </div>

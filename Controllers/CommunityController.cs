@@ -86,10 +86,10 @@ public class CommunityController : Controller
             CommunityId = community.Id,
             IsModerator = true,
         };
-        community.Members.Add(communityMember);
 
         if (ModelState.IsValid)
         {
+            _context.Add(communityMember);
             _context.Add(community);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Details), new
@@ -176,6 +176,7 @@ public class CommunityController : Controller
 
     private async Task<DetailsCommunityViewModel> DetailsViewModelFromCommunity(Community community)
     {
+        var members = await _context.CommunityMembers.Where(m => m.CommunityId == community.Id).ToListAsync();
         var creator = await _userManager.FindByIdAsync(community.CreatorId);
         var creatorName = creator?.UserName;
         var viewModel = new DetailsCommunityViewModel
@@ -183,7 +184,7 @@ public class CommunityController : Controller
             Name = community.Name,
             Type = community.Type,
             Creator = creatorName ?? "hi",
-            Members = community.Members
+            Members = members
         };
         return viewModel;
     }
