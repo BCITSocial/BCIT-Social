@@ -80,6 +80,14 @@ public class CommunityController : Controller
             Name = viewModel.Name,
             Type = viewModel.Type,
         };
+        var communityMember = new CommunityMember
+        {
+            UserId = creatorId,
+            CommunityId = community.Id,
+            IsModerator = true,
+        };
+        community.Members.Add(communityMember);
+
         if (ModelState.IsValid)
         {
             _context.Add(community);
