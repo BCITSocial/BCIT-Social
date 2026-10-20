@@ -21,6 +21,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Require Dev as the source branch for main
+        if: github.base_ref == 'main' && github.head_ref != 'Dev'
+        run: |
+          Write-Error "Pull requests into main must come from Dev."
+          exit 1
+
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
