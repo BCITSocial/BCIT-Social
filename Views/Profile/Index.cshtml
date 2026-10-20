@@ -1,59 +1,68 @@
 @model IEnumerable<BCIT_Social.Models.Profile>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Profile Index";
 }
 
-<h1>Index</h1>
+<h1>Profile</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.DisplayName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Bio)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Program)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Campus)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.DisplayName)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Bio)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Program)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Campus)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.User)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.UserId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.UserId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.UserId">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="mb-1">Profiles</h1>
+        <p class="text-muted mb-0">Get to know your BCIT community.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">Create profile</a>
+</div>
+
+<section aria-labelledby="profiles-heading">
+    <h2 id="profiles-heading" class="h4 mb-3">Community profiles</h2>
+
+    @if (Model.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+            @foreach (var profile in Model)
+            {
+                <div class="col">
+                    <article class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center flex-shrink-0"
+                                     style="width: 3.5rem; height: 3.5rem;" aria-hidden="true">
+                                    <span class="text-muted">BCIT</span>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="h5 mb-1 text-break">@profile.DisplayName</h3>
+                                    <p class="text-muted small mb-0">@profile.Program</p>
+                                </div>
+                            </div>
+
+                            <p class="card-text text-break">
+                                @(string.IsNullOrWhiteSpace(profile.Bio) ? "No bio added yet." : profile.Bio)
+                            </p>
+                            <p class="text-muted small mb-0">
+                                <span class="fw-semibold">Campus:</span>
+                                @(string.IsNullOrWhiteSpace(profile.Campus) ? "Not specified" : profile.Campus)
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent d-flex flex-wrap gap-2">
+                            <a asp-action="Details" asp-route-userid="@profile.UserId" class="btn btn-outline-primary btn-sm">
+                                View profile
+                            </a>
+                            <a asp-action="Edit" asp-route-userid="@profile.UserId" class="btn btn-outline-secondary btn-sm">
+                                Edit
+                            </a>
+                        </div>
+                    </article>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="border rounded p-5 text-center">
+            <h3 class="h5">No profiles yet</h3>
+            <p class="text-muted">Create a profile to introduce yourself to the community.</p>
+            <a asp-action="Create" class="btn btn-primary">Create your profile</a>
+        </div>
+    }
+</section>
