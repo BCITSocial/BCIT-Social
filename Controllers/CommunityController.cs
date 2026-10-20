@@ -86,11 +86,12 @@ public class CommunityController : Controller
             CommunityId = community.Id,
             IsModerator = true,
         };
+        community.Members.Add(communityMember);
 
         if (ModelState.IsValid)
         {
-            _context.Add(communityMember);
             _context.Add(community);
+            _context.Add(communityMember);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Details), new
             {
@@ -164,6 +165,67 @@ public class CommunityController : Controller
         return View(community);
     }
 
+
+    // GET: COMMUNITYS/Join/5
+    [Authorize]
+    public async Task<IActionResult> Join(int? id)
+    {
+        string? currentUserId = _userManager.GetUserId(User);
+        if (id == null)
+        {
+            return NotFound();
+        }
+        var community = await _context.Communities
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (community == null)
+        {
+            return NotFound();
+        }
+        if (MemberExists(currentUserId, community))
+        {
+            return RedirectToAction(nameof(Index));
+        }
+        return View(community);
+    }
+
+    // POST: COMMUNITYS/Join/5
+    [HttpPost, ActionName("Join")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> JoinConfirmed(int? id)
+    {
+        var community = await _context.Communities.FindAsync(id);
+        string? currentUserId = _userManager.GetUserId(User);
+        if (community == null || currentUserId == null)
+        {
+            return NotFound();
+        }
+
+        var communityMember = new CommunityMember
+        {
+            UserId = currentUserId,
+            CommunityId = community.Id,
+            IsModerator = false,
+        };
+        community.Members.Add(communityMember);
+        _context.Add(communityMember);
+        _context.Update(community);
+
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Details), new
+        {
+            community.Id
+        });
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 14, 2026
+    /// Description: Creates a view model for Community Editing
+    /// </summary>
+    /// <param name="community">a Community</param>
+    /// <returns>a view model</returns>
     private CommunityViewModel EditViewModelFromCommunity(Community community)
     {
         var viewModel = new CommunityViewModel
@@ -174,6 +236,13 @@ public class CommunityController : Controller
         return viewModel;
     }
 
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 19, 2026
+    /// Description: Creates a view model for Community Details
+    /// </summary>
+    /// <param name="community">a Community</param>
+    /// <returns>a view model</returns>
     private async Task<DetailsCommunityViewModel> DetailsViewModelFromCommunity(Community community)
     {
         var members = await _context.CommunityMembers.Where(m => m.CommunityId == community.Id).ToListAsync();
@@ -183,13 +252,14 @@ public class CommunityController : Controller
         {
             Name = community.Name,
             Type = community.Type,
-            Creator = creatorName ?? "hi",
+            Creator = creatorName ?? "Not Found",
             Members = members
         };
         return viewModel;
     }
 
     // GET: COMMUNITYS/Delete/5
+    [Authorize]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null)
@@ -214,6 +284,7 @@ public class CommunityController : Controller
     // POST: COMMUNITYS/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize]
     public async Task<IActionResult> DeleteConfirmed(int? id)
     {
         var community = await _context.Communities.FindAsync(id);
@@ -230,6 +301,12 @@ public class CommunityController : Controller
     private bool CommunityExists(int? id)
     {
         return _context.Communities.Any(e => e.Id == id);
+    }
+
+    private bool MemberExists(string? id, Community community)
+    {
+
+        return community.Members.Any(m => m.UserId == id);
     }
 
     /// <summary>
