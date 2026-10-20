@@ -1,0 +1,32 @@
+name: 'Setup .NET with Cache'
+description: 'Installs .NET SDK, restores cached NuGet/Roslyn packages, and runs restore'
+
+inputs:
+  dotnet-version:
+    description: 'Target .NET SDK version'
+    required: false
+    default: '10.0.x' # Matches TargetFramework net10.0 in BCIT-Social
+  project-path:
+    description: 'Project to restore'
+    required: false
+    default: 'BCIT-Social.csproj'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ inputs.dotnet-version }}
+
+    - name: Cache NuGet & Roslyn Packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props', '**/Directory.Packages.props', '**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Restore Dependencies
+      shell: pwsh
+      run: dotnet restore "${{ inputs.project-path }}"
