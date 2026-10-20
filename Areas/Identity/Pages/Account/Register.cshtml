@@ -1,0 +1,35 @@
+@page
+@model BCIT_Social.Areas.Identity.Pages.Account.RegisterModel
+@*
+author: Andre Di Lascio
+Displays the basic account signup form and password requirements.
+*@
+@{
+    ViewData["Title"] = "Sign up";
+    Layout = "/Views/Shared/_HomeLayout.cshtml";
+}
+<section class="auth-panel" aria-labelledby="signup-title">
+    <h1 id="signup-title">Create an account</h1>
+    <p>Join BCIT Social with your email address.</p>
+    <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
+        <div asp-validation-summary="ModelOnly" class="auth-errors" role="alert"></div>
+        <div class="auth-field">
+            <label asp-for="Input.Email"></label>
+            <input asp-for="Input.Email" autocomplete="username" required />
+            <span asp-validation-for="Input.Email" class="auth-errors"></span>
+        </div>
+        <div class="auth-field">
+            <label asp-for="Input.Password"></label>
+            <input asp-for="Input.Password" autocomplete="new-password" aria-describedby="password-help" required />
+            <p id="password-help" class="auth-help">@Model.PasswordHelp</p>
+            <span asp-validation-for="Input.Password" class="auth-errors"></span>
+        </div>
+        <div class="auth-field">
+            <label asp-for="Input.ConfirmPassword"></label>
+            <input asp-for="Input.ConfirmPassword" autocomplete="new-password" required />
+            <span asp-validation-for="Input.ConfirmPassword" class="auth-errors"></span>
+        </div>
+        <button class="primary-button" type="submit">Sign up</button>
+    </form>
+    <p>Already have an account? <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Log in</a></p>
+</section>

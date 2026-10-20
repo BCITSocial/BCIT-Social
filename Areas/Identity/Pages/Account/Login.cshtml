@@ -1,0 +1,31 @@
+@page
+@model BCIT_Social.Areas.Identity.Pages.Account.LoginModel
+@*
+author: Andre Di Lascio
+Displays the email and password login form.
+*@
+@{
+    ViewData["Title"] = "Log in";
+    Layout = "/Views/Shared/_HomeLayout.cshtml";
+}
+<section class="auth-panel" aria-labelledby="login-title">
+    <h1 id="login-title">Log in</h1>
+    <p>Welcome back to BCIT Social.</p>
+    <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
+        <div asp-validation-summary="ModelOnly" class="auth-errors" role="alert"></div>
+        <div class="auth-field">
+            <label asp-for="Input.Email"></label>
+            <input asp-for="Input.Email" autocomplete="username" required />
+            <span asp-validation-for="Input.Email" class="auth-errors"></span>
+        </div>
+        <div class="auth-field">
+            <label asp-for="Input.Password"></label>
+            <input asp-for="Input.Password" autocomplete="current-password" required />
+            <span asp-validation-for="Input.Password" class="auth-errors"></span>
+        </div>
+        <label class="auth-checkbox"><input asp-for="Input.RememberMe" /> Remember me</label>
+        <button class="primary-button" type="submit">Log in</button>
+    </form>
+    <p><a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Create an account</a></p>
+    <p><a asp-page="./ForgotPassword">Forgot your password?</a></p>
+</section>

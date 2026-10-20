@@ -1,3 +1,8 @@
+/*
+author: Andre Di Lascio
+Defines shared colors, typography, and decorative image settings for the Home shell.
+*/
+
 /* Global visual settings. Keep colors, fonts, and decorative image URLs here.
    Use rem sizes so browser text-size preferences continue to work. */
 :root {
@@ -11,6 +16,18 @@
     --color-selected: #edf2ff;
     --color-input: #f3f5f8;
     --color-transparent: transparent;
+    --color-danger: #b42318;
+    --color-danger-surface: #fef3f2;
+    /* Events page */
+    --color-banner-background: #0d2147;
+    --color-banner-text: #ffffff;
+    --color-cover: #e6ebf2;
+    --color-date-tile: #fbf1dc;
+    --color-date-tile-text: #8a5a0a;
+    --color-going: #d9f1ee;
+    --color-going-text: #0b6b63;
+    --color-hosting: #fdf0d0;
+    --color-hosting-text: #7a4b0a;
 
     --font-family: Arial, Helvetica, sans-serif;
     --font-size-body: 1rem;
@@ -25,6 +42,7 @@
     /* Set to url("../images/your-file.webp") to add a decorative background.
        Keep none for a plain background. Add future decorative image variables here. */
     --image-page-background: none;
+    --image-events-banner: none;
 
     --radius: 12px;
 }
