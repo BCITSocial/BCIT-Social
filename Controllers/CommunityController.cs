@@ -48,7 +48,9 @@ public class CommunityController : Controller
             return NotFound();
         }
 
-        return View(community);
+        DetailsCommunityViewModel viewModel = await DetailsViewModelFromCommunity(community);
+
+        return View(viewModel);
     }
 
     // GET: COMMUNITYS/Create
@@ -107,7 +109,7 @@ public class CommunityController : Controller
         {
             return Forbid();
         }
-        return View(ViewModelFromCommunity(community));
+        return View(EditViewModelFromCommunity(community));
     }
 
     // POST: COMMUNITYS/Edit/5
@@ -154,12 +156,26 @@ public class CommunityController : Controller
         return View(community);
     }
 
-    private CommunityViewModel ViewModelFromCommunity(Community community)
+    private CommunityViewModel EditViewModelFromCommunity(Community community)
     {
         var viewModel = new CommunityViewModel
         {
             Name = community.Name,
             Type = community.Type,
+        };
+        return viewModel;
+    }
+
+    private async Task<DetailsCommunityViewModel> DetailsViewModelFromCommunity(Community community)
+    {
+        var creator = await _userManager.FindByIdAsync(community.CreatorId);
+        var creatorName = creator?.UserName;
+        var viewModel = new DetailsCommunityViewModel
+        {
+            Name = community.Name,
+            Type = community.Type,
+            Creator = creatorName ?? "hi",
+            Members = community.Members
         };
         return viewModel;
     }
