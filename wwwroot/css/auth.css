@@ -1,6 +1,6 @@
 /*
 author: Andre Di Lascio
-Styles the basic account forms and shared header account links.
+Styles the basic account forms.
 */
 .auth-panel { max-width: 440px; margin: 32px auto; padding: 24px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; }
 .auth-panel h1 { margin-top: 0; }
@@ -10,9 +10,4 @@ Styles the basic account forms and shared header account links.
 .auth-help { margin: 0; color: var(--color-muted); font-size: 0.875rem; }
 .auth-errors { color: var(--color-danger); }
 .auth-panel .primary-button { width: 100%; }
-.account-links { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-left: auto; }
-.account-links a { display: inline-flex; align-items: center; min-height: 44px; }
-.account-links form { margin: 0; }
-.account-links button { padding: 8px 12px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); cursor: pointer; }
-.account-name { overflow-wrap: anywhere; }
-@media (max-width: 640px) { .site-header { flex-wrap: wrap; } .account-links { margin-left: 0; } .auth-panel { margin: 16px auto; padding: 20px; } }
+@media (max-width: 640px) { .auth-panel { margin: 16px auto; padding: 20px; } }
