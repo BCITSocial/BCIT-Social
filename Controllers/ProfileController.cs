@@ -3,18 +3,27 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BCIT_Social.Models;
 using BCIT_Social.Data;
+using Microsoft.AspNetCore.Identity;
+using BCIT_Social.ViewModels;
 
 public class ProfileController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public ProfileController(ApplicationDbContext context)
+    /// <summary>
+    /// Added userManager to scaffolded code for checking user and database connections.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="userManager"></param>
+    public ProfileController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     // GET: PROFILES
-    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Index()
     {
         return View(await _context.Profiles.ToListAsync());
     }
@@ -40,23 +49,45 @@ public class ProfileController : Controller
     // GET: PROFILES/Create
     public IActionResult Create()
     {
-        return View();
+        return View(new ProfileViewModel());
     }
 
     // POST: PROFILES/Create
     // To protect from overposting attacks, enable the specific properties you want to bind to.
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    /// <summary>
+    /// Author: Joshua Trepanier
+    /// Last Revised: Oct 15, 2026
+    /// Description: Creation of the profile
+    /// </summary>
+    /// <param name="viewModel"></param>
+    /// <returns></returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("UserId,DisplayName,Bio,Program,Campus,User")] Profile profile)
+    public async Task<IActionResult> Create(ProfileViewModel viewModel)
     {
+        string? userID = _userManager.GetUserId(User);
+        if (userID == null)
+        {
+            return Challenge();
+        }
+
+        var profile = new Profile
+        {
+            UserId = userID,
+            DisplayName = viewModel.DisplayName,
+            Bio = viewModel.Bio,
+            Program = viewModel.Program,
+            Campus = viewModel.Campus,
+        };
+
         if (ModelState.IsValid)
         {
             _context.Add(profile);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-        return View(profile);
+        return View(viewModel);
     }
 
     // GET: PROFILES/Edit/5

@@ -1,0 +1,5 @@
+anthropic>=0.87.0
+requests>=2.31
+PyYAML>=6.0
+python-dotenv>=1.0
+tzdata>=2024.1
