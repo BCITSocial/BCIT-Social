@@ -1,0 +1,77 @@
+{
+  "conversations": [
+    {
+      "id": 1,
+      "userId": "maya",
+      "name": "Maya L.",
+      "photoUrl": null,
+      "program": "Digital Design",
+      "isOnline": true,
+      "isTyping": true,
+      "isUnread": true,
+      "sharedCommunities": [
+        { "id": 1, "name": "Coding Community", "memberCount": 1200 },
+        { "id": 4, "name": "BCIT Design Collective", "memberCount": 850 },
+        { "id": 3, "name": "BCIT Outdoors Club", "memberCount": 430 }
+      ],
+      "sharedMedia": [
+        { "id": 1, "fileName": "project-structure.png", "thumbnailUrl": null, "sharedAt": "2026-10-21T10:25:00" },
+        { "id": 2, "fileName": "mvc-diagram.png", "thumbnailUrl": null, "sharedAt": "2026-10-19T16:02:00" },
+        { "id": 3, "fileName": "course-planner.pdf", "thumbnailUrl": null, "sharedAt": "2026-10-12T09:40:00" }
+      ],
+      "messages": [
+        { "id": 101, "text": "Hey! I saw your post about organizing MVC controllers. I'm working on a project and wondering how you structure your folders? Do you keep feature folders, or everything in a flat structure?", "sentAt": "2026-10-21T10:12:00", "isMine": false },
+        { "id": 102, "text": "Hey Maya! I usually go with feature folders. Each feature has its own Controllers, Models, and Views folders. It keeps things organized and makes it easier to navigate as the project grows.", "sentAt": "2026-10-21T10:18:00", "isMine": true, "isRead": true },
+        { "id": 103, "text": "That makes sense! I'll try that approach. I've found it gets messy quickly when everything is in one folder, especially as the project grows.", "sentAt": "2026-10-21T10:21:00", "isMine": false },
+        { "id": 104, "text": "Totally. If you want, I can share my folder structure with you and the team. It might be a good reference.", "sentAt": "2026-10-21T10:23:00", "isMine": true, "isRead": true },
+        { "id": 105, "text": "Definitely! I'll send you what we have.", "sentAt": "2026-10-21T10:24:00", "isMine": false }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Eric T.",
+      "photoUrl": null,
+      "program": "Computer Systems Technology",
+      "isOnline": false,
+      "isUnread": true,
+      "messages": [
+        { "id": 201, "text": "Are you joining the trail walk?", "sentAt": "2026-10-21T09:18:00", "isMine": false }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Priya N.",
+      "photoUrl": null,
+      "program": "Nursing",
+      "isOnline": true,
+      "isUnread": true,
+      "messages": [
+        { "id": 301, "text": "We could split the study guide by unit.", "sentAt": "2026-10-20T15:40:00", "isMine": true, "isRead": true },
+        { "id": 302, "text": "That makes sense!", "sentAt": "2026-10-20T15:42:00", "isMine": false }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Daniel K.",
+      "photoUrl": null,
+      "program": "Business Information Technology Management",
+      "isOnline": false,
+      "isUnread": false,
+      "messages": [
+        { "id": 401, "text": "Thanks for the feedback", "sentAt": "2026-10-20T11:05:00", "isMine": false }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Sophie W.",
+      "photoUrl": null,
+      "program": "Digital Design",
+      "isOnline": false,
+      "isUnread": false,
+      "messages": [
+        { "id": 501, "text": "Want to grab coffee after the lab?", "sentAt": "2026-10-19T13:30:00", "isMine": true, "isRead": true },
+        { "id": 502, "text": "Let me know when you're free!", "sentAt": "2026-10-19T13:52:00", "isMine": false }
+      ]
+    }
+  ]
+}

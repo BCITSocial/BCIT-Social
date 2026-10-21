@@ -66,5 +66,11 @@ Defines shared colors, typography, and decorative image settings for the Home sh
     --color-avatar-text: #064cff;
     --color-overlay: rgb(16 29 67 / 45%);
 
+    /* Messages page */
+    --color-online: #12a150;
+    --color-bubble-theirs: #eef2fa;
+    --color-bubble-mine: #245be8;
+    --color-bubble-mine-text: #ffffff;
+
     --radius: 12px;
 }
