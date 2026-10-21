@@ -48,7 +48,6 @@ public class CommunityController : Controller
         }
 
         DetailsCommunityViewModel viewModel = await DetailsViewModelFromCommunity(community);
-
         return View(viewModel);
     }
 
@@ -215,10 +214,15 @@ public class CommunityController : Controller
     {
         var community = await _context.Communities.FindAsync(id);
         string? currentUserId = _userManager.GetUserId(User);
-        if (community == null || currentUserId == null)
+        if (community == null)
         {
             return NotFound();
         }
+        if (currentUserId == null)
+        {
+            return Challenge();
+        }
+
         if (await MemberExists(currentUserId, community))
         {
             return RedirectToAction(nameof(Index));
@@ -230,15 +234,20 @@ public class CommunityController : Controller
             CommunityId = community.Id,
             IsModerator = false,
         };
-        community.Members.Add(communityMember);
-        _context.Add(communityMember);
-        _context.Update(community);
-
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Details), new
+        Console.WriteLine(communityMember.User);
+        if (ModelState.IsValid)
         {
-            community.Id
-        });
+            community.Members.Add(communityMember);
+            _context.Add(communityMember);
+            _context.Update(community);
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Details), new
+            {
+                community.Id
+            });
+        }
+        return View(communityMember);
     }
 
     /// <summary>
@@ -267,7 +276,10 @@ public class CommunityController : Controller
     /// <returns>a view model</returns>
     private async Task<DetailsCommunityViewModel> DetailsViewModelFromCommunity(Community community)
     {
-        var members = await _context.CommunityMembers.Where(m => m.CommunityId == community.Id).ToListAsync();
+        var members = await _context.CommunityMembers
+        .Where(m => m.CommunityId == community.Id)
+        .Include(u => u.User)
+        .ToListAsync();
         var creator = await _userManager.FindByIdAsync(community.CreatorId);
         var creatorName = creator?.UserName;
         var viewModel = new DetailsCommunityViewModel
