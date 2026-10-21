@@ -175,6 +175,10 @@ public class CommunityController : Controller
         {
             return NotFound();
         }
+        if (currentUserId == null)
+        {
+            return Forbid();
+        }
         var community = await _context.Communities
             .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -182,10 +186,11 @@ public class CommunityController : Controller
         {
             return NotFound();
         }
-        if (MemberExists(currentUserId, community))
+        if (await MemberExists(currentUserId, community))
         {
             return RedirectToAction(nameof(Index));
         }
+
         return View(community);
     }
 
@@ -201,6 +206,7 @@ public class CommunityController : Controller
         {
             return NotFound();
         }
+
 
         var communityMember = new CommunityMember
         {
@@ -303,10 +309,27 @@ public class CommunityController : Controller
         return _context.Communities.Any(e => e.Id == id);
     }
 
-    private bool MemberExists(string? id, Community community)
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 20, 2026
+    /// Description: Checks if specific member exists in specific community
+    ///              Async, must use "await".
+    /// </summary>
+    /// <param name="id">User id</param>
+    /// <param name="community">Community</param>
+    /// <returns>Bool</returns>
+    private async Task<bool> MemberExists(string? id, Community community)
     {
+        var members = await _context.CommunityMembers.Where(m => m.CommunityId == community.Id).ToListAsync();
+        foreach (var member in members)
+        {
+            if (member.UserId == id)
+            {
+                return true;
+            }
+        }
+        return false;
 
-        return community.Members.Any(m => m.UserId == id);
     }
 
     /// <summary>
