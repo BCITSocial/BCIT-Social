@@ -6,7 +6,6 @@ using BCIT_Social.Data;
 using Microsoft.AspNetCore.Authorization;
 using BCIT_Social.ViewModels;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 public class CommunityController : Controller
 {
@@ -165,7 +164,13 @@ public class CommunityController : Controller
         return View(community);
     }
 
-
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 19, 2026
+    /// Description: GET call to join a community
+    /// Redirects to the Join page, checks if the user has not joined this community, otherwise redirects
+    /// </summary>
+    /// <param name="id">community id</param>
     // GET: COMMUNITYS/Join/5
     [Authorize]
     public async Task<IActionResult> Join(int? id)
@@ -194,6 +199,14 @@ public class CommunityController : Controller
         return View(community);
     }
 
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 19, 2026
+    /// Description: POST call to join a community
+    /// Adds user to a community, otherwise redirects to index.
+    /// </summary>
+    /// <param name="id">community id</param>
+    /// <returns></returns>
     // POST: COMMUNITYS/Join/5
     [HttpPost, ActionName("Join")]
     [ValidateAntiForgeryToken]
@@ -206,7 +219,10 @@ public class CommunityController : Controller
         {
             return NotFound();
         }
-
+        if (await MemberExists(currentUserId, community))
+        {
+            return RedirectToAction(nameof(Index));
+        }
 
         var communityMember = new CommunityMember
         {
