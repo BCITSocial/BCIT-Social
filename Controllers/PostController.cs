@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -169,7 +168,7 @@ public class PostController : Controller
 
         await _context.SaveChangesAsync();
 
-        return RedirectToAction(nameof(Details), new
+        return RedirectToAction("Post", "Home", new
         {
             id = post.Id
         });
@@ -307,7 +306,7 @@ public class PostController : Controller
 
         await _context.SaveChangesAsync();
 
-        return RedirectToAction(nameof(Details), new
+        return RedirectToAction("Post", "Home", new
         {
             id = post.Id
         });
@@ -365,27 +364,22 @@ public class PostController : Controller
             return NotFound();
         }
 
-        var post = await _context.Posts
-            .FirstOrDefaultAsync(post =>
-                post.Id == id &&
-                post.DateOfDel == null);
-
+        var post = await _context.Posts.FirstOrDefaultAsync(item =>
+            item.Id == id && item.DateOfDel == null);
         if (post == null)
         {
             return NotFound();
         }
 
         string? currentUserId = _userManager.GetUserId(User);
-
         if (post.AuthorId != currentUserId)
         {
             return Forbid();
         }
 
+        // Keep related comments and bookmarks intact while hiding the post from active feeds.
         post.DateOfDel = DateTime.UtcNow;
-
         await _context.SaveChangesAsync();
-
         return RedirectToAction("Index", "Home");
     }
 }

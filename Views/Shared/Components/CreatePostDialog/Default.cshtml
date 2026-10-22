@@ -1,8 +1,8 @@
 @model BCIT_Social.ViewModels.CreatePostViewModel
 @*
-The create post modal. Submits to the existing PostController.Create, which saves Content and one
-post type (TagId). Parts the backend doesn't handle yet are shown disabled: Post to, formatting,
-tags, attachments, and the Event tab. Title is sent but PostController.Create doesn't save it yet.
+The create post modal. Submits the post title, content, and one post type (TagId) to
+PostController.Create. Parts the backend doesn't handle yet are shown disabled: Post to,
+formatting, extra tags, attachments, and the Event tab.
 *@
 <dialog class="create-dialog" id="create-post-dialog" aria-labelledby="create-post-title">
     <div class="create-dialog-top">
@@ -15,10 +15,6 @@ tags, attachments, and the Event tab. Title is sent but PostController.Create do
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5" /><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" /></svg>
                 Event
             </button>
-            <a class="create-tab" asp-area="" asp-controller="Community" asp-action="Create">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3.2" /><path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" /><circle cx="17" cy="9" r="2.5" /><path d="M16 13.2c2.7.3 5 2.4 5 5.3" /></svg>
-                Community
-            </a>
         </div>
         <button class="icon-button" type="button" data-close-create aria-label="Close">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg>
@@ -53,7 +49,7 @@ tags, attachments, and the Event tab. Title is sent but PostController.Create do
 
             <div class="create-field">
                 <label for="create-post-title-input">Title</label>
-                <input id="create-post-title-input" name="Title" maxlength="150" placeholder="How do you organize MVC controllers?" />
+                <input id="create-post-title-input" name="Title" maxlength="150" placeholder="How do you organize MVC controllers?" required />
             </div>
 
             <div class="create-field">

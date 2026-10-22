@@ -16,6 +16,8 @@ public class PostCardViewModel
     public int CommentCount { get; init; }
     // True when the signed-in user has bookmarked the post.
     public bool IsSaved { get; init; }
+    // True when the signed-in user authored the post.
+    public bool IsAuthor { get; init; }
 
     public string AuthorInitials => DisplayFormat.Initials(AuthorName);
 

@@ -17,10 +17,6 @@
                 }
                 <span>· <time datetime="@post.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")">@post.TimeAgo(now)</time></span>
             </p>
-            <h3 class="post-title" id="post-title-@post.Id">
-                <a asp-controller="Home" asp-action="Post" asp-route-id="@post.Id" data-open-post>@post.Title</a>
-            </h3>
-            <p class="post-content">@post.Content</p>
             @if (post.Tags.Count > 0)
             {
                 <ul class="post-tags" aria-label="Tags">
@@ -30,6 +26,10 @@
                     }
                 </ul>
             }
+            <h3 class="post-title" id="post-title-@post.Id">
+                <a asp-controller="Home" asp-action="Post" asp-route-id="@post.Id" data-open-post>@post.Title</a>
+            </h3>
+            <p class="post-content">@post.Content</p>
             <div class="post-actions">
                 <a class="post-action" asp-controller="Home" asp-action="Post" asp-route-id="@post.Id" data-open-post>
                     <svg class="post-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg>
@@ -50,6 +50,13 @@
                         <svg class="post-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h12v18l-6-4.5L6 21Z" /></svg>
                         Save<span class="visually-hidden"> (log in to save posts)</span>
                     </a>
+                }
+                @if (post.IsAuthor)
+                {
+                    <a class="post-action" asp-controller="Post" asp-action="Edit" asp-route-id="@post.Id">Edit</a>
+                    <form class="post-manage" method="post" asp-controller="Post" asp-action="Delete" asp-route-id="@post.Id" onsubmit="return confirm('Delete this post?');">
+                        <button class="post-action" type="submit">Delete</button>
+                    </form>
                 }
             </div>
         </div>
