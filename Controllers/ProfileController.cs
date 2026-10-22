@@ -87,13 +87,22 @@ public class ProfileController : Controller
     }
 
     // GET: PROFILES/Edit/5
+    /// <summary>
+    /// Author: Joshua Trepanier
+    /// Last Revised: Oct 21, 2026
+    /// Description: Edit existing profile, other users are unable to edit other profiles except their own.
+    /// </summary>
     public async Task<IActionResult> Edit(string? userid)
     {
+        string? currentUserID = _userManager.GetUserId(User);
         if (userid == null)
         {
             return NotFound();
         }
-
+        if (currentUserID != userid)
+        {
+            return Forbid();
+        }
         var profile = await _context.Profiles.FindAsync(userid);
         if (profile == null)
         {
@@ -138,13 +147,22 @@ public class ProfileController : Controller
     }
 
     // GET: PROFILES/Delete/5
+    /// <summary>
+    /// Author: Joshua Trepanier
+    /// Last Revised: Oct 21, 2026
+    /// Description: Users can only access their own profiles delete page. Access to others is restricted.
+    /// </summary>
     public async Task<IActionResult> Delete(string? userid)
     {
+        string? currentUserID = _userManager.GetUserId(User);
         if (userid == null)
         {
             return NotFound();
         }
-
+        if (currentUserID != userid)
+        {
+            return Forbid();
+        }
         var profile = await _context.Profiles
             .FirstOrDefaultAsync(m => m.UserId == userid);
         if (profile == null)
@@ -156,16 +174,22 @@ public class ProfileController : Controller
     }
 
     // POST: PROFILES/Delete/5
+    /// <summary>
+    /// Author: Joshua Trepanier
+    /// Last Revised: Oct 21, 2026
+    /// Description: Delete the existing profile (Also deletes the account from the database),
+    /// </summary>
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(string? userid)
     {
         var profile = await _context.Profiles.FindAsync(userid);
-        if (profile != null)
+        var account = await _context.Users.FindAsync(userid);
+        if (profile != null && account != null)
         {
             _context.Profiles.Remove(profile);
+            _context.Users.Remove(account);
         }
-
         await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
