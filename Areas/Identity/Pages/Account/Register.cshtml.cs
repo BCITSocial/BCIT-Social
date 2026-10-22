@@ -3,6 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
+using BCIT_Social.Data;
 using BCIT_Social.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -10,13 +11,13 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using BCIT_Social.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace BCIT_Social.Areas.Identity.Pages.Account;
 
 [AllowAnonymous]
 public class RegisterModel(UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager, IEmailSender emailSender) : PageModel
+    SignInManager<ApplicationUser> signInManager, IEmailSender emailSender, ApplicationDbContext context) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -64,7 +65,16 @@ public class RegisterModel(UserManager<ApplicationUser> userManager,
                 ModelState.AddModelError(string.Empty, error.Description);
             return Page();
         }
-
+        var profile = new Profile
+        {
+            UserId = user.Id,
+            DisplayName = user.UserName,
+            Bio = "",
+            Program = "",
+            Campus = "",
+        };
+        context.Profiles.Add(profile);
+        await context.SaveChangesAsync();
         var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         var callbackUrl = Url.Page("/Account/ConfirmEmail", pageHandler: null,
@@ -77,8 +87,6 @@ public class RegisterModel(UserManager<ApplicationUser> userManager,
             return RedirectToPage("./RegisterConfirmation", new { email = Input.Email, returnUrl = ReturnUrl });
 
         await signInManager.SignInAsync(user, isPersistent: false);
-        var pc = new ProfileController(_context, userManager);
-        await pc.Create(user.UserName);
         return LocalRedirect(ReturnUrl);
     }
 }
