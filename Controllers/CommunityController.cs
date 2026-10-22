@@ -6,7 +6,6 @@ using BCIT_Social.Data;
 using Microsoft.AspNetCore.Authorization;
 using BCIT_Social.ViewModels;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 public class CommunityController : Controller
 {
@@ -48,7 +47,8 @@ public class CommunityController : Controller
             return NotFound();
         }
 
-        return View(community);
+        DetailsCommunityViewModel viewModel = await DetailsViewModelFromCommunity(community);
+        return View(viewModel);
     }
 
 
@@ -189,9 +189,18 @@ public class CommunityController : Controller
             // Author: Jaspreet Bath
             Description = viewModel.Description
         };
+        var communityMember = new CommunityMember
+        {
+            UserId = creatorId,
+            CommunityId = community.Id,
+            IsModerator = true,
+        };
+        community.Members.Add(communityMember);
+
         if (ModelState.IsValid)
         {
             _context.Add(community);
+            _context.Add(communityMember);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Details), new
             {
@@ -218,7 +227,7 @@ public class CommunityController : Controller
         {
             return Forbid();
         }
-        return View(ViewModelFromCommunity(community));
+        return View(EditViewModelFromCommunity(community));
     }
 
     // POST: COMMUNITYS/Edit/5
@@ -267,7 +276,190 @@ public class CommunityController : Controller
         return View(community);
     }
 
-    private CommunityViewModel ViewModelFromCommunity(Community community)
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 19, 2026
+    /// Description: GET call to join a community
+    /// Redirects to the Join page, checks if the user has not joined this community, otherwise redirects
+    /// </summary>
+    /// <param name="id">community id</param>
+    // GET: COMMUNITYS/Join/5
+    [Authorize]
+    public async Task<IActionResult> Join(int? id)
+    {
+        string? currentUserId = _userManager.GetUserId(User);
+        if (id == null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Forbid();
+        }
+        var community = await _context.Communities
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (community == null)
+        {
+            return NotFound();
+        }
+        if (await MemberExists(currentUserId, community))
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View(community);
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 19, 2026
+    /// Description: POST call to join a community
+    /// Adds user to a community, otherwise redirects to index.
+    /// </summary>
+    /// <param name="id">community id</param>
+    /// <returns></returns>
+    // POST: COMMUNITYS/Join/5
+    [HttpPost, ActionName("Join")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> JoinConfirmed(int? id)
+    {
+        var community = await _context.Communities.FindAsync(id);
+        string? currentUserId = _userManager.GetUserId(User);
+        if (community == null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Challenge();
+        }
+
+        if (await MemberExists(currentUserId, community))
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        var communityMember = new CommunityMember
+        {
+            UserId = currentUserId,
+            CommunityId = community.Id,
+            IsModerator = false,
+        };
+        Console.WriteLine(communityMember.User);
+        if (ModelState.IsValid)
+        {
+            community.Members.Add(communityMember);
+            _context.Add(communityMember);
+            _context.Update(community);
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Details), new
+            {
+                community.Id
+            });
+        }
+        return View(communityMember);
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 21, 2026
+    /// Description: GET call to leave a community
+    /// Redirects to the Leave page, checks if the user is in this community, otherwise redirects
+    /// Also checks if user is Creator, they cannot leave (as of right now)
+    /// </summary>
+    /// <param name="id">community id</param>
+    // GET: COMMUNITYS/Leave/5
+    [Authorize]
+    public async Task<IActionResult> Leave(int? id)
+    {
+        string? currentUserId = _userManager.GetUserId(User);
+        if (id == null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Forbid();
+        }
+        var community = await _context.Communities
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (community == null)
+        {
+            return NotFound();
+        }
+
+        if (community.CreatorId == currentUserId)
+        {
+            return Forbid();
+            // TODO: might have to either not show "Leave" on frontend when creator or give a popup when trying to leave.
+        }
+
+        if (await MemberExists(currentUserId, community))
+        {
+            return View(community);
+        }
+        return RedirectToAction(nameof(Index));
+
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 21, 2026
+    /// Description: POST call to leave a community
+    /// Removes user to a community, otherwise redirects to index.
+    /// </summary>
+    /// <param name="id">community id</param>
+    /// <returns></returns>
+    // POST: COMMUNITYS/Leave/5
+    [HttpPost, ActionName("Leave")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> LeaveConfirmed(int? id)
+    {
+        var community = await _context.Communities.FindAsync(id);
+        string? currentUserId = _userManager.GetUserId(User);
+        if (community == null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Challenge();
+        }
+
+        if (await MemberExists(currentUserId, community) == false)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+        var communityMember = await _context.CommunityMembers.FindAsync(currentUserId, id);
+        if (communityMember == null)
+        {
+            return NotFound();
+        }
+
+        if (ModelState.IsValid)
+        {
+            community.Members.Remove(communityMember);
+            _context.Remove(communityMember);
+            _context.Update(community);
+
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction(nameof(Index));
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 14, 2026
+    /// Description: Creates a view model for Community Editing
+    /// </summary>
+    /// <param name="community">a Community</param>
+    /// <returns>a view model</returns>
+    private CommunityViewModel EditViewModelFromCommunity(Community community)
     {
         var viewModel = new CommunityViewModel
         {
@@ -279,7 +471,33 @@ public class CommunityController : Controller
         return viewModel;
     }
 
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 19, 2026
+    /// Description: Creates a view model for Community Details
+    /// </summary>
+    /// <param name="community">a Community</param>
+    /// <returns>a view model</returns>
+    private async Task<DetailsCommunityViewModel> DetailsViewModelFromCommunity(Community community)
+    {
+        var members = await _context.CommunityMembers
+        .Where(m => m.CommunityId == community.Id)
+        .Include(u => u.User)
+        .ToListAsync();
+        var creator = await _userManager.FindByIdAsync(community.CreatorId);
+        var creatorName = creator?.UserName;
+        var viewModel = new DetailsCommunityViewModel
+        {
+            Name = community.Name,
+            Type = community.Type,
+            Creator = creatorName ?? "Not Found",
+            Members = members
+        };
+        return viewModel;
+    }
+
     // GET: COMMUNITYS/Delete/5
+    [Authorize]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null)
@@ -304,6 +522,7 @@ public class CommunityController : Controller
     // POST: COMMUNITYS/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize]
     public async Task<IActionResult> DeleteConfirmed(int? id)
     {
         var community = await _context.Communities.FindAsync(id);
@@ -320,6 +539,29 @@ public class CommunityController : Controller
     private bool CommunityExists(int? id)
     {
         return _context.Communities.Any(e => e.Id == id);
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 20, 2026
+    /// Description: Checks if specific member exists in specific community
+    ///              Async, must use "await".
+    /// </summary>
+    /// <param name="id">User id</param>
+    /// <param name="community">Community</param>
+    /// <returns>Bool</returns>
+    private async Task<bool> MemberExists(string? id, Community community)
+    {
+        var members = await _context.CommunityMembers.Where(m => m.CommunityId == community.Id).ToListAsync();
+        foreach (var member in members)
+        {
+            if (member.UserId == id)
+            {
+                return true;
+            }
+        }
+        return false;
+
     }
 
     /// <summary>

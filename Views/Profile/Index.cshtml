@@ -9,18 +9,56 @@ Author: Jonathan Yeh
     ViewData["Title"] = "My Profile";
     Layout = "_HomeLayout";
 
-    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-    var profile = Model.FirstOrDefault(item => item.UserId == currentUserId);
-    var displayName = profile?.DisplayName ?? "My profile";
-    var avatarInitials = string.Concat(
-        displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .Take(2)
-            .Select(part => char.ToUpperInvariant(part[0])));
+<h1>Index</h1>
 
-    if (string.IsNullOrWhiteSpace(avatarInitials))
-    {
-        avatarInitials = "B";
-    }
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.DisplayName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Bio)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Program)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Campus)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.User)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(model => item.DisplayName)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Bio)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Program)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Campus)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.User)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-userid="@item.UserId">Edit</a> |
+                <a asp-action="Details" asp-route-userid="@item.UserId">Details</a> |
+                <a asp-action="Delete" asp-route-userid="@item.UserId">Delete</a>
+            </td>
+        </tr>
 }
 
 <div class="profile-page">

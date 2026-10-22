@@ -156,30 +156,19 @@ frontend view for Communities page.
                                             <span>&bull;</span>
                                             <span>@location</span>
                                         </div>
-
-                                        <p class="community-desc" data-text="default-desc">@finalDesc</p>
-                                    </div>
-
-                                    <div class="card-actions">
-                                        @if (isJoined)
-                                        {
-                                            <span class="btn-joined">@joinedBtnText</span>
-                                        }
-                                        else
-                                        {
-                                            <form asp-action="Join" asp-route-id="@item.Id" method="post"
-                                                  style="margin: 0; display: inline;">
-                                                <button type="submit" class="btn-join" data-text="join-btn">
-                                                    @text.GetProperty("joinButton").GetString()
-                                                </button>
-                                            </form>
-                                        }
-
-                                        <div class="admin-links">
-                                            <a asp-action="Edit" asp-route-id="@item.Id"
-                                               data-text="edit-label">@text.GetProperty("editLabel").GetString()</a>
-                                            <a asp-action="Delete" asp-route-id="@item.Id"
-                                               data-text="delete-label">@text.GetProperty("deleteLabel").GetString()</a>
+                                        <div class="card-actions">
+                                            <a asp-action="Join" asp-route-id="@item.Id" class="btn-join"
+                                               data-text="join-btn">@text.GetProperty("joinButton").GetString()</a>
+                                            <a asp-action="Leave" asp-route-id="@item.Id" class="btn-join"
+                                               data-text="join-btn">Leave</a>
+                                            <div class="admin-links">
+                                                <a asp-action="Details" asp-route-id="@item.Id"
+                                                   data-text="edit-label">Details</a>
+                                                <a asp-action="Edit" asp-route-id="@item.Id"
+                                                   data-text="edit-label">@text.GetProperty("editLabel").GetString()</a>
+                                                <a asp-action="Delete" asp-route-id="@item.Id"
+                                                   data-text="delete-label">@text.GetProperty("deleteLabel").GetString()</a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

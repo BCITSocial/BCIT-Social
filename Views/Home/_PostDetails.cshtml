@@ -51,6 +51,13 @@
                 </button>
             </form>
         }
+        @if (post.IsAuthor)
+        {
+            <a class="link-action" asp-controller="Post" asp-action="Edit" asp-route-id="@post.Id">Edit</a>
+            <form method="post" asp-controller="Post" asp-action="Delete" asp-route-id="@post.Id" onsubmit="return confirm('Delete this post?');">
+                <button class="link-action" type="submit">Delete</button>
+            </form>
+        }
         <button class="link-action share-action" type="button" data-share-url="@returnUrl" data-share-title="@post.Title">
             <svg class="post-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></svg>
             Share

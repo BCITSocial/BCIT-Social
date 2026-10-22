@@ -1,6 +1,6 @@
 @*
-author: Andre Di Lascio
-Renders the Home banner, the user's communities, the share box, and the feed.
+author: Andre Di Lascio, Asher
+Renders the Home banner, share box, feed, and discovery panel.
 *@
 
 @using BCIT_Social.ViewModels
@@ -15,31 +15,6 @@ Renders the Home banner, the user's communities, the share box, and the feed.
 @* The banner image and its sizing come from settings.css (--image-home-banner). *@
 <section class="home-banner" role="img" aria-label="Your campus. Your people. Connect, share, and make the most of BCIT."></section>
 
-@if (Model.YourCommunities.Count > 0)
-{
-    <section class="panel home-section" aria-labelledby="your-communities-heading">
-        <div class="section-heading">
-            <h2 id="your-communities-heading">Your communities</h2>
-            <a asp-controller="Community" asp-action="Index">View all</a>
-        </div>
-        <ul class="community-row">
-            @foreach (var community in Model.YourCommunities)
-            {
-                <li>
-                    <a class="community-card" asp-controller="Community" asp-action="Details" asp-route-id="@community.Id">
-                        <span class="community-tile" aria-hidden="true">@community.Initials</span>
-                        <span class="community-card-text">
-                            <strong>@community.Name</strong>
-                            <span>@DisplayFormat.Count(community.MemberCount) @(community.MemberCount == 1 ? "member" : "members") · @community.Type</span>
-                        </span>
-                        <svg class="community-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 6 6 6-6 6" /></svg>
-                    </a>
-                </li>
-            }
-        </ul>
-    </section>
-}
-
 <section class="panel home-section share-box" aria-labelledby="share-heading">
     <h2 id="share-heading" class="visually-hidden">Create a post</h2>
     <span class="avatar" aria-hidden="true">@(Model.CurrentUserInitials == "" ? "?" : Model.CurrentUserInitials)</span>
@@ -48,6 +23,7 @@ Renders the Home banner, the user's communities, the share box, and the feed.
     <p class="share-hint">Ask a question, find friends, or share an update.</p>
 </section>
 
+<div class="home-feed-layout">
 <section class="panel home-section feed" aria-labelledby="feed-heading">
     <div class="feed-heading">
         <h2 id="feed-heading">Your feed</h2>
@@ -71,6 +47,46 @@ Renders the Home banner, the user's communities, the share box, and the feed.
     }
 </section>
 
+<aside class="panel home-section discovery-panel" aria-label="Discover events and communities">
+    <div class="discovery-tabs" role="tablist" aria-label="Discover">
+        <button class="discovery-tab" id="events-tab" type="button" role="tab" aria-selected="true" aria-controls="events-panel">Events</button>
+        <button class="discovery-tab" id="communities-tab" type="button" role="tab" aria-selected="false" aria-controls="communities-panel" tabindex="-1">Communities</button>
+    </div>
+    <section class="discovery-content" id="events-panel" role="tabpanel" aria-labelledby="events-tab">
+        <h2>Upcoming events</h2>
+        <p class="discovery-empty">No upcoming events to show.</p>
+        <a class="discovery-link" asp-controller="Events" asp-action="Index">View all events</a>
+    </section>
+    <section class="discovery-content" id="communities-panel" role="tabpanel" aria-labelledby="communities-tab" hidden>
+        <div class="section-heading">
+            <h2>Your communities</h2>
+            <a asp-controller="Community" asp-action="Index">View all</a>
+        </div>
+        @if (Model.YourCommunities.Count > 0)
+        {
+            <ul class="discovery-community-list">
+                @foreach (var community in Model.YourCommunities)
+                {
+                    <li>
+                        <a class="discovery-community" asp-controller="Community" asp-action="Details" asp-route-id="@community.Id">
+                            <span class="community-tile" aria-hidden="true">@community.Initials</span>
+                            <span class="community-card-text">
+                                <strong>@community.Name</strong>
+                                <span>@DisplayFormat.Count(community.MemberCount) @(community.MemberCount == 1 ? "member" : "members") · @community.Type</span>
+                            </span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="discovery-empty">Join a community to see it here.</p>
+        }
+    </section>
+</aside>
+</div>
+
 @* Post details open here when a card is clicked. post-details.js fills the body from /Home/Post/{id}. *@
 <dialog class="post-dialog" id="post-dialog" aria-labelledby="post-dialog-title">
     <div class="post-dialog-header">
@@ -85,4 +101,5 @@ Renders the Home banner, the user's communities, the share box, and the feed.
 @section Scripts {
     <script src="~/js/feed.js" asp-append-version="true" defer></script>
     <script src="~/js/post-details.js" asp-append-version="true" defer></script>
+    <script src="~/js/home-discovery.js" asp-append-version="true" defer></script>
 }

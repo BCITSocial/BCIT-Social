@@ -35,10 +35,10 @@ Renders sidebar navigation, marks the active controller route, and lists the use
         </li>
         @* Replace disabled controls with route links as the team adds each screen. *@
         <li>
-            <button type="button" disabled>
+            <a asp-controller="Messages" asp-action="Index" aria-current="@(currentController == "Messages" ? "page" : null)">
                 <svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg>
                 Messages
-            </button>
+            </a>
         </li>
     </ul>
     @await Component.InvokeAsync("SidebarCommunities")
