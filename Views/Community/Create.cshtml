@@ -1,37 +1,126 @@
+@*
+- Fallback since 
+- Author: jaspreet bath
+*@
+
 @model BCIT_Social.ViewModels.CommunityViewModel
+@using System.IO
+@using System.Text.Json
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 
 @{
-    ViewData["Title"] = "Create a Community";
+    Layout = "_HomeLayout";
+    var jsonPath = System.IO.Path.Combine(Env.WebRootPath, "content", "communities-text.json");
+    using var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
+    var text = jsonDoc.RootElement;
+    var modal = text.GetProperty("createModal");
+
+    ViewData["Title"] = modal.GetProperty("title").GetString();
 }
 
-<h1>@ViewData["Title"]</h1>
+<link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
 
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="communities-wrapper">
+    <div class="form-page-container">
+        <div class="modal-card">
+            <h1 class="modal-title">@modal.GetProperty("title").GetString()</h1>
+            <p class="modal-subtitle">@modal.GetProperty("subtitle").GetString()</p>
 
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
+            <form asp-action="Create" method="post" id="create-community-form">
+                <div asp-validation-summary="ModelOnly" class="text-danger"
+                     style="font-size: 0.85rem; margin-bottom: 0.75rem;"></div>
 
-            <div class="form-group">
-                <label asp-for="Type" class="control-label"></label>
-                <select asp-for="Type" class="form-control" asp-items="Model.Types">
-                </select>
-                <span asp-validation-for="Type" class="text-danger"></span>
-            </div>
+                <div class="modal-field">
+                    <label for="Name" class="modal-label">@modal.GetProperty("nameLabel").GetString()</label>
+                    <input type="text" id="Name" name="Name" class="modal-input" required
+                           placeholder="@modal.GetProperty("namePlaceholder").GetString()" />
+                </div>
 
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+                <div class="modal-field">
+                    <label for="Description"
+                           class="modal-label">@modal.GetProperty("descriptionLabel").GetString()</label>
+                    <textarea id="Description" name="Description" rows="3" class="modal-input"
+                              placeholder="@modal.GetProperty("descriptionPlaceholder").GetString()"></textarea>
+                </div>
+
+                <div class="modal-row-2col">
+                    <div class="modal-field">
+                        <label for="category-select"
+                               class="modal-label">@modal.GetProperty("categoryLabel").GetString()</label>
+                        <select id="category-select" class="modal-input">
+                            @foreach (var opt in modal.GetProperty("categoryOptions").EnumerateArray())
+                            {
+                                <option value="@opt.GetString()">@opt.GetString()</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="modal-field">
+                        <label for="Campus" class="modal-label">@modal.GetProperty("campusLabel").GetString()</label>
+                        <select id="Campus" name="Campus" class="modal-input">
+                            @foreach (var campus in modal.GetProperty("campusOptions").EnumerateArray())
+                            {
+                                <option value="@campus.GetString()">@campus.GetString()</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-row-2col">
+                    <div class="modal-field">
+                        <label for="tag-select" class="modal-label">@modal.GetProperty("tagLabel").GetString()</label>
+                        <select id="tag-select" class="modal-input input-tag">
+                            @foreach (var opt in modal.GetProperty("tagOptions").EnumerateArray())
+                            {
+                                <option value="@opt.GetString()">@opt.GetString()</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="modal-field">
+                        <label for="status-select"
+                               class="modal-label">@modal.GetProperty("statusTagLabel").GetString()</label>
+                        <select id="status-select" class="modal-input input-status">
+                            @foreach (var opt in modal.GetProperty("statusOptions").EnumerateArray())
+                            {
+                                <option value="@opt.GetString()">@opt.GetString()</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-field">
+                    <label for="time-select" class="modal-label">@modal.GetProperty("timeTagLabel").GetString()</label>
+                    <select id="time-select" class="modal-input input-time">
+                        @foreach (var opt in modal.GetProperty("timeOptions").EnumerateArray())
+                        {
+                            <option value="@opt.GetString()">@opt.GetString()</option>
+                        }
+                    </select>
+                </div>
+
+                <input type="hidden" id="combined-type-input" name="Type" value="Club" />
+
+                <div class="modal-field" style="margin-top: 1rem;">
+                    <label class="modal-label"
+                           style="color: var(--text-muted);">@modal.GetProperty("tagsPreviewLabel").GetString()</label>
+                    <div id="modal-tag-preview" class="badge-row"
+                         style="flex-wrap: wrap; min-height: 28px; gap: 0.4rem;"></div>
+                </div>
+
+                <div class="modal-footer-actions" style="margin-top: 1.5rem;">
+                    <a asp-action="Index" class="btn-cancel" style="text-decoration: none;">
+                        @modal.GetProperty("cancelButton").GetString()
+                    </a>
+                    <button type="submit" class="btn-create">
+                        @modal.GetProperty("submitButton").GetString()
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+@section Scripts {
+    <script src="~/js/community-edit.js" asp-append-version="true"></script>
+}

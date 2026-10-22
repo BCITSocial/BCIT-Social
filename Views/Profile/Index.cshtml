@@ -1,59 +1,61 @@
+@*
+Frontend for the profile page
+Author: Jonathan Yeh
+*@
+
 @model IEnumerable<BCIT_Social.Models.Profile>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "My Profile";
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var profile = Model.FirstOrDefault(item => item.UserId == currentUserId);
 }
 
-<h1>Index</h1>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="mb-1">My profile</h1>
+        <p class="text-muted mb-0">Your introduction to the BCIT community.</p>
+    </div>
+    @if (profile != null)
+    {
+        <a asp-action="Edit" asp-route-userid="@profile.UserId" class="btn btn-primary">Edit profile</a>
+    }
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.DisplayName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Bio)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Program)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Campus)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.DisplayName)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Bio)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Program)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Campus)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.User)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.UserId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.UserId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.UserId">Delete</a>
-            </td>
-        </tr>
+@if (profile == null)
+{
+    <div class="border rounded p-5 text-center">
+        <h2 class="h5">Profile not found</h2>
+        <p class="text-muted mb-0">There is no profile associated with your signed-in account yet.</p>
+    </div>
 }
-    </tbody>
-</table>
+else
+{
+    <section class="card shadow-sm" aria-labelledby="profile-heading">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width: 4rem; height: 4rem;"
+                     aria-hidden="true">
+                    <span class="text-muted">BCIT</span>
+                </div>
+                <div class="min-w-0">
+                    <h2 id="profile-heading" class="h4 mb-1 text-break">@profile.DisplayName</h2>
+                    <p class="text-muted mb-0">@profile.Program</p>
+                </div>
+            </div>
+
+            <dl class="row mb-0">
+                <dt class="col-sm-3">About me</dt>
+                <dd class="col-sm-9 text-break">
+                    @(string.IsNullOrWhiteSpace(profile.Bio) ? "No bio added yet." : profile.Bio)
+                </dd>
+
+                <dt class="col-sm-3">Campus</dt>
+                <dd class="col-sm-9">
+                    @(string.IsNullOrWhiteSpace(profile.Campus) ? "Not specified" : profile.Campus)
+                </dd>
+            </dl>
+        </div>
+    </section>
+}

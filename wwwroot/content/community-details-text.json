@@ -1,0 +1,59 @@
+{
+    "banner": {
+        "subtitle": "01001000 01101001",
+        "title": "Hey,\nLet's build together!",
+        "caption": "Code today. A brighter tomorrow.",
+        "codeBadge": "class BCITDeveloper {}"
+    },
+    "communityMeta": {
+        "joinedLabel": "Joined",
+        "joinButton": "+ Join",
+        "privacy": "Public community",
+        "campus": "Burnaby Campus",
+        "createButton": "+ Create",
+        "settingsButton": "Settings"
+    },
+    "aboutHeading": "About",
+    "navTabs": [
+        "Overview"
+    ],
+    "discussionsSection": {
+        "title": "Latest discussions",
+        "seeAllText": "See all",
+        "showLessText": "Show less",
+        "discussions": [
+            {
+                "initials": "PN",
+                "title": "How are you organizing your MVC controllers?",
+                "time": "2h ago",
+                "body": "I'm working on a larger project and wondering what folder structure you all use for controllers, models and views.",
+                "authorMeta": "Posted by Priya N. in General Discussion",
+                "repliesCount": "14 replies"
+            },
+            {
+                "initials": "ET",
+                "title": "Anyone looking for a hackathon team?",
+                "time": "5h ago",
+                "body": "I'm planning to participate in the upcoming CST Hackathon and looking for 2-3 teammates. Interested in building AI/accessibility.",
+                "authorMeta": "Posted by Eric T. in Student Projects",
+                "repliesCount": "8 replies"
+            },
+            {
+                "initials": "MK",
+                "title": "Best setup for local Docker SQL Server?",
+                "time": "1d ago",
+                "body": "Does anyone have a solid docker-compose setup with persistent volumes and health checks for local development?",
+                "authorMeta": "Posted by Marcus K. in Tech Talk",
+                "repliesCount": "6 replies"
+            },
+            {
+                "initials": "SL",
+                "title": "Resume review session this Thursday",
+                "time": "2d ago",
+                "body": "We are hosting an informal peer review session for CST students preparing for co-op applications.",
+                "authorMeta": "Posted by Sarah L. in Events",
+                "repliesCount": "19 replies"
+            }
+        ]
+    }
+}

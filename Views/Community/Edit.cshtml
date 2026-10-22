@@ -1,39 +1,198 @@
-@model BCIT_Social.ViewModels.CommunityViewModel
+@*
+- This is the frontend view for Editing a Community.
+- author: jaspreet bath
+*@
+
+@* accepts both get and post data *@ 
+@model object
+@using System.IO
+@using System.Text.Json
+@using Microsoft.AspNetCore.Mvc.Rendering
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 
 @{
-    ViewData["Title"] = "Edit Community";
+    Layout = "_HomeLayout";
+    var jsonPath = System.IO.Path.Combine(Env.WebRootPath, "content", "communities-text.json");
+    using var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
+    var text = jsonDoc.RootElement;
+    var edit = text.GetProperty("editPage");
+    var modal = text.GetProperty("createModal");
+
+    ViewData["Title"] = edit.GetProperty("title").GetString();
+
+    string name = "";
+    string type = "";
+    string description = "";
+    @* is url converts to string if not null, fallback: empty string *@
+    string id = ViewContext.RouteData.Values["id"]?.ToString() ?? "";
+    string creatorId = "";
+    @* creates dropdown items *@
+    IEnumerable<SelectListItem>? dropdownTypes = null;
+
+    @* checks if from community db
+       if so, then use properties and swap(??) it for "" *@
+    if (Model is BCIT_Social.Models.Community entity)
+    {
+        name = entity.Name ?? "";
+        type = entity.Type ?? "";
+        description = entity.Description ?? "";
+        id = entity.Id.ToString();
+        creatorId = entity.CreatorId ?? "";
+    }
+    else if (Model is BCIT_Social.ViewModels.CommunityViewModel vm)
+    {
+        name = vm.Name ?? "";
+        type = vm.Type ?? "";
+        var descProp = vm.GetType().GetProperty("Description");
+        description = descProp?.GetValue(vm)?.ToString() ?? "";
+        dropdownTypes = vm.Types;
+    }
+
+    var existingTags = type
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .ToList();
 }
 
-<h1>@ViewData["Title"]</h1>
+<link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
 
-<h4>@Model.Name</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Type" class="control-label"></label>
-                <select asp-for="Type" class="form-control" asp-items="Model.Types">
-                </select>
-                <span asp-validation-for="Type" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="communities-wrapper">
+    <div class="form-page-container">
+        <div class="modal-card">
+            <h1 class="modal-title">@edit.GetProperty("title").GetString()</h1>
+            <p class="modal-subtitle">@edit.GetProperty("subtitle").GetString()</p>
+
+            <form asp-action="Edit" asp-route-id="@id" method="post" id="edit-community-form">
+                <div asp-validation-summary="ModelOnly" class="text-danger"
+                     style="font-size: 0.85rem; margin-bottom: 0.75rem;"></div>
+
+                @* inputs are hidden here since talking to server. oooooo
+                   finds community from url id and checks if right DB. *@
+                <input type="hidden" name="Id" value="@id" />
+                <input type="hidden" name="CreatorId" value="@creatorId" />
+                <input type="hidden" id="edit-combined-type-input" name="Type" value="@type" />
+
+                @* community name (required) *@
+                <div class="modal-field">
+                    <label for="Name" class="modal-label">@edit.GetProperty("nameLabel").GetString()</label>
+                    <input type="text" id="Name" name="Name" class="modal-input" value="@name" required />
+                </div>
+
+                @* community description *@
+                <div class="modal-field">
+                    <label for="Description"
+                           class="modal-label">@edit.GetProperty("descriptionLabel").GetString()</label>
+                    <textarea id="Description" name="Description" rows="3" class="modal-input"
+                              placeholder="@modal.GetProperty("descriptionPlaceholder").GetString()">@description</textarea>
+                </div>
+
+                @* category dropdown
+                   returns true if one is selected(.Any) *@
+                <div class="modal-field">
+                    <label for="edit-category-select"
+                           class="modal-label">@edit.GetProperty("categoryLabel").GetString()</label>
+                    <select id="edit-category-select" class="modal-input">
+                        @if (dropdownTypes != null && dropdownTypes.Any())
+                        {
+                            @foreach (var opt in dropdownTypes)
+                            {
+                                var optVal = opt.Value ?? opt.Text;
+                                var isSelected = existingTags.Contains(optVal, StringComparer.OrdinalIgnoreCase);
+                                <option value="@optVal" selected="@isSelected">@opt.Text</option>
+                            }
+                        }
+                        @* fallback, if no list from viewmodel, uses json *@
+                        else
+                        {
+                            @foreach (var opt in edit.GetProperty("categoryOptions").EnumerateArray())
+                            {
+                                var optVal = opt.GetString();
+                                var isSelected = existingTags.Contains(optVal, StringComparer.OrdinalIgnoreCase);
+                                <option value="@optVal" selected="@isSelected">@optVal</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                @* location campus dropdown *@
+                <div class="modal-field">
+                    <label for="edit-campus-select"
+                           class="modal-label">@edit.GetProperty("campusLabel").GetString()</label>
+                    <select id="edit-campus-select" class="modal-input">
+                        @foreach (var campus in modal.GetProperty("campusOptions").EnumerateArray())
+                        {
+                            var cVal = campus.GetString();
+                            var isSelected = existingTags.Contains(cVal, StringComparer.OrdinalIgnoreCase);
+                            <option value="@cVal" selected="@isSelected">@cVal</option>
+                        }
+                    </select>
+                </div>
+
+                @* tag dropdown *@
+                <div class="modal-field">
+                    <label for="edit-tag-select" class="modal-label">@edit.GetProperty("tagLabel").GetString()</label>
+                    <select id="edit-tag-select" class="modal-input input-tag">
+                        @foreach (var opt in edit.GetProperty("tagOptions").EnumerateArray())
+                        {
+                            var optVal = opt.GetString();
+                            var isSelected = optVal != "None" && existingTags.Contains(optVal,
+                        StringComparer.OrdinalIgnoreCase);
+                            <option value="@optVal" selected="@isSelected">@optVal</option>
+                        }
+                    </select>
+                </div>
+
+                @* status dropdown *@
+                <div class="modal-field">
+                    <label for="edit-status-select"
+                           class="modal-label">@edit.GetProperty("statusTagLabel").GetString()</label>
+                    <select id="edit-status-select" class="modal-input input-status">
+                        @foreach (var opt in edit.GetProperty("statusOptions").EnumerateArray())
+                        {
+                            var optVal = opt.GetString();
+                            var isSelected = optVal != "None" && existingTags.Contains(optVal,
+                        StringComparer.OrdinalIgnoreCase);
+                            <option value="@optVal" selected="@isSelected">@optVal</option>
+                        }
+                    </select>
+                </div>
+
+                @* time tag dropdown *@
+                <div class="modal-field">
+                    <label for="edit-time-select"
+                           class="modal-label">@edit.GetProperty("timeTagLabel").GetString()</label>
+                    <select id="edit-time-select" class="modal-input input-time">
+                        @foreach (var opt in edit.GetProperty("timeOptions").EnumerateArray())
+                        {
+                            var optVal = opt.GetString();
+                            var isSelected = optVal != "None" && existingTags.Contains(optVal,
+                        StringComparer.OrdinalIgnoreCase);
+                            <option value="@optVal" selected="@isSelected">@optVal</option>
+                        }
+                    </select>
+                </div>
+
+                @* live tag preview box *@
+                <div class="modal-field" style="margin-top: 1.25rem;">
+                    <label class="modal-label"
+                           style="color: var(--text-muted);">@edit.GetProperty("previewLabel").GetString()</label>
+                    <div id="edit-tag-preview" class="badge-row"
+                         style="flex-wrap: wrap; min-height: 28px; gap: 0.4rem;"></div>
+                </div>
+
+                @* action buttons *@
+                <div class="modal-footer-actions" style="margin-top: 1.5rem;">
+                    <a asp-action="Index" class="btn-cancel" style="text-decoration: none;">
+                        @edit.GetProperty("cancelButton").GetString()
+                    </a>
+                    <button type="submit" class="btn-create">
+                        @edit.GetProperty("saveButton").GetString()
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/community-edit.js" asp-append-version="true"></script>
 }
