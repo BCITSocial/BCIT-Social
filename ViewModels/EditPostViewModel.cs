@@ -11,6 +11,10 @@ public class EditPostViewModel
 {
 	public int Id { get; set; }
 
+	[Required]
+	[StringLength(150)]
+	public string Title { get; set; } = null!;
+
 	[Display(Name = "Post Type")]
 	[Range(1, int.MaxValue, ErrorMessage = "Please select a post type.")]
 	public int TagId { get; set; }
