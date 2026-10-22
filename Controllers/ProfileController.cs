@@ -34,14 +34,12 @@ public class ProfileController : Controller
         {
             return NotFound();
         }
-
         var profile = await _context.Profiles
             .FirstOrDefaultAsync(m => m.UserId == userid);
         if (profile == null)
         {
             return NotFound();
         }
-
         return View(profile);
     }
 
@@ -64,27 +62,20 @@ public class ProfileController : Controller
     /// <returns></returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(string DisplayName)
+    public async Task<IActionResult> Create(ProfileViewModel viewModel)
     {
         string? userID = _userManager.GetUserId(User);
         if (userID == null)
         {
             return Challenge();
         }
-        var viewModel = new ProfileViewModel
-        {
-            DisplayName = DisplayName,
-            Bio = "",
-            Program = "",
-            Campus = ""
-        };
         var profile = new Profile
         {
             UserId = userID,
-            DisplayName = DisplayName,
-            Bio = "",
-            Program = "",
-            Campus = "",
+            DisplayName = viewModel.DisplayName,
+            Bio = viewModel.Bio,
+            Program = viewModel.Program,
+            Campus = viewModel.Campus,
         };
         if (ModelState.IsValid)
         {
