@@ -39,6 +39,11 @@ public class PostController : Controller
     }
 
     // GET: POSTS/Details/5
+    /// <summary>
+    /// Description: Displays the public details of an active post
+    /// </summary>
+    /// <param name="id">The ID of the post being viewed.</param>
+    /// <returns>The Post Details view.</returns>
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null)
@@ -47,13 +52,44 @@ public class PostController : Controller
         }
 
         var post = await _context.Posts
-            .FirstOrDefaultAsync(m => m.Id == id);
+            .AsNoTracking()
+            .Include(post => post.Author)
+            .Include(post => post.PostTags)
+                .ThenInclude(postTag => postTag.Tag)
+            .FirstOrDefaultAsync(post =>
+                post.Id == id &&
+                post.DateOfDel == null);
+
         if (post == null)
         {
             return NotFound();
         }
 
-        return View(post);
+        string? displayName = await _context.Profiles
+            .Where(profile => profile.UserId == post.AuthorId)
+            .Select(profile => profile.DisplayName)
+            .FirstOrDefaultAsync();
+
+        string? currentUserId = _userManager.GetUserId(User);
+
+        var viewModel = new PostDetailsViewModel
+        {
+            Id = post.Id,
+            AuthorName = displayName
+                ?? post.Author?.UserName
+                ?? "BCIT Social User",
+
+            PostType = post.PostTags
+                .FirstOrDefault()?
+                .Tag.Name,
+
+            Title = post.Title,
+            Content = post.Content,
+            CreatedAt = post.CreatedAt,
+            CanEdit = currentUserId == post.AuthorId
+        };
+
+        return View(viewModel);
     }
 
     // GET: POSTS/Create
@@ -113,6 +149,7 @@ public class PostController : Controller
         {
             AuthorId = authorId,
             CommunityId = null,
+            Title = viewModel.Title,
             Content = viewModel.Content,
             CreatedAt = DateTime.UtcNow,
             DateOfDel = null
@@ -176,6 +213,7 @@ public class PostController : Controller
         var viewModel = new EditPostViewModel
         {
             Id = post.Id,
+            Title = post.Title,
             Content = post.Content,
             TagId = postTag?.TagId ?? 0,
             PostTypes = await _context.Tags
