@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -381,9 +380,6 @@ public class PostController : Controller
         // Keep related comments and bookmarks intact while hiding the post from active feeds.
         post.DateOfDel = DateTime.UtcNow;
         await _context.SaveChangesAsync();
-        return RedirectToAction("Index", "Home");
-    }
-
         return RedirectToAction("Index", "Home");
     }
 }
