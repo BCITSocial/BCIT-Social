@@ -1,0 +1,19 @@
+@model List<BCIT_Social.ViewModels.CommunityLinkViewModel>
+@* The "Your communities" list in the sidebar. Renders nothing when signed out or not in any community. *@
+@if (Model.Count > 0)
+{
+    <div class="sidebar-communities">
+        <h2 class="sidebar-label" id="sidebar-communities-heading">Your communities</h2>
+        <ul aria-labelledby="sidebar-communities-heading">
+            @foreach (var community in Model)
+            {
+                <li>
+                    <a asp-controller="Community" asp-action="Details" asp-route-id="@community.Id">
+                        <span class="sidebar-community-badge" aria-hidden="true">@community.Initials</span>
+                        <span class="sidebar-community-name">@community.Name</span>
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+}

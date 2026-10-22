@@ -1,0 +1,190 @@
+/*
+author: Andre Di Lascio
+Styles the Messages page: conversation list, chat header, message bubbles, and composer.
+*/
+
+/* Two panels side by side that fill the window below the header. Only the message list scrolls. */
+.messages-page { display: grid; grid-template-columns: minmax(260px, 320px) minmax(0, 1fr); gap: 12px; height: calc(100dvh - 69px - 40px); min-height: 480px; }
+.msg-panel { display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); }
+.msg-panel .icon { flex: none; width: 1.125rem; height: 1.125rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Avatars: photo or initials, in three sizes. The green dot sits on the bottom-right edge. */
+.msg-avatar { position: relative; display: grid; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--color-avatar); color: var(--color-avatar-text); font-size: 0.875rem; font-weight: var(--font-weight-bold); }
+.msg-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.msg-avatar.is-small { width: 32px; height: 32px; font-size: 0.75rem; }
+.msg-avatar.is-medium { width: 44px; height: 44px; }
+.msg-avatar.is-large { width: 48px; height: 48px; font-size: 1rem; }
+.msg-online-dot { position: absolute; right: -1px; bottom: -1px; width: 14px; height: 14px; border: 2px solid var(--color-surface); border-radius: 50%; background: var(--color-online); }
+
+/* Conversation list */
+.msg-list-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 12px; }
+.msg-list-head h1 { font-size: 1.375rem; }
+.msg-primary-button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 14px; border: 0; background: var(--color-accent); color: var(--color-surface); font-size: 0.875rem; font-weight: var(--font-weight-bold); white-space: nowrap; cursor: pointer; }
+.msg-primary-button:hover { filter: brightness(1.08); }
+
+/* @author Asher: styles for the new-conversation recipient picker. */
+.msg-primary-button:disabled { opacity: 0.55; cursor: not-allowed; }
+.msg-new-dialog { position: relative; width: min(460px, calc(100vw - 32px)); max-height: min(80dvh, 640px); padding: 24px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); color: var(--color-text); }
+.msg-new-dialog::backdrop { background: rgb(0 0 0 / 48%); }
+.msg-new-dialog h2 { margin: 0 40px 18px 0; font-size: 1.25rem; }
+.msg-new-dialog .msg-search { display: block; margin: 0; }
+.msg-new-dialog-close { position: absolute; top: 12px; right: 12px; }
+.msg-recipient-status { margin: 14px 0 4px; color: var(--color-muted); font-size: 0.875rem; }
+.msg-recipient-results { max-height: 260px; margin: 0 0 16px; padding: 0; overflow: auto; list-style: none; }
+.msg-recipient-option { width: 100%; padding: 12px 10px; border: 0; border-bottom: 1px solid var(--color-border); background: transparent; color: var(--color-text); text-align: left; cursor: pointer; }
+.msg-recipient-option:hover, .msg-recipient-option[aria-pressed="true"] { background: var(--color-selected); }
+.msg-search { position: relative; margin: 0 16px; }
+.msg-search input { width: 100%; min-height: 40px; padding: 8px 12px 8px 38px; border: 1px solid var(--color-transparent); background: var(--color-input); color: var(--color-text); font-size: 0.875rem; }
+.msg-search-icon { position: absolute; top: 50%; left: 12px; width: 18px; height: 18px; translate: 0 -50%; fill: none; stroke: var(--color-muted); stroke-width: 2; stroke-linecap: round; pointer-events: none; }
+.msg-filters { display: flex; gap: 8px; padding: 12px 16px; }
+.msg-filters a { display: inline-flex; align-items: center; min-height: 32px; padding: 4px 18px; border-radius: 999px; background: var(--color-input); color: var(--color-text); font-size: 0.875rem; text-decoration: none; }
+.msg-filters a:hover { background: var(--color-border); }
+.msg-filters [aria-current="page"], .msg-filters [aria-current="page"]:hover { background: var(--color-accent); color: var(--color-surface); font-weight: var(--font-weight-bold); }
+.msg-list-empty { padding: 24px 16px; font-size: 0.875rem; text-align: center; }
+.msg-conversations { flex: 1; margin: 0; padding: 0 0 8px; overflow-x: hidden; overflow-y: auto; list-style: none; }
+.msg-conversations li + li .msg-conversation::before { content: ""; position: absolute; top: 0; right: 16px; left: 72px; border-top: 1px solid var(--color-border); }
+.msg-conversation { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--color-text); text-decoration: none; }
+.msg-conversation:hover { background: var(--color-input); }
+.msg-conversation[aria-current="page"] { background: var(--color-selected); }
+.msg-conversation[aria-current="page"]::before, li:has([aria-current="page"]) + li .msg-conversation::before { display: none; }
+.msg-conversation:focus-visible { outline-offset: -3px; }
+.msg-conversation-text { display: grid; flex: 1; gap: 2px; min-width: 0; }
+.msg-conversation-top, .msg-conversation-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.msg-conversation-top strong { overflow: hidden; font-size: 0.9375rem; text-overflow: ellipsis; white-space: nowrap; }
+.msg-conversation-top time { flex: none; color: var(--color-muted); font-size: 0.75rem; }
+.msg-preview { min-width: 0; overflow: hidden; color: var(--color-muted); font-size: 0.8125rem; text-overflow: ellipsis; white-space: nowrap; }
+.msg-conversation.is-unread .msg-preview { color: var(--color-text); }
+.msg-unread-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--color-accent); }
+
+/* Chat header */
+.msg-chat-head { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-bottom: 1px solid var(--color-border); }
+.msg-back { display: none; }
+.msg-chat-person { flex: 1; min-width: 0; }
+.msg-chat-person h2 { margin: 0; font-size: 1.125rem; }
+.msg-chat-person p { overflow: hidden; font-size: 0.8125rem; text-overflow: ellipsis; white-space: nowrap; }
+.msg-chat-actions { display: flex; align-items: center; gap: 4px; }
+.msg-chat-actions .icon-button svg { width: 22px; height: 22px; stroke-width: 1.8; stroke-linejoin: round; }
+.msg-details-button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; margin-left: 8px; padding: 8px 16px; border: 1px solid var(--color-accent); border-radius: 8px; background: var(--color-surface); color: var(--color-accent); font-size: 0.875rem; font-weight: var(--font-weight-bold); text-decoration: none; white-space: nowrap; }
+.msg-details-button:hover { background: var(--color-selected); }
+
+/* Message list. column-reverse starts the scroll at the newest message. */
+.msg-scroll { display: flex; flex: 1; flex-direction: column-reverse; min-height: 0; overflow-y: auto; }
+.msg-log { display: grid; gap: 14px; margin: 0; padding: 8px 20px 16px; list-style: none; }
+.msg-day { display: flex; align-items: center; gap: 16px; color: var(--color-muted); font-size: 0.8125rem; }
+.msg-day::before, .msg-day::after { content: ""; flex: 1; border-top: 1px solid var(--color-border); }
+.msg-row { display: flex; align-items: flex-start; gap: 10px; }
+.msg-row.is-mine { justify-content: flex-end; }
+.msg-bubble-group { display: grid; gap: 4px; max-width: min(68%, 560px); }
+.msg-row.is-mine .msg-bubble-group { justify-items: end; }
+.msg-bubble { padding: 10px 14px; border-radius: 14px; background: var(--color-bubble-theirs); color: var(--color-text); font-size: 0.9375rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg-row.is-theirs .msg-bubble { border-top-left-radius: 4px; }
+.msg-row.is-mine .msg-bubble { border-top-right-radius: 4px; background: var(--color-bubble-mine); color: var(--color-bubble-mine-text); }
+.msg-meta { display: inline-flex; align-items: center; gap: 4px; padding: 0 2px; color: var(--color-muted); font-size: 0.75rem; }
+.msg-read { width: 16px; height: 16px; fill: none; stroke: var(--color-accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Search in conversation: a bar under the chat header; matches get an outline, the current one a thicker one. */
+.msg-chat-search { display: flex; align-items: center; gap: 4px; padding: 8px 12px 8px 16px; border-bottom: 1px solid var(--color-border); }
+.msg-chat-search .msg-search { flex: 1; margin: 0; }
+.msg-chat-search .icon-button { flex: none; min-height: 40px; width: 40px; border-radius: 50%; color: var(--color-muted); }
+.msg-chat-search-count { flex: none; min-width: 4.5rem; color: var(--color-muted); font-size: 0.8125rem; text-align: center; }
+.msg-bubble.is-match { outline: 2px solid var(--color-cta); outline-offset: 1px; }
+.msg-bubble.is-current { outline: 3px solid var(--color-cta-text); }
+
+/* "Maya is typing..." with three bouncing dots. */
+.msg-typing { align-items: center; }
+.msg-typing-dots { display: inline-flex; gap: 4px; padding: 12px 14px; border-radius: 14px; background: var(--color-bubble-theirs); }
+.msg-typing-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--color-muted); animation: msg-typing 1.2s infinite ease-in-out; }
+.msg-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+.msg-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+.msg-typing-text { color: var(--color-muted); font-size: 0.75rem; }
+@keyframes msg-typing { 0%, 60%, 100% { opacity: 0.4; translate: 0 0; } 30% { opacity: 1; translate: 0 -3px; } }
+@media (prefers-reduced-motion: reduce) { .msg-typing-dots span { animation: none; } }
+
+/* Composer */
+.msg-composer { display: flex; align-items: flex-end; gap: 4px; margin: 0; padding: 12px 16px; border-top: 1px solid var(--color-border); }
+.msg-composer .icon-button { flex: none; border-radius: 50%; color: var(--color-muted); }
+.msg-composer .icon-button svg { width: 22px; height: 22px; stroke-width: 1.7; stroke-linejoin: round; }
+.msg-input { flex: 1; min-width: 0; margin-left: 4px; }
+.msg-input textarea { display: block; width: 100%; min-height: 44px; max-height: 160px; padding: 11px 18px; border: 1px solid var(--color-transparent); border-radius: 22px; background: var(--color-input); color: var(--color-text); font: inherit; font-size: 0.9375rem; resize: none; }
+.msg-send { display: grid; flex: none; place-items: center; width: 44px; margin-left: 8px; padding: 0; border: 0; border-radius: 50%; background: var(--color-accent); color: var(--color-surface); cursor: pointer; }
+.msg-send:hover { filter: brightness(1.08); }
+.msg-send:disabled { background: var(--color-border); color: var(--color-muted); filter: none; }
+.msg-send svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* No conversation open */
+.msg-chat-empty { align-items: center; justify-content: center; gap: 6px; text-align: center; }
+.msg-empty-icon { width: 40px; height: 40px; margin-bottom: 6px; fill: none; stroke: var(--color-muted); stroke-width: 1.5; stroke-linejoin: round; }
+.msg-chat-empty strong { color: var(--color-text); }
+
+/* Elements below set display, which would otherwise beat the hidden attribute that messages.js toggles. */
+.messages-page [hidden] { display: none !important; }
+.messages-page.is-details-open .msg-details-button { display: none; }
+
+/* Details panel: a column of cards on the right. It scrolls on its own when taller than the window. */
+.msg-details:focus { outline: none; }
+.messages-page.is-details-open { grid-template-columns: minmax(240px, 300px) minmax(0, 1fr) minmax(260px, 290px); }
+.msg-details { display: grid; align-content: start; gap: 12px; min-height: 0; overflow-y: auto; }
+.msg-details-card { min-height: auto; padding: 16px; }
+.msg-details-card h2 { margin: 0; font-size: 1rem; }
+.msg-details-profile { position: relative; align-items: center; gap: 2px; text-align: center; }
+.msg-details-close { position: absolute; top: 4px; right: 4px; border-radius: 50%; color: var(--color-muted); }
+.msg-avatar.is-profile { width: 96px; height: 96px; margin-bottom: 10px; font-size: 1.75rem; }
+.msg-avatar.is-profile .msg-online-dot { right: 4px; bottom: 4px; width: 20px; height: 20px; border-width: 3px; }
+.msg-details-profile h2 { font-size: 1.25rem; }
+.msg-details-profile p { color: var(--color-text); font-size: 0.875rem; }
+.msg-details-status { display: inline-flex; align-items: center; gap: 6px; }
+.msg-status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--color-online); }
+.msg-outline-button { display: inline-flex; align-items: center; justify-content: center; align-self: stretch; min-height: 40px; margin-top: 14px; border: 1px solid var(--color-accent); border-radius: 8px; color: var(--color-accent); font-size: 0.9375rem; font-weight: var(--font-weight-bold); text-decoration: none; }
+.msg-outline-button:hover { background: var(--color-selected); }
+.msg-details-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.msg-details-head a, .msg-link-button { min-height: 32px; padding: 4px 0; border: 0; background: var(--color-transparent); color: var(--color-accent); font-size: 0.8125rem; text-decoration: none; cursor: pointer; }
+.msg-details-head a { display: inline-flex; align-items: center; }
+.msg-details-empty { font-size: 0.8125rem; }
+.msg-details-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.msg-community { display: flex; align-items: center; gap: 12px; margin: 0 -8px; padding: 6px 8px; border-radius: 8px; color: var(--color-text); text-decoration: none; }
+.msg-community:hover { background: var(--color-input); }
+.msg-community-tile { display: grid; flex: none; place-items: center; width: 44px; height: 44px; border-radius: 8px; background: var(--color-community-tile); color: var(--color-community-tile-text); font-size: 0.875rem; font-weight: var(--font-weight-bold); }
+.msg-community-text { display: grid; min-width: 0; }
+.msg-community-text strong { overflow: hidden; font-size: 0.875rem; text-overflow: ellipsis; white-space: nowrap; }
+.msg-community-text span { color: var(--color-muted); font-size: 0.75rem; }
+.msg-media-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.msg-media-grid li { display: grid; min-width: 0; font-size: 0.75rem; }
+.msg-media-thumb { display: grid; place-items: center; aspect-ratio: 4 / 3; margin-bottom: 6px; overflow: hidden; border-radius: 6px; background: var(--color-cover); }
+.msg-media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.msg-media-thumb svg { width: 28px; height: 28px; fill: none; stroke: var(--color-muted); stroke-width: 1.5; stroke-linejoin: round; }
+.msg-media-name { overflow: hidden; color: var(--color-text); text-overflow: ellipsis; white-space: nowrap; }
+.msg-media-grid time { color: var(--color-muted); }
+.msg-details-card > h2 + .msg-details-list { margin-top: 8px; }
+.msg-info-row { display: flex; align-items: center; gap: 14px; margin: 0 -8px; padding: 8px; border: 0; background: var(--color-transparent); color: var(--color-text); font-size: 0.875rem; text-align: left; cursor: pointer; width: calc(100% + 16px); }
+.msg-info-row:hover { background: var(--color-input); }
+.msg-info-row span { flex: 1; }
+.msg-info-row .icon { width: 20px; height: 20px; stroke-width: 1.8; }
+.msg-chevron { flex: none; width: 16px; height: 16px; fill: none; stroke: var(--color-muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Narrow desktop: icon-only details button. With details open, the list makes room for the chat and panel. */
+@media (max-width: 1180px) {
+    .msg-details-button { padding: 8px 10px; }
+    .msg-details-button span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .messages-page.is-details-open { grid-template-columns: minmax(0, 1fr) minmax(260px, 300px); }
+    .messages-page.is-details-open .msg-list-panel { display: none; }
+}
+
+/* Tablets and phones: one panel at a time. The chat shows once a conversation is picked; details replace the chat. */
+@media (max-width: 860px) {
+    .messages-page, .messages-page.is-details-open { grid-template-columns: minmax(0, 1fr); height: auto; min-height: 0; }
+    .msg-list-panel { min-height: 60dvh; }
+    .messages-page .msg-chat { display: none; }
+    .messages-page.is-chat-open .msg-list-panel { display: none; }
+    .messages-page.is-chat-open .msg-chat { display: flex; height: calc(100dvh - 24px); min-height: 420px; }
+    .messages-page.is-details-open .msg-chat { display: none; }
+    .msg-details { overflow: visible; }
+    .msg-back { display: grid; flex: none; margin-left: -8px; border-radius: 50%; }
+    .msg-chat-head { gap: 10px; padding: 8px 12px; }
+    .msg-chat-actions .icon-button:not(:last-of-type) { display: none; }
+    .msg-bubble-group { max-width: 82%; }
+    .msg-log { padding: 8px 12px 12px; }
+    .msg-composer { gap: 0; padding: 8px; }
+    .msg-composer .icon-button { width: 38px; }
+    .msg-composer [aria-label="Add an emoji"] { display: none; }
+    .msg-send { margin-left: 6px; }
+}

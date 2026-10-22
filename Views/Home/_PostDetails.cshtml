@@ -1,0 +1,95 @@
+@model BCIT_Social.ViewModels.PostDetailsViewModel
+@* The post, its actions, the comment box, and comment threads. Shown in the Home modal and on /Home/Post/{id}. *@
+@{
+    var post = Model.Post;
+    var now = DateTime.UtcNow;
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var returnUrl = Url.Action("Post", "Home", new { id = post.Id });
+    var paragraphs = post.Content.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    ViewData["PostId"] = post.Id;
+    ViewData["ReturnUrl"] = returnUrl;
+}
+<article class="post-details" aria-labelledby="post-details-title">
+    <div class="post-details-author">
+        <span class="avatar avatar-large" aria-hidden="true">@post.AuthorInitials</span>
+        <div>
+            <p class="post-details-name">@post.AuthorName</p>
+            <p class="post-details-meta">
+                @if (post.CommunityName is not null)
+                {
+                    <span>@post.CommunityName ·</span>
+                }
+                <time datetime="@post.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")">@post.TimeAgo(now)</time>
+            </p>
+        </div>
+    </div>
+
+    <h3 class="post-details-title" id="post-details-title">@post.Title</h3>
+    <div class="post-details-content">
+        @foreach (var paragraph in paragraphs)
+        {
+            <p>@paragraph</p>
+        }
+    </div>
+    @if (post.Tags.Count > 0)
+    {
+        <ul class="post-tags" aria-label="Tags">
+            @foreach (var tag in post.Tags)
+            {
+                <li>@tag</li>
+            }
+        </ul>
+    }
+
+    <div class="post-details-actions">
+        @if (signedIn)
+        {
+            <form method="post" asp-controller="Bookmarks" asp-action="@(post.IsSaved ? "Remove" : "Save")" asp-route-postId="@post.Id" asp-route-returnUrl="@returnUrl">
+                <button class="link-action" type="submit" aria-pressed="@(post.IsSaved ? "true" : "false")">
+                    <svg class="post-icon @(post.IsSaved ? "is-filled" : "")" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h12v18l-6-4.5L6 21Z" /></svg>
+                    @(post.IsSaved ? "Saved" : "Save")
+                </button>
+            </form>
+        }
+        <button class="link-action share-action" type="button" data-share-url="@returnUrl" data-share-title="@post.Title">
+            <svg class="post-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></svg>
+            Share
+        </button>
+        <span class="share-status" role="status"></span>
+    </div>
+</article>
+
+<section class="comments" aria-labelledby="comments-heading-@post.Id">
+    <h3 class="comments-heading" id="comments-heading-@post.Id">Comments (@post.CommentCount)</h3>
+
+    <div class="comment-box">
+        <span class="avatar" aria-hidden="true">@(Model.CurrentUserInitials == "" ? "?" : Model.CurrentUserInitials)</span>
+        @if (signedIn)
+        {
+            <form class="comment-form" method="post" asp-controller="Comment" asp-action="Create" asp-route-returnUrl="@returnUrl">
+                <input type="hidden" name="postId" value="@post.Id" />
+                <label class="visually-hidden" for="new-comment-@post.Id">Write a comment</label>
+                <input class="comment-input" id="new-comment-@post.Id" name="content" placeholder="Write a comment..." autocomplete="off" required />
+                <button class="cta-button" type="submit">Comment</button>
+            </form>
+        }
+        else
+        {
+            <a class="comment-input comment-login" asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="@returnUrl">Log in to write a comment...</a>
+        }
+    </div>
+
+    @if (Model.Comments.Count == 0)
+    {
+        <p class="comments-empty">No comments yet. Start the conversation.</p>
+    }
+    else
+    {
+        <ul class="comment-list">
+            @foreach (var comment in Model.Comments)
+            {
+                <partial name="_Comment" model="comment" view-data="ViewData" />
+            }
+        </ul>
+    }
+</section>
