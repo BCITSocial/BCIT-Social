@@ -290,6 +290,7 @@ public class PostController : Controller
             return View(viewModel);
         }
 
+        post.Title = viewModel.Title;
         post.Content = viewModel.Content;
 
         var existingPostTags = await _context.PostTags
