@@ -488,8 +488,10 @@ public class CommunityController : Controller
         var creatorName = creator?.UserName;
         var viewModel = new DetailsCommunityViewModel
         {
+            Id = community.Id,
             Name = community.Name,
             Type = community.Type,
+            Description = community.Description,
             Creator = creatorName ?? "Not Found",
             Members = members
         };
