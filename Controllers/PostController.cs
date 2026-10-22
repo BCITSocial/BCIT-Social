@@ -39,6 +39,11 @@ public class PostController : Controller
     }
 
     // GET: POSTS/Details/5
+    /// <summary>
+    /// Description: Displays the public details of an active post
+    /// </summary>
+    /// <param name="id">The ID of the post being viewed.</param>
+    /// <returns>The Post Details view.</returns>
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null)
@@ -47,13 +52,44 @@ public class PostController : Controller
         }
 
         var post = await _context.Posts
-            .FirstOrDefaultAsync(m => m.Id == id);
+            .AsNoTracking()
+            .Include(post => post.Author)
+            .Include(post => post.PostTags)
+                .ThenInclude(postTag => postTag.Tag)
+            .FirstOrDefaultAsync(post =>
+                post.Id == id &&
+                post.DateOfDel == null);
+
         if (post == null)
         {
             return NotFound();
         }
 
-        return View(post);
+        string? displayName = await _context.Profiles
+            .Where(profile => profile.UserId == post.AuthorId)
+            .Select(profile => profile.DisplayName)
+            .FirstOrDefaultAsync();
+
+        string? currentUserId = _userManager.GetUserId(User);
+
+        var viewModel = new PostDetailsViewModel
+        {
+            Id = post.Id,
+            AuthorName = displayName
+                ?? post.Author?.UserName
+                ?? "BCIT Social User",
+
+            PostType = post.PostTags
+                .FirstOrDefault()?
+                .Tag.Name,
+
+            Title = post.Title,
+            Content = post.Content,
+            CreatedAt = post.CreatedAt,
+            CanEdit = currentUserId == post.AuthorId
+        };
+
+        return View(viewModel);
     }
 
     // GET: POSTS/Create
@@ -278,6 +314,12 @@ public class PostController : Controller
     }
 
     // GET: POSTS/Delete/5
+    /// <summary>
+    /// Description: Displays the delete confirmation page for a post owned by the current user.
+    /// Last Reviewed: October 22, 2026
+    /// </summary>
+    /// <param name="id">The ID of the post being deleted.</param>
+    /// <returns>The delete confirmation view.</returns>
     [Authorize]
     public async Task<IActionResult> Delete(int? id)
     {
@@ -287,14 +329,17 @@ public class PostController : Controller
         }
 
         var post = await _context.Posts
-            .Include(post => post.Author)
-            .FirstOrDefaultAsync(post => post.Id == id);
+            .FirstOrDefaultAsync(post =>
+                post.Id == id &&
+                post.DateOfDel == null);
+
         if (post == null)
         {
             return NotFound();
         }
 
         string? currentUserId = _userManager.GetUserId(User);
+
         if (post.AuthorId != currentUserId)
         {
             return Forbid();
@@ -304,6 +349,12 @@ public class PostController : Controller
     }
 
     // POST: POSTS/Delete/5
+    /// <summary>
+    /// Description: Soft deletes a post owned by the current user.
+    /// Last Reviewed: October 22, 2026
+    /// </summary>
+    /// <param name="id">The ID of the post being deleted.</param>
+    /// <returns>The Home page after the post is deleted.</returns>
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     [Authorize]
@@ -333,8 +384,6 @@ public class PostController : Controller
         return RedirectToAction("Index", "Home");
     }
 
-    private bool PostExists(int? id)
-    {
-        return _context.Posts.Any(e => e.Id == id);
+        return RedirectToAction("Index", "Home");
     }
 }

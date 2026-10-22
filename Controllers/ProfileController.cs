@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BCIT_Social.Models;
@@ -10,16 +9,20 @@ public class ProfileController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
 
     /// <summary>
     /// Added userManager to scaffolded code for checking user and database connections.
     /// </summary>
     /// <param name="context"></param>
     /// <param name="userManager"></param>
-    public ProfileController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    /// <param name="signInManager"></param>
+    public ProfileController(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager)
     {
         _context = context;
         _userManager = userManager;
+        _signInManager = signInManager;
     }
 
     // GET: PROFILES
@@ -35,14 +38,12 @@ public class ProfileController : Controller
         {
             return NotFound();
         }
-
         var profile = await _context.Profiles
             .FirstOrDefaultAsync(m => m.UserId == userid);
         if (profile == null)
         {
             return NotFound();
         }
-
         return View(profile);
     }
 
@@ -57,10 +58,11 @@ public class ProfileController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     /// <summary>
     /// Author: Joshua Trepanier
-    /// Last Revised: Oct 15, 2026
-    /// Description: Creation of the profile
+    /// Last Revised: Oct 20, 2026
+    /// Description: Creation of the profile (This isn't supposed to be used, profile creation is done through the
+    /// account registration process)
     /// </summary>
-    /// <param name="viewModel"></param>
+    /// <param name="viewModel">The view model for the profile</param>
     /// <returns></returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -71,7 +73,6 @@ public class ProfileController : Controller
         {
             return Challenge();
         }
-
         var profile = new Profile
         {
             UserId = userID,
@@ -80,7 +81,6 @@ public class ProfileController : Controller
             Program = viewModel.Program,
             Campus = viewModel.Campus,
         };
-
         if (ModelState.IsValid)
         {
             _context.Add(profile);
@@ -91,13 +91,22 @@ public class ProfileController : Controller
     }
 
     // GET: PROFILES/Edit/5
+    /// <summary>
+    /// Author: Joshua Trepanier
+    /// Last Revised: Oct 21, 2026
+    /// Description: Edit existing profile, other users are unable to edit other profiles except their own.
+    /// </summary>
     public async Task<IActionResult> Edit(string? userid)
     {
+        string? currentUserID = _userManager.GetUserId(User);
         if (userid == null)
         {
             return NotFound();
         }
-
+        if (currentUserID != userid)
+        {
+            return Forbid();
+        }
         var profile = await _context.Profiles.FindAsync(userid);
         if (profile == null)
         {
@@ -109,15 +118,26 @@ public class ProfileController : Controller
     // POST: PROFILES/Edit/5
     // To protect from overposting attacks, enable the specific properties you want to bind to.
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    /// <summary>
+    /// Author: Joshua Trepanier
+    /// Last Revised: Oct 21, 2026
+    /// Description: Edit existing profile.
+    /// </summary>
+    /// <param name="viewModel">The view model for the profile</param>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(string? userid, [Bind("UserId,DisplayName,Bio,Program,Campus,User")] Profile profile)
+    public async Task<IActionResult> Edit(ProfileViewModel viewModel)
     {
-        if (userid != profile.UserId)
+        string? userID = _userManager.GetUserId(User);
+        var profile = await _context.Profiles.FindAsync(userID);
+        if (userID == null || profile == null)
         {
             return NotFound();
         }
-
+        profile.DisplayName = viewModel.DisplayName;
+        profile.Bio = viewModel.Bio;
+        profile.Program = viewModel.Program;
+        profile.Campus = viewModel.Campus;
         if (ModelState.IsValid)
         {
             try
@@ -127,7 +147,7 @@ public class ProfileController : Controller
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProfileExists(profile.UserId))
+                if (!ProfileExists(userID))
                 {
                     return NotFound();
                 }
@@ -142,13 +162,22 @@ public class ProfileController : Controller
     }
 
     // GET: PROFILES/Delete/5
+    /// <summary>
+    /// Author: Joshua Trepanier
+    /// Last Revised: Oct 21, 2026
+    /// Description: Users can only access their own profiles delete page. Access to others is restricted.
+    /// </summary>
     public async Task<IActionResult> Delete(string? userid)
     {
+        string? currentUserID = _userManager.GetUserId(User);
         if (userid == null)
         {
             return NotFound();
         }
-
+        if (currentUserID != userid)
+        {
+            return Forbid();
+        }
         var profile = await _context.Profiles
             .FirstOrDefaultAsync(m => m.UserId == userid);
         if (profile == null)
@@ -160,17 +189,34 @@ public class ProfileController : Controller
     }
 
     // POST: PROFILES/Delete/5
+    /// <summary>
+    /// Author: Joshua Trepanier
+    /// Last Revised: Oct 21, 2026
+    /// Description: Delete the existing profile (Also deletes the account from the database).
+    /// Signs user out once account is deleted.
+    /// </summary>
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(string? userid)
     {
+        string? currentUserID = _userManager.GetUserId(User);
+        if (userid == null)
+        {
+            return NotFound();
+        }
+        if (currentUserID != userid)
+        {
+            return Forbid();
+        }
         var profile = await _context.Profiles.FindAsync(userid);
-        if (profile != null)
+        var account = await _context.Users.FindAsync(userid);
+        if (profile != null && account != null)
         {
             _context.Profiles.Remove(profile);
+            _context.Users.Remove(account);
         }
-
         await _context.SaveChangesAsync();
+        await _signInManager.SignOutAsync();
         return RedirectToAction(nameof(Index));
     }
 

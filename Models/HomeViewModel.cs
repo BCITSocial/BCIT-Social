@@ -15,4 +15,20 @@ public class HomeViewModel
     public IReadOnlyList<CommunityLinkViewModel> YourCommunities { get; init; } = [];
     // Initials for the signed-in user's avatar in the share box. Empty when signed out.
     public string CurrentUserInitials { get; init; } = "";
+    public List<HomePostViewModel> Posts { get; set; } = new();
+}
+
+public class HomePostViewModel
+{
+    public int Id { get; set; }
+
+    public string AuthorName { get; set; } = null!;
+
+    public string? PostType { get; set; }
+
+    public string Title { get; set; } = null!;
+
+    public string Content { get; set; } = null!;
+
+    public DateTime CreatedAt { get; set; }
 }

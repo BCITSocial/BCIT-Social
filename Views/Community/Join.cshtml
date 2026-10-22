@@ -1,0 +1,35 @@
+@model BCIT_Social.Models.Community
+
+@{
+    ViewData["Title"] = "Join";
+}
+
+<h1>Join</h1>
+
+<h3>Do you want to join this Community?</h3>
+<div>
+    <h4>BCIT_Social.Models.Community</h4>
+    <hr />
+
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+    </dl>
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Type)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Type)
+        </dd>
+    </dl>
+    <form asp-action="Join">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Join" class="btn btn-primary" /> |
+        <a asp-action="Index">Back to List</a>
+    </form>
+</div>
