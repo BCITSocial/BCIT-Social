@@ -5,13 +5,20 @@
     "searchPlaceholder": "Search communities...",
     "categories": [
         "All",
+        "Club",
+        "Interest",
+        "Study",
+        "Intake",
         "Technology",
         "Arts & Design",
         "Outdoors",
         "Sports",
         "Academic",
         "Social",
-        "Hackathon"
+        "Hackathon",
+        "Coding",
+        "Going",
+        "Starting Soon"
     ],
     "featured": {
         "label": "THIS WEEK",
@@ -22,9 +29,147 @@
         "timeTag": "Starting Soon"
     },
     "browseHeading": "Browse communities",
-    "defaultDescription": "Connect with fellow BCIT students, share resources, and collaborate.",
+    "aboutHeading": "About",
+    "defaultDescription": "Please fill this! Or not...hmmm....you should fill this in me thinks....hmmmm.",
+    "defaultCampus": "Burnaby Campus",
     "membersLabel": "members",
     "joinButton": "Join",
+    "joinedLabel": "Joined",
     "editLabel": "Edit",
-    "deleteLabel": "Delete"
+    "deleteLabel": "Delete",
+    "createModal": {
+        "tabs": [
+            "Post",
+            "Event",
+            "Community"
+        ],
+        "activeTab": "Community",
+        "title": "Create community",
+        "subtitle": "Build a space around a shared interest.",
+        "coverTitle": "Add a cover image",
+        "coverSubtitle": "Recommended: 1600 x 400 px",
+        "nameLabel": "Community name",
+        "namePlaceholder": "BCIT Coding Community",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "A space to learn, build, and share together.",
+        "categoryLabel": "Category",
+        "categoryOptions": [
+            "Club",
+            "Interest",
+            "Study",
+            "Intake",
+            "Technology",
+            "Arts & Design",
+            "Outdoors",
+            "Sports",
+            "Academic",
+            "Social",
+            "Hackathon"
+        ],
+        "campusLabel": "Campus",
+        "campusOptions": [
+            "All campuses",
+            "Burnaby Campus",
+            "Downtown Campus",
+            "Marine Campus",
+            "Aerospace Campus"
+        ],
+        "tagLabel": "Tag",
+        "tagOptions": [
+            "None",
+            "Technology",
+            "Coding",
+            "Open Source",
+            "Beginner Friendly",
+            "Arts & Design",
+            "Outdoors",
+            "Sports",
+            "Academic",
+            "Social",
+            "Hackathon"
+        ],
+        "statusTagLabel": "Status tag",
+        "statusOptions": [
+            "None",
+            "Going",
+            "Not Going",
+            "Interested",
+            "Active"
+        ],
+        "timeTagLabel": "Time tag",
+        "timeOptions": [
+            "None",
+            "Starting Soon",
+            "In Progress",
+            "Happening Now",
+            "Past"
+        ],
+        "tagsPreviewLabel": "Tags preview",
+        "helperNote": "You can add rules and invite members after creating your community.",
+        "cancelButton": "Cancel",
+        "submitButton": "Create community"
+    },
+    "editPage": {
+        "title": "Edit community",
+        "subtitle": "Update community details, category, and tags.",
+        "nameLabel": "Community name",
+        "descriptionLabel": "Description",
+        "campusLabel": "Campus",
+        "categoryLabel": "Category",
+        "tagLabel": "Tag",
+        "statusTagLabel": "Status tag",
+        "timeTagLabel": "Time tag",
+        "previewLabel": "Current tags preview",
+        "saveButton": "Save changes",
+        "cancelButton": "Cancel",
+        "categoryOptions": [
+            "Club",
+            "Interest",
+            "Study",
+            "Intake",
+            "Technology",
+            "Arts & Design",
+            "Outdoors",
+            "Sports",
+            "Academic",
+            "Social",
+            "Hackathon"
+        ],
+        "tagOptions": [
+            "None",
+            "Technology",
+            "Coding",
+            "Open Source",
+            "Beginner Friendly",
+            "Arts & Design",
+            "Outdoors",
+            "Sports",
+            "Academic",
+            "Social",
+            "Hackathon"
+        ],
+        "statusOptions": [
+            "None",
+            "Going",
+            "Not Going",
+            "Interested",
+            "Active"
+        ],
+        "timeOptions": [
+            "None",
+            "Starting Soon",
+            "In Progress",
+            "Happening Now",
+            "Past"
+        ]
+    },
+    "deletePage": {
+        "title": "Delete community",
+        "subtitle": "Are you sure you want to delete this community? This action cannot be undone.",
+        "detailsHeading": "Community summary",
+        "warningPrefix": "Are you sure you want to permanently remove ",
+        "warningSuffix": "? All associations and memberships will be lost.",
+        "confirmButton": "Delete community",
+        "cancelButton": "Cancel"
+    }
 }

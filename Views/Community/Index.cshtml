@@ -1,13 +1,12 @@
 @*
-- This is the frontend view for Communities page.
-*
+frontend view for Communities page.
 - author: jaspreet bath
 *@
 
-@* Getting the Community object data. *@
 @model IEnumerable<BCIT_Social.Models.Community>
 @using System.IO
 @using System.Text.Json
+@using System.Security.Claims
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 
 @{
@@ -16,27 +15,57 @@
     using var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
     var text = jsonDoc.RootElement;
     var featured = text.GetProperty("featured");
+    var modal = text.GetProperty("createModal");
+    var browseHeadingText = text.GetProperty("browseHeading").GetString();
+    var defaultEmptyDesc = text.GetProperty("defaultDescription").GetString();
+    var defaultCampusText = text.GetProperty("defaultCampus").GetString();
+    var joinedBtnText = text.GetProperty("joinedLabel").GetString();
     ViewData["Title"] = text.GetProperty("pageTitle").GetString();
+
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    var campusOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    foreach (var c in modal.GetProperty("campusOptions").EnumerateArray())
+    {
+        campusOptions.Add(c.GetString()!);
+    }
+
+    var statusTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    foreach (var s in modal.GetProperty("statusOptions").EnumerateArray())
+    {
+        var sVal = s.GetString();
+        if (!string.IsNullOrWhiteSpace(sVal) && !sVal.Equals("None", StringComparison.OrdinalIgnoreCase))
+        {
+            statusTags.Add(sVal);
+        }
+    }
+
+    var timeTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    foreach (var t in modal.GetProperty("timeOptions").EnumerateArray())
+    {
+        var tVal = t.GetString();
+        if (!string.IsNullOrWhiteSpace(tVal) && !tVal.Equals("None", StringComparison.OrdinalIgnoreCase))
+        {
+            timeTags.Add(tVal);
+        }
+    }
 }
 
-<!-- asp-append saves the browser cache in a unique hash.
-- Set to true, so that when color is changed, the page
-- is auto updated.
--->
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
 
 <div class="communities-wrapper">
-    <!-- this will be the top header div. -->
+    @* header *@
     <div class="communities-header">
         <div>
             <h1 class="communities-title" data-text="page-title">@text.GetProperty("pageTitle").GetString()</h1>
             <p class="communities-subtitle" data-text="page-subtitle">@text.GetProperty("pageSubtitle").GetString()</p>
         </div>
-        <a asp-action="Create" class="btn-create"
-           data-text="create-button">@text.GetProperty("createButton").GetString()</a>
+        <button type="button" id="open-create-modal" class="btn-create" data-text="create-button">
+            @text.GetProperty("createButton").GetString()
+        </button>
     </div>
 
-    <!-- this will be the filtering div. -->
+    @* category pill *@
     <div id="category-pills" class="filter-pills">
         @{
             var isFirst = true;
@@ -50,16 +79,16 @@
         }
     </div>
 
-    <!-- this will be the search bar div. -->
+    @* search bar *@
     <div class="search-bar-row">
         <input type="text" id="community-search" class="search-input"
                placeholder="@text.GetProperty("searchPlaceholder").GetString()" />
     </div>
 
-    <!-- this will be the main content div. -->
+    @* main juicy stuff here ;) *@
     <div class="communities-layout">
-        <!-- left side column. -->
         <div>
+            @* feature card (might delete later) *@
             <div class="featured-card">
                 <div class="featured-header-row">
                     <div class="featured-label" data-text="featured-label">@featured.GetProperty("label").GetString()
@@ -75,60 +104,95 @@
                         <p class="featured-desc" data-text="featured-desc">@featured.GetProperty("description").GetString()</p>
                     </div>
 
-                    <h2 class="section-heading" data-text="browse-heading">
-                        @text.GetProperty("browseHeading").GetString() (@(Model?.Count() ?? 0))
+                    @* browse heading *@
+                    <h2 id="browse-heading" class="section-heading" data-text="browse-heading"
+                        data-base-text="@browseHeadingText">
+                        @browseHeadingText (@(Model?.Count() ?? 0))
                     </h2>
 
+                    @* browse grid *@
                     <div id="browse-grid" class="browse-grid">
-
-                        @* Model: Gets the actual variables from CommunityController.cs
-                - Checks if Model does have data before going into foreach loop
-                - and causing a NullReferenceException.
-                *@
                         @if (Model != null)
                         {
                             @foreach (var item in Model)
                             {
+                                var rawTags = (item.Type ?? "")
+                                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                                    .ToList();
+
+                                @* returns first item *@
+                                var location = rawTags.FirstOrDefault(t => campusOptions.Contains(t)) ?? defaultCampusText;
+
+                                var isJoined = (item.Members != null && !string.IsNullOrEmpty(currentUserId) && item.Members.Any(m =>
+                        m.UserId == currentUserId))
+                                               || rawTags.Contains(featured.GetProperty("statusTag").GetString(), StringComparer.OrdinalIgnoreCase);
+
+                                var descProp = item.GetType().GetProperty("Description");
+                                var rawDesc = descProp?.GetValue(item)?.ToString();
+                                var finalDesc = !string.IsNullOrWhiteSpace(rawDesc) ? rawDesc : defaultEmptyDesc;
+
                                 <div class="community-card" data-name="@item.Name?.ToLower()" data-type="@item.Type?.ToLower()">
                                     <div>
-                                        <h3 class="community-card-title">@item.Name</h3>
-                                        <div class="badge-row">
-                                            <span class="category-badge">@item.Type</span>
-                                        </div>
-                                        <div class="member-count">
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="card-clickable-link">
+                                            <h3 class="community-card-title">@item.Name</h3>
+                                        </a>
 
-                                            <!-- Checks to see if item.Memebers is full.
-                                    - If not, then it safely becomes null.
-                                    - The fallback is value is "0". -->
-                                            @(item.Members?.Count ?? 0) <span
-                                            data-text="members-label">@text.GetProperty("membersLabel").GetString()</span>
+                                        @* badges *@
+                                        <div class="badge-row" style="flex-wrap: wrap;">
+                                            @foreach (var rawTag in rawTags)
+                                            {
+                                                if (campusOptions.Contains(rawTag)) { continue; }
+
+                                                var badgeClass = statusTags.Contains(rawTag) ? "status-badge"
+                                                               : timeTags.Contains(rawTag) ? "time-badge"
+                                                               : "";
+                                                <span class="category-badge @badgeClass">@rawTag</span>
+                                            }
                                         </div>
-                                        <p class="community-desc" data-text="default-desc">
-                                            @text.GetProperty("defaultDescription").GetString()</p>
+
+                                        @* member count and location (needs more work later) *@
+                                        <div class="member-count">
+                                            <span>@(item.Members?.Count ?? 0) @text.GetProperty("membersLabel").GetString()</span>
+                                            <span>&bull;</span>
+                                            <span>@location</span>
                                         </div>
-                                        <div class="card-actions">
-                                            <a asp-action="Join" asp-route-id="@item.Id" class="btn-join"
-                                               data-text="join-btn">@text.GetProperty("joinButton").GetString()</a>
-                                            <a asp-action="Leave" asp-route-id="@item.Id" class="btn-join"
-                                               data-text="join-btn">Leave</a>
-                                            <div class="admin-links">
-                                                <a asp-action="Details" asp-route-id="@item.Id"
-                                                   data-text="edit-label">Details</a>
-                                                <a asp-action="Edit" asp-route-id="@item.Id"
-                                                   data-text="edit-label">@text.GetProperty("editLabel").GetString()</a>
-                                                <a asp-action="Delete" asp-route-id="@item.Id"
-                                                   data-text="delete-label">@text.GetProperty("deleteLabel").GetString()</a>
-                                            </div>
+
+                                        <p class="community-desc" data-text="default-desc">@finalDesc</p>
+                                    </div>
+
+                                    <div class="card-actions">
+                                        @if (isJoined)
+                                        {
+                                            <span class="btn-joined">@joinedBtnText</span>
+                                        }
+                                        else
+                                        {
+                                            <form asp-action="Join" asp-route-id="@item.Id" method="post"
+                                                  style="margin: 0; display: inline;">
+                                                <button type="submit" class="btn-join" data-text="join-btn">
+                                                    @text.GetProperty("joinButton").GetString()
+                                                </button>
+                                            </form>
+                                        }
+
+                                        <div class="admin-links">
+                                            <a asp-action="Edit" asp-route-id="@item.Id"
+                                               data-text="edit-label">@text.GetProperty("editLabel").GetString()</a>
+                                            <a asp-action="Delete" asp-route-id="@item.Id"
+                                               data-text="delete-label">@text.GetProperty("deleteLabel").GetString()</a>
                                         </div>
                                     </div>
-                                }
+                                </div>
                             }
-                        </div>
+                        }
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- this is for possible usecase in communities.js for backend. -->
-            @* @section Scripts {
-    <script src="~/js/communities.js" asp-append-version="true"></script>
-} *@
+        @* partial load of pop-up modal *@
+        <partial name="_CreateCommunityModal" model="modal" />
+
+        @section Scripts {
+            <script src="~/js/communities.js" asp-append-version="true"></script>
+        }

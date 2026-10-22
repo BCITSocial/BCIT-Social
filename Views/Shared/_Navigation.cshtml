@@ -7,6 +7,7 @@ Renders sidebar navigation, marks the active controller route, and lists the use
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
 }
 <nav class="sidebar" aria-label="Main navigation">
+    <button type="button" disabled>Messages</button>
     <ul class="sidebar-links">
         <li>
             <a asp-controller="Home" asp-action="Index" aria-current="@(currentController == "Home" ? "page" : null)">
@@ -26,13 +27,13 @@ Renders sidebar navigation, marks the active controller route, and lists the use
                 Events
             </a>
         </li>
-        @* Replace disabled controls with route links as the team adds each screen. *@
         <li>
-            <button type="button" disabled>
-                <svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.8" /><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" /></svg>
+            <a asp-controller="Profile" asp-action="Index" aria-current="@(currentController == "Profile" ? "page" : null)">
+                <svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5" /><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" /></svg>
                 Profile
-            </button>
+            </a>
         </li>
+        @* Replace disabled controls with route links as the team adds each screen. *@
         <li>
             <a asp-controller="Messages" asp-action="Index" aria-current="@(currentController == "Messages" ? "page" : null)">
                 <svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg>
