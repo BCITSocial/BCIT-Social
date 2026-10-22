@@ -33,10 +33,28 @@
 }
 
 <div class="messages-page@(Model.IsActiveChosen ? " is-chat-open" : null)@(showDetails ? " is-details-open" : null)" data-messages>
+    @* @author Asher: the recipient picker submits to the existing conversation-creation action. *@
+    <dialog class="msg-new-dialog" data-new-message-dialog aria-labelledby="new-message-heading">
+        <form method="dialog" class="msg-new-dialog-close">
+            <button class="icon-button" aria-label="Close">×</button>
+        </form>
+        <h2 id="new-message-heading">Start a conversation</h2>
+        <label class="msg-search">
+            <span class="visually-hidden">Search alumni by name</span>
+            <input type="search" minlength="2" placeholder="Search alumni by name" autocomplete="off" data-recipient-search />
+        </label>
+        <p class="msg-recipient-status" aria-live="polite" data-recipient-status>Enter at least 2 characters.</p>
+        <ul class="msg-recipient-results" data-recipient-results></ul>
+        <form method="post" asp-action="StartConversation" data-start-conversation>
+            <input type="hidden" name="recipientId" />
+            <button class="msg-primary-button" type="submit" disabled data-start-conversation-button>Open conversation</button>
+        </form>
+    </dialog>
+
     <section class="msg-panel msg-list-panel" aria-labelledby="messages-heading">
         <div class="msg-list-head">
             <h1 id="messages-heading">Messages</h1>
-            <button class="msg-primary-button" type="button" data-new-message>
+            <button class="msg-primary-button" type="button" data-new-message data-find-users-url="@Url.Action("FindUsers", "Messages")">
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" /></svg>
                 New message
             </button>
@@ -213,9 +231,7 @@
                 </li>
             </template>
 
-            @* messages.js adds sent messages on screen only; nothing is posted yet.
-               TODO(BE): give the form an action that saves the message. *@
-            <form class="msg-composer" method="post" data-message-form>
+            <form class="msg-composer" method="post" asp-action="Send" data-message-form>
                 <input type="hidden" name="conversationId" value="@active.Id" />
                 <button class="icon-button" type="button" aria-label="Attach a file">
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m20 11.5-8.2 8.2a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8" /></svg>
@@ -228,7 +244,7 @@
                 </button>
                 <label class="msg-input">
                     <span class="visually-hidden">Message @active.Name</span>
-                    <textarea name="text" rows="1" placeholder="Write a message..." required></textarea>
+                    <textarea name="text" rows="1" maxlength="5000" placeholder="Write a message..." required></textarea>
                 </label>
                 <button class="msg-send" type="submit" aria-label="Send message">
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 3 10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5Z" /></svg>

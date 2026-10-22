@@ -1,7 +1,6 @@
 // Messages page: sending, conversation list search, the details panel, mute, and search in conversation.
 // Without JavaScript the page still works through links; this script updates it in place.
-// Everything here stays in the browser. Nothing is sent to the server, so sent messages and mute
-// last until the page reloads. Saving them is up to the backend.
+// Message sending posts to the backend; display-only controls remain client-side for now.
 (() => {
     const page = document.querySelector("[data-messages]");
     if (!page) return;
@@ -89,19 +88,6 @@
         };
         const updateButton = () => { sendButton.disabled = input.value.trim() === ""; };
 
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
-            const text = input.value.trim();
-            if (!text) return;
-            const message = { text, sentAt: new Date(), isMine: true };
-            addMessage(message);
-            updateListRow(message);
-            input.value = "";
-            resize();
-            updateButton();
-            input.focus();
-        });
-
         // Enter sends, Shift+Enter adds a new line. isComposing skips Enter that confirms an IME word.
         input.addEventListener("keydown", (event) => {
             if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
@@ -117,6 +103,84 @@
 
         updateButton();
     }
+    
+    // @author Asher
+    // ---- Start a conversation ----
+
+    // Search the backend for recipients; ignore stale results if the query changes while a request is in flight.
+    const newMessageButton = page.querySelector("[data-new-message]");
+    const newMessageDialog = page.querySelector("[data-new-message-dialog]");
+    const recipientSearch = newMessageDialog?.querySelector("[data-recipient-search]");
+    const recipientResults = newMessageDialog?.querySelector("[data-recipient-results]");
+    const recipientStatus = newMessageDialog?.querySelector("[data-recipient-status]");
+    const startConversationForm = newMessageDialog?.querySelector("[data-start-conversation]");
+    const startConversationButton = startConversationForm?.querySelector("[data-start-conversation-button]");
+    let recipientSearchTimer;
+    let recipientSearchVersion = 0;
+
+    newMessageButton?.addEventListener("click", () => {
+        if (!newMessageDialog) return;
+        newMessageDialog.showModal();
+        recipientSearch?.focus();
+    });
+
+    recipientSearch?.addEventListener("input", () => {
+        clearTimeout(recipientSearchTimer);
+        const version = ++recipientSearchVersion;
+        const query = recipientSearch.value.trim();
+        const recipientId = startConversationForm.querySelector("input[name='recipientId']");
+        recipientId.value = "";
+        startConversationButton.disabled = true;
+        recipientResults.replaceChildren();
+
+        if (query.length < 2) {
+            recipientStatus.textContent = "Enter at least 2 characters.";
+            return;
+        }
+
+        recipientStatus.textContent = "Searching...";
+        recipientSearchTimer = setTimeout(async () => {
+            try {
+                const url = new URL(newMessageButton.dataset.findUsersUrl, window.location.href);
+                url.searchParams.set("q", query);
+                const response = await fetch(url, { headers: { Accept: "application/json" } });
+                if (!response.ok) throw new Error("Search failed");
+                const users = await response.json();
+                if (version !== recipientSearchVersion) return;
+
+                recipientResults.replaceChildren();
+                recipientStatus.textContent = users.length ? "Choose an alumnus to message." : "No matching alumni found.";
+                users.forEach((user) => {
+                    const item = document.createElement("li");
+                    const option = document.createElement("button");
+                    option.type = "button";
+                    option.className = "msg-recipient-option";
+                    option.textContent = user.program ? `${user.name} · ${user.program}` : user.name;
+                    option.addEventListener("click", () => {
+                        recipientId.value = user.id;
+                        recipientResults.querySelectorAll("button").forEach((button) => button.setAttribute("aria-pressed", "false"));
+                        option.setAttribute("aria-pressed", "true");
+                        startConversationButton.disabled = false;
+                    });
+                    item.append(option);
+                    recipientResults.append(item);
+                });
+            } catch {
+                if (version === recipientSearchVersion) recipientStatus.textContent = "Could not search alumni. Please try again.";
+            }
+        }, 250);
+    });
+
+    startConversationForm?.addEventListener("submit", (event) => {
+        const recipientId = startConversationForm.querySelector("input[name='recipientId']").value;
+        if (!recipientId) {
+            event.preventDefault();
+            recipientStatus.textContent = "Choose an alumnus first.";
+            return;
+        }
+        startConversationButton.disabled = true;
+        startConversationButton.textContent = "Opening...";
+    });
 
     // ---- Conversation list search ----
 

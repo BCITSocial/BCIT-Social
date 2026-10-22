@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BCIT_Social.Controllers;
 
+// @author Asher
+// Provides the signed-in user's direct-message inbox, recipient lookup, and send actions.
 [Authorize]
 public class MessagesController : Controller
 {
@@ -24,6 +26,7 @@ public class MessagesController : Controller
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId is null) return Challenge();
 
+        // Load only conversations the current user belongs to, with a bounded recent message history.
         var chatboxes = await _db.Chatboxes
             .AsNoTracking()
             .Where(chat => chat.ChatboxUsers.Any(member => member.UserId == userId))
@@ -110,6 +113,7 @@ public class MessagesController : Controller
             cancellationToken);
         if (!isMember) return NotFound();
 
+        // Take the sender identity from the authenticated session, never from submitted form data.
         _db.Messages.Add(new Message
         {
             ChatboxId = conversationId,
@@ -131,6 +135,7 @@ public class MessagesController : Controller
         if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
             return Json(Array.Empty<object>());
 
+        // Only expose other users with profiles, and keep the recipient picker results bounded.
         var matches = await _db.Profiles.AsNoTracking()
             .Where(profile => profile.UserId != currentUserId && profile.DisplayName.Contains(query))
             .OrderBy(profile => profile.DisplayName)
@@ -152,7 +157,7 @@ public class MessagesController : Controller
         var recipientExists = await _db.Users.AnyAsync(user => user.Id == recipientId, cancellationToken);
         if (!recipientExists) return NotFound();
 
-        // Reuse the existing one-to-one conversation, if one exists.
+        // Reuse an existing two-person conversation to avoid duplicate inbox entries.
         var existingId = await _db.Chatboxes
             .Where(chat => chat.ChatboxUsers.Any(member => member.UserId == userId)
                 && chat.ChatboxUsers.Any(member => member.UserId == recipientId)

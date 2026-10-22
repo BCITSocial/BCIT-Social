@@ -21,6 +21,18 @@ Styles the Messages page: conversation list, chat header, message bubbles, and c
 .msg-list-head h1 { font-size: 1.375rem; }
 .msg-primary-button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 14px; border: 0; background: var(--color-accent); color: var(--color-surface); font-size: 0.875rem; font-weight: var(--font-weight-bold); white-space: nowrap; cursor: pointer; }
 .msg-primary-button:hover { filter: brightness(1.08); }
+
+/* @author Asher: styles for the new-conversation recipient picker. */
+.msg-primary-button:disabled { opacity: 0.55; cursor: not-allowed; }
+.msg-new-dialog { position: relative; width: min(460px, calc(100vw - 32px)); max-height: min(80dvh, 640px); padding: 24px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); color: var(--color-text); }
+.msg-new-dialog::backdrop { background: rgb(0 0 0 / 48%); }
+.msg-new-dialog h2 { margin: 0 40px 18px 0; font-size: 1.25rem; }
+.msg-new-dialog .msg-search { display: block; margin: 0; }
+.msg-new-dialog-close { position: absolute; top: 12px; right: 12px; }
+.msg-recipient-status { margin: 14px 0 4px; color: var(--color-muted); font-size: 0.875rem; }
+.msg-recipient-results { max-height: 260px; margin: 0 0 16px; padding: 0; overflow: auto; list-style: none; }
+.msg-recipient-option { width: 100%; padding: 12px 10px; border: 0; border-bottom: 1px solid var(--color-border); background: transparent; color: var(--color-text); text-align: left; cursor: pointer; }
+.msg-recipient-option:hover, .msg-recipient-option[aria-pressed="true"] { background: var(--color-selected); }
 .msg-search { position: relative; margin: 0 16px; }
 .msg-search input { width: 100%; min-height: 40px; padding: 8px 12px 8px 38px; border: 1px solid var(--color-transparent); background: var(--color-input); color: var(--color-text); font-size: 0.875rem; }
 .msg-search-icon { position: absolute; top: 50%; left: 12px; width: 18px; height: 18px; translate: 0 -50%; fill: none; stroke: var(--color-muted); stroke-width: 2; stroke-linecap: round; pointer-events: none; }
