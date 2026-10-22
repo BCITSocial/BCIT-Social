@@ -1,38 +1,42 @@
 @using BCIT_Social.ViewModels
 @model EventsViewModel
 @{
-    ViewData["Title"] = "Events";
+    var text = Model.Text;
+    ViewData["Title"] = text.PageTitle;
     Layout = "_HomeLayout";
+    // The event cards read their badge and button text from here.
+    ViewData[nameof(EventsText)] = text;
 }
 
-@* Events page: banner, heading with status chips, tabs and filter bar, then the card grid. *@
+@* Events page: banner, heading with status chips, tabs and filter bar, then the card grid.
+   All wording comes from Model.Text (the "text" section of events-text.json); this file only places it. *@
 <link rel="stylesheet" href="~/css/events.css" asp-append-version="true" />
 
-<section class="events-banner" aria-label="Events introduction">
-    <p class="events-banner-title">Find your next campus connection.</p>
-    <p class="events-banner-text">Discover events from across your BCIT communities.</p>
+<section class="events-banner" aria-label="@text.BannerLabel">
+    <p class="events-banner-title">@text.BannerTitle</p>
+    <p class="events-banner-text">@text.BannerText</p>
 </section>
 
 <section class="panel events-panel" aria-labelledby="events-heading">
     <div class="events-panel-head">
         <div>
-            <h1 id="events-heading">Events</h1>
-            <p>Find events from across your BCIT communities.</p>
+            <h1 id="events-heading">@text.Heading</h1>
+            <p>@text.Subheading</p>
         </div>
         @* Status chips. Each link keeps the other filters and changes only "status". *@
-        <nav class="chip-group" aria-label="My events">
+        <nav class="chip-group" aria-label="@text.LabelMyEvents">
             @foreach (var (value, label) in EventsViewModel.Statuses)
             {
-                <a asp-action="Index" asp-all-route-data="@Model.RouteValues(status: value)" aria-current="@(Model.Status == value ? "page" : null)">@label</a>
+                <a asp-action="Index" asp-all-route-data="@Model.RouteValues(status: value)" aria-current="@(Model.Status == value ? "page" : null)">@EventsText.Pick(text.Statuses, value, label)</a>
             }
         </nav>
     </div>
 
     <div class="events-controls">
-        <nav class="events-tabs" aria-label="Events view">
+        <nav class="events-tabs" aria-label="@text.LabelEventsView">
             @foreach (var (value, label) in EventsViewModel.Views)
             {
-                <a asp-action="Index" asp-all-route-data="@Model.RouteValues(view: value)" aria-current="@(Model.View == value ? "page" : null)">@label</a>
+                <a asp-action="Index" asp-all-route-data="@Model.RouteValues(view: value)" aria-current="@(Model.View == value ? "page" : null)">@EventsText.Pick(text.Views, value, label)</a>
             }
         </nav>
         @* Plain GET form. The field names match EventsQuery. events.js submits it when a dropdown changes;
@@ -41,13 +45,13 @@
             <input type="hidden" name="view" value="@Model.View" />
             <input type="hidden" name="status" value="@Model.Status" />
             <label class="toolbar-search">
-                <span class="visually-hidden">Search events</span>
-                <input type="search" name="q" value="@Model.Query" placeholder="Search events..." />
+                <span class="visually-hidden">@text.LabelSearch</span>
+                <input type="search" name="q" value="@Model.Query" placeholder="@text.SearchPlaceholder" />
             </label>
             <label>
-                <span class="visually-hidden">Community</span>
+                <span class="visually-hidden">@text.LabelCommunity</span>
                 <select name="community">
-                    <option value="">All communities</option>
+                    <option value="">@text.AllCommunities</option>
                     @foreach (var community in Model.Communities)
                     {
                         <option value="@community" selected="@(community == Model.Community)">@community</option>
@@ -55,9 +59,9 @@
                 </select>
             </label>
             <label>
-                <span class="visually-hidden">Campus</span>
+                <span class="visually-hidden">@text.LabelCampus</span>
                 <select name="campus">
-                    <option value="">All campuses</option>
+                    <option value="">@text.AllCampuses</option>
                     @foreach (var campus in EventsViewModel.Campuses)
                     {
                         <option value="@campus" selected="@(campus == Model.Campus)">@campus</option>
@@ -65,24 +69,24 @@
                 </select>
             </label>
             <label>
-                <span class="visually-hidden">Time range</span>
+                <span class="visually-hidden">@text.LabelRange</span>
                 <select name="range">
                     @foreach (var (value, label) in EventsViewModel.Ranges)
                     {
-                        <option value="@value" selected="@(value == Model.Range)">@label</option>
+                        <option value="@value" selected="@(value == Model.Range)">@EventsText.Pick(text.Ranges, value, label)</option>
                     }
                 </select>
             </label>
             <label>
-                <span class="visually-hidden">Sort</span>
+                <span class="visually-hidden">@text.LabelSort</span>
                 <select name="sort">
                     @foreach (var (value, label) in EventsViewModel.Sorts)
                     {
-                        <option value="@value" selected="@(value == Model.Sort)">Sort: @label</option>
+                        <option value="@value" selected="@(value == Model.Sort)">@EventsText.Format(text.SortOption, EventsText.Pick(text.Sorts, value, label))</option>
                     }
                 </select>
             </label>
-            <noscript><button class="primary-button" type="submit">Apply</button></noscript>
+            <noscript><button class="primary-button" type="submit">@text.Apply</button></noscript>
         </form>
     </div>
 
@@ -90,13 +94,13 @@
     @if (Model.View == EventsViewModel.Calendar)
     {
         <div class="empty-state">
-            <p>Your calendar will appear here.</p>
+            <p>@text.EmptyCalendar</p>
         </div>
     }
     else if (Model.Events.Count == 0)
     {
         <div class="empty-state">
-            <p>No events found.</p>
+            <p>@text.EmptyEvents</p>
         </div>
     }
     else
