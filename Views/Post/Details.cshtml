@@ -1,31 +1,66 @@
-@model BCIT_Social.Models.Post
+@model BCIT_Social.ViewModels.PostDetailsViewModel
 
 @{
-    ViewData["Title"] = "Post";
+    ViewData["Title"] = Model.Title;
+    Layout = "_HomeLayout";
 }
 
-<h1>Post</h1>
+<section class="post-details-card">
 
-<div>
-    <p>
-        <strong>Author:</strong>
-        @Model.Author?.UserName
-    </p>
+    <div class="post-details-header">
 
-    <p>
-        <strong>Created:</strong>
-        @Model.CreatedAt
-    </p>
+        <div class="post-author-meta">
+            <strong class="post-author-name">
+                @Model.AuthorName
+            </strong>
 
-    <hr />
+            @if (!string.IsNullOrWhiteSpace(Model.PostType))
+            {
+                <span class="post-type">
+                    @Model.PostType
+                </span>
+            }
+        </div>
 
-    <p>
+        <time datetime="@Model.CreatedAt.ToString("O")">
+            @Model.CreatedAt.ToLocalTime().ToString("MMM d, yyyy • h:mm tt")
+        </time>
+
+    </div>
+
+    <h1 class="post-details-title">
+        @Model.Title
+    </h1>
+
+    <p class="post-details-content">
         @Model.Content
     </p>
-</div>
 
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
-    |
-    <a asp-action="Index">Back to Posts</a>
-</div>
+    <div class="post-details-actions">
+
+        @if (Model.CanEdit)
+        {
+            <a class="primary-button"
+               asp-controller="Post"
+               asp-action="Edit"
+               asp-route-id="@Model.Id">
+                Edit post
+            </a>
+
+            <a class="danger-button"
+               asp-controller="Post"
+               asp-action="Delete"
+               asp-route-id="@Model.Id">
+                Delete post
+            </a>
+        }
+
+        <a class="secondary-button"
+           asp-controller="Home"
+           asp-action="Index">
+            Back to Home
+        </a>
+
+    </div>
+
+</section>
