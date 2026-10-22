@@ -3,10 +3,12 @@ Frontend for the profile page
 Author: Jonathan Yeh
 *@
 
-@model BCIT_Social.Models.Profile
+@model IEnumerable<BCIT_Social.Models.Profile>
 
 @{
     ViewData["Title"] = "My Profile";
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var profile = Model.FirstOrDefault(item => item.UserId == currentUserId);
 }
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
@@ -14,33 +16,46 @@ Author: Jonathan Yeh
         <h1 class="mb-1">My profile</h1>
         <p class="text-muted mb-0">Your introduction to the BCIT community.</p>
     </div>
-    <a asp-action="Edit" class="btn btn-primary">Edit profile</a>
+    @if (profile != null)
+    {
+        <a asp-action="Edit" asp-route-userid="@profile.UserId" class="btn btn-primary">Edit profile</a>
+    }
 </div>
 
-<section class="card shadow-sm" aria-labelledby="profile-heading">
-    <div class="card-body p-4">
-        <div class="d-flex align-items-center gap-3 mb-4">
-            <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center flex-shrink-0"
-                 style="width: 4rem; height: 4rem;"
-                 aria-hidden="true">
-                <span class="text-muted">BCIT</span>
-            </div>
-            <div class="min-w-0">
-                <h2 id="profile-heading" class="h4 mb-1 text-break">@Model.DisplayName</h2>
-                <p class="text-muted mb-0">@Model.Program</p>
-            </div>
-        </div>
-
-        <dl class="row mb-0">
-            <dt class="col-sm-3">About me</dt>
-            <dd class="col-sm-9 text-break">
-                @(string.IsNullOrWhiteSpace(Model.Bio) ? "No bio added yet." : Model.Bio)
-            </dd>
-
-            <dt class="col-sm-3">Campus</dt>
-            <dd class="col-sm-9">
-                @(string.IsNullOrWhiteSpace(Model.Campus) ? "Not specified" : Model.Campus)
-            </dd>
-        </dl>
+@if (profile == null)
+{
+    <div class="border rounded p-5 text-center">
+        <h2 class="h5">Profile not found</h2>
+        <p class="text-muted mb-0">There is no profile associated with your signed-in account yet.</p>
     </div>
-</section>
+}
+else
+{
+    <section class="card shadow-sm" aria-labelledby="profile-heading">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width: 4rem; height: 4rem;"
+                     aria-hidden="true">
+                    <span class="text-muted">BCIT</span>
+                </div>
+                <div class="min-w-0">
+                    <h2 id="profile-heading" class="h4 mb-1 text-break">@profile.DisplayName</h2>
+                    <p class="text-muted mb-0">@profile.Program</p>
+                </div>
+            </div>
+
+            <dl class="row mb-0">
+                <dt class="col-sm-3">About me</dt>
+                <dd class="col-sm-9 text-break">
+                    @(string.IsNullOrWhiteSpace(profile.Bio) ? "No bio added yet." : profile.Bio)
+                </dd>
+
+                <dt class="col-sm-3">Campus</dt>
+                <dd class="col-sm-9">
+                    @(string.IsNullOrWhiteSpace(profile.Campus) ? "Not specified" : profile.Campus)
+                </dd>
+            </dl>
+        </div>
+    </section>
+}
