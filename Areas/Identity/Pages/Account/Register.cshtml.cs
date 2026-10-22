@@ -52,6 +52,14 @@ public class RegisterModel(UserManager<ApplicationUser> userManager,
         ReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl! : "/";
     }
 
+    /// <summary>
+    /// Author: Andre Di Lascio, Joshua Trepanier
+    /// Last Revised: Oct 21, 2026
+    /// Description: Creates a new user account and profile, then sends an email confirmation link to the user.
+    /// Also creates a new profile for the user in the database.
+    /// </summary>
+    /// <param name="returnUrl"></param>
+    /// <returns></returns>
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
         OnGet(returnUrl);
