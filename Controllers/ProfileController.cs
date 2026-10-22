@@ -55,10 +55,10 @@ public class ProfileController : Controller
     /// <summary>
     /// Author: Joshua Trepanier
     /// Last Revised: Oct 20, 2026
-    /// Description: Creation of the profile
+    /// Description: Creation of the profile (This isn't supposed to be used, profile creation is done through the
+    /// account registration process)
     /// </summary>
-    /// <param name="DisplayName">Display name of user, upon account creation it just makes it
-    /// the current users email</param>
+    /// <param name="viewModel">The view model for the profile</param>
     /// <returns></returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -114,15 +114,26 @@ public class ProfileController : Controller
     // POST: PROFILES/Edit/5
     // To protect from overposting attacks, enable the specific properties you want to bind to.
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    /// <summary>
+    /// Author: Joshua Trepanier
+    /// Last Revised: Oct 21, 2026
+    /// Description: Edit existing profile.
+    /// </summary>
+    /// <param name="viewModel">The view model for the profile</param>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(string? userid, [Bind("UserId,DisplayName,Bio,Program,Campus,User")] Profile profile)
+    public async Task<IActionResult> Edit(ProfileViewModel viewModel)
     {
-        if (userid != profile.UserId)
+        string? userID = _userManager.GetUserId(User);
+        var profile = await _context.Profiles.FindAsync(userID);
+        if (userID == null || profile == null)
         {
             return NotFound();
         }
-
+        profile.DisplayName = viewModel.DisplayName;
+        profile.Bio = viewModel.Bio;
+        profile.Program = viewModel.Program;
+        profile.Campus = viewModel.Campus;
         if (ModelState.IsValid)
         {
             try
@@ -132,7 +143,7 @@ public class ProfileController : Controller
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProfileExists(profile.UserId))
+                if (!ProfileExists(userID))
                 {
                     return NotFound();
                 }
