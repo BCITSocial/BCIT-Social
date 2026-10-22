@@ -32,32 +32,22 @@
         @Model.Title
     </h1>
 
-    <p class="post-details-content">
-        @Model.Content
-    </p>
+    <p class="post-details-content">@Model.Content</p>
 
     <div class="post-details-actions">
 
         @if (Model.CanEdit)
         {
-            <a class="primary-button"
-               asp-controller="Post"
-               asp-action="Edit"
-               asp-route-id="@Model.Id">
+            <a class="primary-button" asp-controller="Post" asp-action="Edit" asp-route-id="@Model.Id">
                 Edit post
             </a>
 
-            <a class="danger-button"
-               asp-controller="Post"
-               asp-action="Delete"
-               asp-route-id="@Model.Id">
+            <a class="danger-button" asp-controller="Post" asp-action="Delete" asp-route-id="@Model.Id">
                 Delete post
             </a>
         }
 
-        <a class="secondary-button"
-           asp-controller="Home"
-           asp-action="Index">
+        <a class="secondary-button" asp-controller="Home" asp-action="Index">
             Back to Home
         </a>
 
