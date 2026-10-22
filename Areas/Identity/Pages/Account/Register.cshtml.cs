@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using BCIT_Social.Data;
 
 namespace BCIT_Social.Areas.Identity.Pages.Account;
 
@@ -76,6 +77,8 @@ public class RegisterModel(UserManager<ApplicationUser> userManager,
             return RedirectToPage("./RegisterConfirmation", new { email = Input.Email, returnUrl = ReturnUrl });
 
         await signInManager.SignInAsync(user, isPersistent: false);
+        var pc = new ProfileController(_context, userManager);
+        await pc.Create(user.UserName);
         return LocalRedirect(ReturnUrl);
     }
 }

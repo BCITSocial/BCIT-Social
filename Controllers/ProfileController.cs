@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BCIT_Social.Models;
@@ -57,30 +56,36 @@ public class ProfileController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     /// <summary>
     /// Author: Joshua Trepanier
-    /// Last Revised: Oct 15, 2026
+    /// Last Revised: Oct 20, 2026
     /// Description: Creation of the profile
     /// </summary>
-    /// <param name="viewModel"></param>
+    /// <param name="DisplayName">Display name of user, upon account creation it just makes it
+    /// the current users email</param>
     /// <returns></returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(ProfileViewModel viewModel)
+    public async Task<IActionResult> Create(string DisplayName)
     {
         string? userID = _userManager.GetUserId(User);
         if (userID == null)
         {
             return Challenge();
         }
-
+        var viewModel = new ProfileViewModel
+        {
+            DisplayName = DisplayName,
+            Bio = "",
+            Program = "",
+            Campus = ""
+        };
         var profile = new Profile
         {
             UserId = userID,
-            DisplayName = viewModel.DisplayName,
-            Bio = viewModel.Bio,
-            Program = viewModel.Program,
-            Campus = viewModel.Campus,
+            DisplayName = DisplayName,
+            Bio = "",
+            Program = "",
+            Campus = "",
         };
-
         if (ModelState.IsValid)
         {
             _context.Add(profile);
