@@ -252,6 +252,95 @@ public class CommunityController : Controller
 
     /// <summary>
     /// Author: Tin Trinh
+    /// Last Revised: Oct. 21, 2026
+    /// Description: GET call to leave a community
+    /// Redirects to the Leave page, checks if the user is in this community, otherwise redirects
+    /// Also checks if user is Creator, they cannot leave (as of right now)
+    /// </summary>
+    /// <param name="id">community id</param>
+    // GET: COMMUNITYS/Leave/5
+    [Authorize]
+    public async Task<IActionResult> Leave(int? id)
+    {
+        string? currentUserId = _userManager.GetUserId(User);
+        if (id == null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Forbid();
+        }
+        var community = await _context.Communities
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (community == null)
+        {
+            return NotFound();
+        }
+
+        if (community.CreatorId == currentUserId)
+        {
+            return Forbid();
+            // TODO: might have to either not show "Leave" on frontend when creator or give a popup when trying to leave.
+        }
+
+        if (await MemberExists(currentUserId, community))
+        {
+            return View(community);
+        }
+        return RedirectToAction(nameof(Index));
+
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 21, 2026
+    /// Description: POST call to leave a community
+    /// Removes user to a community, otherwise redirects to index.
+    /// </summary>
+    /// <param name="id">community id</param>
+    /// <returns></returns>
+    // POST: COMMUNITYS/Leave/5
+    [HttpPost, ActionName("Leave")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> LeaveConfirmed(int? id)
+    {
+        var community = await _context.Communities.FindAsync(id);
+        string? currentUserId = _userManager.GetUserId(User);
+        if (community == null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Challenge();
+        }
+
+        if (await MemberExists(currentUserId, community) == false)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+        var communityMember = await _context.CommunityMembers.FindAsync(currentUserId, id);
+        if (communityMember == null)
+        {
+            return NotFound();
+        }
+
+        if (ModelState.IsValid)
+        {
+            community.Members.Remove(communityMember);
+            _context.Remove(communityMember);
+            _context.Update(community);
+
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction(nameof(Index));
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
     /// Last Revised: Oct. 14, 2026
     /// Description: Creates a view model for Community Editing
     /// </summary>
