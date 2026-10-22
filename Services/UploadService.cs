@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 //used for getting image res
 using SixLabors.ImageSharp;
-using System.Security.Claims;
 
 namespace BCIT_Social.Controllers;
 
@@ -18,16 +17,16 @@ public class UploadService
 {
     // Valid purposes/sources for file uploads
     private static readonly String[] _validPurposes = { "post", "community", "profile" };
-    
+
     // Valid formats for each purpose
     private static readonly String[] _communityValidFormats = { ".png", ".jpg", ".jpeg", ".webp" };
     private static readonly String[] _profileValidFormats = { ".png", ".jpg", ".jpeg", ".webp" };
     private static readonly String[] _postValidFormats = { ".png", ".jpg", ".jpeg", ".webp", ".gif" };
 
     // Maximum file sizes for each purpose
-    private const  int PROFILE_MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-    private const  int COMMUNITY_MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-    private const  int POST_MAX_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
+    private const int PROFILE_MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+    private const int COMMUNITY_MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+    private const int POST_MAX_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
 
 
     private readonly string _containerName;
@@ -36,8 +35,8 @@ public class UploadService
     private readonly UserManager<ApplicationUser> _userManager;
 
 
-    public UploadService(IConfiguration configuration, 
-                            ApplicationDbContext context, 
+    public UploadService(IConfiguration configuration,
+                            ApplicationDbContext context,
                             UserManager<ApplicationUser> userManager)
     {
         _context = context;
@@ -54,7 +53,7 @@ public class UploadService
     }
 
 
-    public async Task<IActionResult> Upload(IFormFile? file, String purpose, ClaimsPrincipal user,CancellationToken cancellationToken)
+    public async Task<IActionResult> Upload(IFormFile? file, String purpose, ApplicationUser user, CancellationToken cancellationToken)
     {
         ValidateFile(file!, purpose);
         // image resolution check later once defined
@@ -80,18 +79,18 @@ public class UploadService
         var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
         var blob = containerClient.GetBlobClient(blobName);
 
-        
+
         // Figure out how to interface this for post, community, profile,
         _context.PostPhotos.Add(new PostPhoto
-            {
-                // UserId = userId,
-                CreatedAt = DateTime.UtcNow,
-                FileSizeBytes = file.Length,
-                OriginalFileName = Path.GetFileName(file.FileName),
+        {
+            // UserId = userId,
+            CreatedAt = DateTime.UtcNow,
+            FileSizeBytes = file.Length,
+            OriginalFileName = Path.GetFileName(file.FileName),
 
-            });
+        });
 
-            await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
 
         await blob.UploadAsync(
             stream,
@@ -137,7 +136,7 @@ public class UploadService
     * @param purpose The purpose of the file (post, community, profile).
     * @return True if the file size is valid for the given purpose, false otherwise.
     */
-    private bool IsValidSize(IFormFile file, String purpose )
+    private bool IsValidSize(IFormFile file, String purpose)
     {
         int maxSizeBytes = GetMaxSizeBytes(purpose);
         return file.Length <= maxSizeBytes;
@@ -175,7 +174,7 @@ public class UploadService
                 "AzureBlobStorage:AccountName read is null or empty");
         }
     }
-    
+
     /**
     * Validates the file for upload based on its size and format.
     * @param file The file to validate.
@@ -207,7 +206,7 @@ public class UploadService
     */
     private static bool IsValidFormat(IFormFile file, String purpose)
     {
-         String fileFormat = Path.GetExtension(Path.GetFileName(file.FileName));
+        String fileFormat = Path.GetExtension(Path.GetFileName(file.FileName));
         if (purpose == "post")
         {
             return _postValidFormats.Contains(fileFormat.ToLower());

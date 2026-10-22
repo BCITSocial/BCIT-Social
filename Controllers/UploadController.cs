@@ -15,24 +15,37 @@ namespace BCIT_Social.Controllers;
 
 [Authorize]
 public class UploadController : Controller
-{    private readonly BlobServiceClient _blobServiceClient;
+{
+    private readonly BlobServiceClient _blobServiceClient;
     private readonly string _containerName;
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
 
+    private UploadService _uploadService;
 
-    public UploadController(IConfiguration configuration, 
-                            ApplicationDbContext context, 
+
+
+    public UploadController(IConfiguration configuration,
+                            ApplicationDbContext context,
                             UserManager<ApplicationUser> userManager)
     {
-        UploadService uploadService = new UploadService(configuration, context, userManager);
-        uploadService.Upload(file, purpose, cancellationToken);
+        _uploadService = new UploadService(configuration, context, userManager);
+
     }
-    
+
     [HttpPost]
     [Authorize]
-    public async Task<IActionResult> Upload(IFormFile? file, String purpose, CancellationToken cancellationToken)
+    public async Task<IActionResult> Upload(IFormFile? file, String purpose, ApplicationUser user, CancellationToken cancellationToken)
     {
-            return await this.uploadService.Upload(file, purpose, cancellationToken);
+        if (_uploadService == null)
+        {
+            return BadRequest("Upload service is not initialized.");
+        }
+        else
+        {
+
+            return await _uploadService.Upload(file, purpose, user, cancellationToken);
+        }
+
     }
 }
