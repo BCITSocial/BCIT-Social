@@ -26,35 +26,38 @@ public class EventsController : Controller
     [HttpGet]
     public IActionResult Index([FromQuery] EventsQuery query)
     {
+        var content = LoadContentFromJson();
         var model = new EventsViewModel(query)
         {
-            // TODO(BE): set Communities to the signed-in user's communities, and replace LoadEventsFromJson()
+            // The page text always comes from the JSON file.
+            Text = content.Text ?? new EventsText(),
+            // TODO(BE): set Communities to the signed-in user's communities, and replace content.Events
             // with real events filtered by model.Query/Community/Campus/Range/Sort/Status.
-            Events = LoadEventsFromJson(),
+            Events = content.Events ?? [],
         };
         return View(model);
     }
 
-    // Reads the cards from wwwroot/content/events-text.json. No file or no entries means no cards.
-    private IReadOnlyList<EventCardViewModel> LoadEventsFromJson()
+    // Reads wwwroot/content/events-text.json. A missing, empty or broken file gives the default text and no cards.
+    private EventsContent LoadContentFromJson()
     {
         var path = Path.Combine(_env.WebRootPath, "content", "events-text.json");
         if (!System.IO.File.Exists(path))
         {
-            return [];
+            return new EventsContent();
         }
 
         try
         {
             var json = System.IO.File.ReadAllText(path);
             return string.IsNullOrWhiteSpace(json)
-                ? []
-                : JsonSerializer.Deserialize<EventsContent>(json, JsonOptions)?.Events ?? [];
+                ? new EventsContent()
+                : JsonSerializer.Deserialize<EventsContent>(json, JsonOptions) ?? new EventsContent();
         }
         catch (JsonException ex)
         {
-            _logger.LogWarning(ex, "Could not read {Path}; showing no events.", path);
-            return [];
+            _logger.LogWarning(ex, "Could not read {Path}; using the default text and no events.", path);
+            return new EventsContent();
         }
     }
 }

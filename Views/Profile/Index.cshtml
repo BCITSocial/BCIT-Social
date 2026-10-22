@@ -1,59 +1,167 @@
+@*
+Frontend for the profile page
+Author: Jonathan Yeh
+*@
+
 @model IEnumerable<BCIT_Social.Models.Profile>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "My Profile";
+    Layout = "_HomeLayout";
+
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var profile = Model.FirstOrDefault(item => item.UserId == currentUserId);
+    var displayName = profile?.DisplayName ?? "My profile";
+    var avatarInitials = string.Concat(
+        displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2)
+            .Select(part => char.ToUpperInvariant(part[0])));
+
+    if (string.IsNullOrWhiteSpace(avatarInitials))
+    {
+        avatarInitials = "B";
+    }
 }
 
-<h1>Index</h1>
+<div class="profile-page">
+    @if (profile == null)
+    {
+        <section class="profile-empty panel" aria-labelledby="profile-empty-heading">
+            <h1 id="profile-empty-heading">Your profile</h1>
+            <p>There is no profile associated with your signed-in account yet.</p>
+            <a class="profile-button profile-button-primary" asp-action="Create">Create profile</a>
+        </section>
+    }
+    else
+    {
+        <div class="profile-layout">
+            <div class="profile-main-column">
+                <section class="profile-card" aria-labelledby="profile-heading">
+                    <div class="profile-cover" aria-hidden="true"></div>
+                    <div class="profile-card-content">
+                        <div class="profile-card-actions">
+                            <div class="profile-avatar" aria-hidden="true">@avatarInitials</div>
+                            <a class="profile-button profile-button-outline"
+                               asp-action="Edit"
+                               asp-route-userid="@profile.UserId">
+                                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="m14 5 5 5M4 20l4.2-.8L19 8.4a2.1 2.1 0 0 0-3-3L5.2 16.2Z" />
+                                </svg>
+                                Edit profile
+                            </a>
+                        </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.DisplayName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Bio)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Program)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Campus)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.DisplayName)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Bio)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Program)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Campus)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.User)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.UserId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.UserId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.UserId">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+                        <h1 id="profile-heading" class="profile-name">@profile.DisplayName</h1>
+
+                        <div class="profile-tags" aria-label="Profile information">
+                            @if (!string.IsNullOrWhiteSpace(profile.Program))
+                            {
+                                <span class="profile-tag">@profile.Program</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(profile.Campus))
+                            {
+                                <span class="profile-tag">@profile.Campus</span>
+                            }
+                        </div>
+
+                        <p class="profile-bio" id="profile-about">
+                            @(string.IsNullOrWhiteSpace(profile.Bio)
+                                ? "Add a short introduction to tell the BCIT community about yourself."
+                                : profile.Bio)
+                        </p>
+
+                        <div class="profile-stats" aria-label="Profile activity">
+                            <span><strong>—</strong> Posts</span>
+                            <span><strong>—</strong> Communities</span>
+                            <span><strong>—</strong> Bookmarks</span>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="profile-feed-toolbar">
+                    <nav class="profile-tabs" aria-label="Profile sections">
+                        <a class="profile-tab" href="#profile-posts" aria-current="page">Posts</a>
+                        <a class="profile-tab" asp-controller="Community" asp-action="Index">Communities</a>
+                        <a class="profile-tab" href="#profile-bookmarks">Bookmarks</a>
+                        <a class="profile-tab" href="#profile-about">About</a>
+                    </nav>
+                    <a class="profile-button profile-button-new"
+                       asp-controller="Post"
+                       asp-action="Create">
+                        <span aria-hidden="true">+</span> New post
+                    </a>
+                </div>
+
+                <section class="profile-posts" id="profile-posts" aria-labelledby="profile-posts-heading">
+                    <h2 id="profile-posts-heading" class="visually-hidden">Posts</h2>
+                    <div class="profile-empty-posts">
+                        <div class="profile-empty-posts-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false">
+                                <path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v10a1.5 1.5 0 0 1-1.5 1.5H9l-5.5 3v-3.2A1.5 1.5 0 0 1 3 16V6a1.5 1.5 0 0 1 2-1.5Z" />
+                                <path d="M7 9h10M7 12.5h7" />
+                            </svg>
+                        </div>
+                        <h3>No posts yet</h3>
+                        <p>Share an update and start a conversation with your community.</p>
+                        <a class="profile-button profile-button-primary"
+                           asp-controller="Post"
+                           asp-action="Create">Create a post</a>
+                    </div>
+                </section>
+
+                <section class="profile-section-card" id="profile-bookmarks" aria-labelledby="profile-bookmarks-heading">
+                    <h2 id="profile-bookmarks-heading">Bookmarks</h2>
+                    <p>Posts you save will be easy to find here.</p>
+                </section>
+            </div>
+
+            <aside class="profile-sidebar" aria-label="Profile information">
+                <section class="profile-side-card" aria-labelledby="profile-quick-info-heading">
+                    <h2 id="profile-quick-info-heading">Quick info</h2>
+                    <dl class="profile-info-list">
+                        @if (!string.IsNullOrWhiteSpace(profile.Program))
+                        {
+                            <div>
+                                <dt>
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M4 20V5h11v15M15 10h5v10M7 8h2m3 0h1M7 12h2m3 0h1M7 16h2m3 0h1m5-2h1m-1 3h1" />
+                                    </svg>
+                                    Program
+                                </dt>
+                                <dd>@profile.Program</dd>
+                            </div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(profile.Campus))
+                        {
+                            <div>
+                                <dt>
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" />
+                                        <circle cx="12" cy="10" r="2.2" />
+                                    </svg>
+                                    Campus
+                                </dt>
+                                <dd>@profile.Campus</dd>
+                            </div>
+                        }
+                        @if (string.IsNullOrWhiteSpace(profile.Program) && string.IsNullOrWhiteSpace(profile.Campus))
+                        {
+                            <dd class="profile-info-empty">Add your program and campus to complete your profile.</dd>
+                        }
+                    </dl>
+                </section>
+
+                <section class="profile-side-card profile-discover" aria-labelledby="profile-discover-heading">
+                    <div class="profile-side-heading">
+                        <h2 id="profile-discover-heading">Discover communities</h2>
+                        <a asp-controller="Community" asp-action="Index">See all</a>
+                    </div>
+                    <p>Find student communities, meet people, and explore what’s happening at BCIT.</p>
+                    <a class="profile-button profile-button-primary"
+                       asp-controller="Community"
+                       asp-action="Index">Browse communities</a>
+                </section>
+            </aside>
+        </div>
+    }
+</div>

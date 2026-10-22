@@ -1,26 +1,56 @@
 @*
 author: Andre Di Lascio
-Renders the shared brand, search placeholder, and account links.
+Renders the shared brand, centered search placeholder, notifications popup, and profile menu.
 *@
 
 <header class="site-header">
-    <a class="brand" asp-controller="Home" asp-action="Index">BCIT Social</a>
+    <a class="brand" asp-area="" asp-controller="Home" asp-action="Index"><span class="brand-badge" aria-hidden="true">B</span>BCIT Social</a>
     <label class="header-search">
         <span class="visually-hidden">Search BCIT Social (unavailable)</span>
-        <input type="search" placeholder="Search BCIT Social" disabled />
+        <svg class="header-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+        <input type="search" placeholder="Search posts, communities, people..." disabled />
     </label>
-    <nav class="account-links" aria-label="Account">
+    <div class="header-actions">
+        <button class="icon-button header-icon" type="button" popovertarget="notifications-panel" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15Z" /><path d="M10 20.5a2 2 0 0 0 4 0" /></svg>
+        </button>
+        <button class="profile-button" type="button" popovertarget="profile-menu" aria-label="Account menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="9" r="3.6" /><path d="M5.5 19.5c.8-3.3 3.4-5.5 6.5-5.5s5.7 2.2 6.5 5.5" /></svg>
+        </button>
+    </div>
+
+    @* No notifications backend exists yet, so the panel shows its empty state. *@
+    <div class="header-popover notifications-panel" id="notifications-panel" popover role="dialog" aria-labelledby="notifications-title">
+        <div class="notifications-header">
+            <h2 id="notifications-title">Notifications</h2>
+            <button class="icon-button" type="button" popovertarget="notifications-panel" popovertargetaction="hide" aria-label="Close notifications">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg>
+            </button>
+        </div>
+        <div class="notifications-tabs">
+            <span class="notifications-tab" aria-current="true">All</span>
+            <span class="notifications-tab">Unread (0)</span>
+            <button class="notifications-mark" type="button" disabled>Mark all as read</button>
+        </div>
+        <div class="notifications-empty">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15Z" /><path d="M10 20.5a2 2 0 0 0 4 0" /></svg>
+            <p><strong>You're all caught up</strong></p>
+            <p>Replies, mentions, and event reminders will appear here.</p>
+        </div>
+    </div>
+
+    <div class="header-popover profile-menu" id="profile-menu" popover>
         @if (User.Identity?.IsAuthenticated == true)
         {
-            <span class="account-name">@User.Identity.Name</span>
+            <p class="profile-menu-name">@User.Identity.Name</p>
             <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
-                <button type="submit">Log out</button>
+                <button class="profile-menu-item" type="submit">Log out</button>
             </form>
         }
         else
         {
-            <a asp-area="Identity" asp-page="/Account/Login">Log in</a>
-            <a asp-area="Identity" asp-page="/Account/Register">Sign up</a>
+            <a class="profile-menu-item" asp-area="Identity" asp-page="/Account/Login">Log in</a>
+            <a class="profile-menu-item" asp-area="Identity" asp-page="/Account/Register">Sign up</a>
         }
-    </nav>
+    </div>
 </header>

@@ -1,3 +1,65 @@
 {
+  "text": {
+    "pageTitle": "Events",
+
+    "bannerLabel": "Events introduction",
+    "bannerTitle": "Find your next campus connection.",
+    "bannerText": "Discover events from across your BCIT communities.",
+
+    "heading": "Events",
+    "subheading": "Find events from across your BCIT communities.",
+
+    "statuses": {
+      "all": "All events",
+      "interested": "Interested",
+      "going": "Going",
+      "hosting": "Hosting"
+    },
+    "views": {
+      "discover": "Discover events",
+      "calendar": "My calendar"
+    },
+    "ranges": {
+      "week": "This week",
+      "month": "This month",
+      "upcoming": "All upcoming",
+      "past": "Past"
+    },
+    "sorts": {
+      "soonest": "Soonest",
+      "latest": "Latest",
+      "popular": "Most popular"
+    },
+
+    "searchPlaceholder": "Search events...",
+    "allCommunities": "All communities",
+    "allCampuses": "All campuses",
+    "sortOption": "Sort: {0}",
+    "apply": "Apply",
+
+    "emptyEvents": "No events found.",
+    "emptyCalendar": "Your calendar will appear here.",
+
+    "badgeGoing": "Going",
+    "badgeInterested": "Interested",
+    "badgeHosting": "Hosting",
+    "badgeCancelled": "Cancelled",
+    "goingCount": "{0} going",
+    "buttonInterested": "Interested",
+    "buttonGoing": "Going",
+    "buttonViewEvent": "View event",
+    "buttonManageEvent": "Manage event",
+
+    "labelMyEvents": "My events",
+    "labelEventsView": "Events view",
+    "labelSearch": "Search events",
+    "labelCommunity": "Community",
+    "labelCampus": "Campus",
+    "labelRange": "Time range",
+    "labelSort": "Sort",
+    "labelHost": "Host",
+    "labelTime": "Time",
+    "labelLocation": "Location"
+  },
   "events": []
 }

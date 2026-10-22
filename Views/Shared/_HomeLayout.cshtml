@@ -11,6 +11,7 @@ Provides the shared page structure, styles, header, navigation, and script secti
     <title>@ViewData["Title"] - BCIT Social</title>
     <link rel="stylesheet" href="~/css/settings.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
 </head>
 <body>
@@ -22,7 +23,8 @@ Provides the shared page structure, styles, header, navigation, and script secti
             @RenderBody()
         </main>
     </div>
+    @await Component.InvokeAsync("CreatePostDialog")
+    <script src="~/js/create-post.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-

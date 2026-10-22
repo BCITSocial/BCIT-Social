@@ -1,0 +1,20 @@
+@model BCIT_Social.ViewModels.PostDetailsViewModel
+@* Full-page post details, used when /Home/Post/{id} is opened directly or after commenting. *@
+@{
+    ViewData["Title"] = Model.Post.Title;
+    Layout = "_HomeLayout";
+}
+
+<div class="panel post-page">
+    <div class="post-dialog-header">
+        <h1>Post</h1>
+        <a class="back-link" asp-controller="Home" asp-action="Index">Back to feed</a>
+    </div>
+    <div class="post-dialog-body">
+        <partial name="_PostDetails" model="Model" />
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/post-details.js" asp-append-version="true" defer></script>
+}

@@ -33,11 +33,12 @@ public class BookmarksController : Controller
     * Save a bookmark for the current user and the specified post.
     * If the bookmark already exists, it will not be added again.
     * @param postId The ID of the post to bookmark.
-    * @return Redirects to the post details page.
+    * @param returnUrl (Optional) A local URL to return to instead of the post details page.
+    * @return Redirects to returnUrl when it is local, otherwise to the post details page.
     */
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Save(int postId)
+    public async Task<IActionResult> Save(int postId, string? returnUrl = null)
     {
         var postExists = await _context.Posts.AnyAsync(post => post.Id == postId);
         if (!postExists)
@@ -64,6 +65,11 @@ public class BookmarksController : Controller
             await _context.SaveChangesAsync();
         }
 
+        if (Url.IsLocalUrl(returnUrl))
+        {
+            return LocalRedirect(returnUrl);
+        }
+
         return RedirectToAction("Details", "Post", new { id = postId });
     }
 
@@ -71,11 +77,12 @@ public class BookmarksController : Controller
     * Remove a bookmark for the current user and the specified post.
     * If the bookmark does not exist, no action will be taken.
     * @param postId The ID of the post to remove the bookmark from.
-    * @return Redirects to the post details page.
+    * @param returnUrl (Optional) A local URL to return to instead of the post details page.
+    * @return Redirects to returnUrl when it is local, otherwise to the post details page.
     */
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Remove(int postId)
+    public async Task<IActionResult> Remove(int postId, string? returnUrl = null)
     {
         var userId = _userManager.GetUserId(User);
         if (userId is null)
@@ -88,6 +95,11 @@ public class BookmarksController : Controller
         {
             _context.Bookmarks.Remove(bookmark);
             await _context.SaveChangesAsync();
+        }
+
+        if (Url.IsLocalUrl(returnUrl))
+        {
+            return LocalRedirect(returnUrl);
         }
 
         return RedirectToAction("Details", "Post", new { id = postId });

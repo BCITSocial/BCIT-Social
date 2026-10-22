@@ -208,6 +208,9 @@ namespace BCIT_Social.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -820,7 +823,7 @@ namespace BCIT_Social.Data.Migrations
             modelBuilder.Entity("BCIT_Social.Models.PostTags", b =>
                 {
                     b.HasOne("BCIT_Social.Models.Post", "Post")
-                        .WithMany()
+                        .WithMany("PostTags")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -918,6 +921,8 @@ namespace BCIT_Social.Data.Migrations
             modelBuilder.Entity("BCIT_Social.Models.Post", b =>
                 {
                     b.Navigation("Photos");
+
+                    b.Navigation("PostTags");
                 });
 #pragma warning restore 612, 618
         }
