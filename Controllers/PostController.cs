@@ -113,6 +113,7 @@ public class PostController : Controller
         {
             AuthorId = authorId,
             CommunityId = null,
+            Title = viewModel.Title,
             Content = viewModel.Content,
             CreatedAt = DateTime.UtcNow,
             DateOfDel = null
@@ -132,7 +133,7 @@ public class PostController : Controller
 
         await _context.SaveChangesAsync();
 
-        return RedirectToAction(nameof(Details), new
+        return RedirectToAction("Post", "Home", new
         {
             id = post.Id
         });
@@ -176,6 +177,7 @@ public class PostController : Controller
         var viewModel = new EditPostViewModel
         {
             Id = post.Id,
+            Title = post.Title,
             Content = post.Content,
             TagId = postTag?.TagId ?? 0,
             PostTypes = await _context.Tags
@@ -252,6 +254,7 @@ public class PostController : Controller
             return View(viewModel);
         }
 
+        post.Title = viewModel.Title;
         post.Content = viewModel.Content;
 
         var existingPostTags = await _context.PostTags
@@ -268,13 +271,14 @@ public class PostController : Controller
 
         await _context.SaveChangesAsync();
 
-        return RedirectToAction(nameof(Details), new
+        return RedirectToAction("Post", "Home", new
         {
             id = post.Id
         });
     }
 
     // GET: POSTS/Delete/5
+    [Authorize]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null)
@@ -290,22 +294,43 @@ public class PostController : Controller
             return NotFound();
         }
 
+        string? currentUserId = _userManager.GetUserId(User);
+        if (post.AuthorId != currentUserId)
+        {
+            return Forbid();
+        }
+
         return View(post);
     }
 
     // POST: POSTS/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize]
     public async Task<IActionResult> DeleteConfirmed(int? id)
     {
-        var post = await _context.Posts.FindAsync(id);
-        if (post != null)
+        if (id == null)
         {
-            _context.Posts.Remove(post);
+            return NotFound();
         }
 
+        var post = await _context.Posts.FirstOrDefaultAsync(item =>
+            item.Id == id && item.DateOfDel == null);
+        if (post == null)
+        {
+            return NotFound();
+        }
+
+        string? currentUserId = _userManager.GetUserId(User);
+        if (post.AuthorId != currentUserId)
+        {
+            return Forbid();
+        }
+
+        // Keep related comments and bookmarks intact while hiding the post from active feeds.
+        post.DateOfDel = DateTime.UtcNow;
         await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction("Index", "Home");
     }
 
     private bool PostExists(int? id)
