@@ -3,6 +3,8 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using SixLabors.ImageSharp;
 
 namespace BCIT_Social.Controllers;
 
@@ -53,6 +55,20 @@ public class UploadController : Controller
             Path.GetExtension(Path.GetFileName(file.FileName)) != ".webp")
         {
             return BadRequest("Only .png, .jpg, .jpeg, and .webp files are allowed.");
+        }
+
+        try 
+        {
+            var fileInfo = Image.Identify(file.OpenReadStream());
+            if (fileInfo.Width < 300 || fileInfo.Height < 300)
+            {
+                return BadRequest("The image resolution is too low. Minimum resolution is 300x300 pixels.");
+            }
+        }
+        //Catches an exception if the file isn't a real img or something else.
+        catch (Exception)
+        {
+            return BadRequest("An error occurred while processing the image.");
         }
 
         var container = _blobServiceClient.GetBlobContainerClient(_containerName);
