@@ -203,3 +203,17 @@ aside .panel + .panel { margin-top: 24px; }
     background: var(--color-surface);
     text-decoration: none;
 }
+
+.danger-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 18px;
+    border: 1px solid #dc3545;
+    border-radius: 8px;
+    background: #dc3545;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+}

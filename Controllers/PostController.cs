@@ -313,6 +313,13 @@ public class PostController : Controller
     }
 
     // GET: POSTS/Delete/5
+    /// <summary>
+    /// Description: Displays the delete confirmation page for a post owned by the current user.
+    /// Last Reviewed: October 22, 2026
+    /// </summary>
+    /// <param name="id">The ID of the post being deleted.</param>
+    /// <returns>The delete confirmation view.</returns>
+    [Authorize]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null)
@@ -321,33 +328,63 @@ public class PostController : Controller
         }
 
         var post = await _context.Posts
-            .Include(post => post.Author)
-            .FirstOrDefaultAsync(post => post.Id == id);
+            .FirstOrDefaultAsync(post =>
+                post.Id == id &&
+                post.DateOfDel == null);
+
         if (post == null)
         {
             return NotFound();
+        }
+
+        string? currentUserId = _userManager.GetUserId(User);
+
+        if (post.AuthorId != currentUserId)
+        {
+            return Forbid();
         }
 
         return View(post);
     }
 
     // POST: POSTS/Delete/5
+    /// <summary>
+    /// Description: Soft deletes a post owned by the current user.
+    /// Last Reviewed: October 22, 2026
+    /// </summary>
+    /// <param name="id">The ID of the post being deleted.</param>
+    /// <returns>The Home page after the post is deleted.</returns>
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize]
     public async Task<IActionResult> DeleteConfirmed(int? id)
     {
-        var post = await _context.Posts.FindAsync(id);
-        if (post != null)
+        if (id == null)
         {
-            _context.Posts.Remove(post);
+            return NotFound();
         }
 
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
+        var post = await _context.Posts
+            .FirstOrDefaultAsync(post =>
+                post.Id == id &&
+                post.DateOfDel == null);
 
-    private bool PostExists(int? id)
-    {
-        return _context.Posts.Any(e => e.Id == id);
+        if (post == null)
+        {
+            return NotFound();
+        }
+
+        string? currentUserId = _userManager.GetUserId(User);
+
+        if (post.AuthorId != currentUserId)
+        {
+            return Forbid();
+        }
+
+        post.DateOfDel = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction("Index", "Home");
     }
 }

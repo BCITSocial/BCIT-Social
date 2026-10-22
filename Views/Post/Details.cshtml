@@ -46,6 +46,13 @@
                asp-route-id="@Model.Id">
                 Edit post
             </a>
+
+            <a class="danger-button"
+               asp-controller="Post"
+               asp-action="Delete"
+               asp-route-id="@Model.Id">
+                Delete post
+            </a>
         }
 
         <a class="secondary-button"
