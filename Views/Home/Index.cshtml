@@ -37,6 +37,66 @@ Renders the Home banner, the user's communities, the share box, and the feed.
                 </li>
             }
         </ul>
+<div class="page-heading">
+    <h1>Home</h1>
+    <a class="primary-button"
+       asp-controller="Post"
+       asp-action="Create">
+       Create post
+    </a>
+</div>
+<div class="home-columns">
+    <section class="panel feed" aria-labelledby="feed-heading">
+        <h2 id="feed-heading">Feed</h2>
+        @if (Model.Posts.Count == 0)
+{
+    <div class="empty-state">
+        <p>No posts have been created yet.</p>
+    </div>
+}
+    else
+    {
+        <div class="post-grid">
+            @foreach (var post in Model.Posts)
+            {
+                <article class="post-card">
+
+                    <div class="post-card-header">
+                        <div class="post-author-meta">
+                            <strong class="post-author-name">
+                                @post.AuthorName
+                            </strong>
+
+                            @if (!string.IsNullOrWhiteSpace(post.PostType))
+                            {
+                                <span class="post-type">
+                                    @post.PostType
+                                </span>
+                            }
+                        </div>
+
+                        <time datetime="@post.CreatedAt.ToString("O")">
+                            @post.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")
+                        </time>
+                    </div>
+
+                    <h3 class="post-title">
+                        @post.Title
+                    </h3>
+
+                    <p class="post-content">@post.Content</p>
+
+                    <a class="post-link"
+                       asp-controller="Post"
+                       asp-action="Details"
+                       asp-route-id="@post.Id">
+                        View post
+                    </a>
+
+                </article>
+            }
+        </div>
+    }
     </section>
 }
 
