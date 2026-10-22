@@ -158,7 +158,10 @@ public class CommunityController : Controller
                     throw;
                 }
             }
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Details), new
+            {
+                community.Id
+            });
         }
         return View(community);
     }
