@@ -9,16 +9,20 @@ public class ProfileController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
 
     /// <summary>
     /// Added userManager to scaffolded code for checking user and database connections.
     /// </summary>
     /// <param name="context"></param>
     /// <param name="userManager"></param>
-    public ProfileController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    /// <param name="signInManager"></param>
+    public ProfileController(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager)
     {
         _context = context;
         _userManager = userManager;
+        _signInManager = signInManager;
     }
 
     // GET: PROFILES
@@ -188,12 +192,22 @@ public class ProfileController : Controller
     /// <summary>
     /// Author: Joshua Trepanier
     /// Last Revised: Oct 21, 2026
-    /// Description: Delete the existing profile (Also deletes the account from the database),
+    /// Description: Delete the existing profile (Also deletes the account from the database).
+    /// Signs user out once account is deleted.
     /// </summary>
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(string? userid)
     {
+        string? currentUserID = _userManager.GetUserId(User);
+        if (userid == null)
+        {
+            return NotFound();
+        }
+        if (currentUserID != userid)
+        {
+            return Forbid();
+        }
         var profile = await _context.Profiles.FindAsync(userid);
         var account = await _context.Users.FindAsync(userid);
         if (profile != null && account != null)
@@ -202,6 +216,7 @@ public class ProfileController : Controller
             _context.Users.Remove(account);
         }
         await _context.SaveChangesAsync();
+        await _signInManager.SignOutAsync();
         return RedirectToAction(nameof(Index));
     }
 
