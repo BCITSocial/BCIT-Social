@@ -10,6 +10,7 @@ namespace BCIT_Social.ViewModels;
 /// </summary>
 public class CommunityViewModel
 {
+    public int Id { get; set; }
     [Required]
     public string Name { get; set; } = null!;
     [Required]
@@ -19,6 +20,8 @@ public class CommunityViewModel
     // Author: Jaspreet Bath
     // Ensure's modal description doesn't delete itself.
     public string? Description { get; set; }
+    public bool IsJoined { get; set; }
+    public int MembersCount { get; set; }
 
     public CommunityViewModel()
     {
