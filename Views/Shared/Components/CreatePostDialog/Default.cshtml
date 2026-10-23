@@ -1,0 +1,86 @@
+@model BCIT_Social.ViewModels.CreatePostViewModel
+@*
+The create post modal. Submits the post title, content, and one post type (TagId) to
+PostController.Create. Parts the backend doesn't handle yet are shown disabled: Post to,
+formatting, extra tags, attachments, and the Event tab.
+*@
+<dialog class="create-dialog" id="create-post-dialog" aria-labelledby="create-post-title">
+    <div class="create-dialog-top">
+        <div class="create-tabs" role="group" aria-label="What to create">
+            <span class="create-tab" aria-current="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg>
+                Post
+            </span>
+            <button class="create-tab" type="button" disabled title="Creating events isn't available yet">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5" /><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" /></svg>
+                Event
+            </button>
+        </div>
+        <button class="icon-button" type="button" data-close-create aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        </button>
+    </div>
+
+    <form class="create-form" method="post" asp-area="" asp-controller="Post" asp-action="Create">
+        <div class="create-form-body">
+            <h2 class="create-title" id="create-post-title">Create post</h2>
+            <p class="create-subtitle">Start a conversation with your community.</p>
+
+            <div class="create-field">
+                <label for="create-post-to">Post to</label>
+                <select id="create-post-to" disabled>
+                    <option>No community</option>
+                </select>
+                <p class="create-help">Posting to a community isn't available yet.</p>
+            </div>
+
+            <fieldset class="create-field">
+                <legend>Post type</legend>
+                <div class="post-type-options">
+                    @foreach (var type in Model.PostTypes)
+                    {
+                        <label class="post-type-option">
+                            <input type="radio" name="TagId" value="@type.Value" required />
+                            <span>@type.Text</span>
+                        </label>
+                    }
+                </div>
+            </fieldset>
+
+            <div class="create-field">
+                <label for="create-post-title-input">Title</label>
+                <input id="create-post-title-input" name="Title" maxlength="150" placeholder="How do you organize MVC controllers?" required />
+            </div>
+
+            <div class="create-field">
+                <label for="create-post-content">Content</label>
+                <div class="content-editor">
+                    <textarea id="create-post-content" name="Content" rows="5" placeholder="Share your question, idea, or update..." required></textarea>
+                    <div class="content-toolbar" aria-label="Formatting (not available yet)">
+                        <button type="button" disabled aria-label="Bold"><strong>B</strong></button>
+                        <button type="button" disabled aria-label="Italic"><em>I</em></button>
+                        <button type="button" disabled aria-label="Quote"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg></button>
+                        <button type="button" disabled aria-label="List"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 7h14M5 12h14M5 17h14" /></svg></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="create-field">
+                <span class="create-label">Tags (optional)</span>
+                <button class="add-tag" type="button" disabled>+ Add tag</button>
+                <p class="create-help">Extra tags aren't available yet. The post type is saved as the post's tag.</p>
+            </div>
+
+            <button class="attach-box" type="button" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="5" width="17" height="14" rx="1.5" /><circle cx="9" cy="10" r="1.6" /><path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5" /></svg>
+                Add photos or attachments
+                <span class="visually-hidden">(not available yet)</span>
+            </button>
+        </div>
+
+        <div class="create-footer">
+            <button class="secondary-button" type="button" data-close-create>Cancel</button>
+            <button class="cta-button publish-button" type="submit">Publish post</button>
+        </div>
+    </form>
+</dialog>

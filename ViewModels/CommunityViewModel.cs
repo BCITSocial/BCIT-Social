@@ -16,6 +16,10 @@ public class CommunityViewModel
     public string Type { get; set; } = null!;
     public SelectList Types { get; set; }
 
+    // Author: Jaspreet Bath
+    // Ensure's modal description doesn't delete itself.
+    public string? Description { get; set; }
+
     public CommunityViewModel()
     {
         List<SelectListItem> typesList =

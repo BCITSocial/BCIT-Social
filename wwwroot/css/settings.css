@@ -1,3 +1,8 @@
+/*
+author: Andre Di Lascio
+Defines shared colors, typography, and decorative image settings for the Home shell.
+*/
+
 /* Global visual settings. Keep colors, fonts, and decorative image URLs here.
    Use rem sizes so browser text-size preferences continue to work. */
 :root {
@@ -11,6 +16,18 @@
     --color-selected: #edf2ff;
     --color-input: #f3f5f8;
     --color-transparent: transparent;
+    --color-danger: #b42318;
+    --color-danger-surface: #fef3f2;
+    /* Events page */
+    --color-banner-background: #0d2147;
+    --color-banner-text: #ffffff;
+    --color-cover: #e6ebf2;
+    --color-date-tile: #fbf1dc;
+    --color-date-tile-text: #8a5a0a;
+    --color-going: #d9f1ee;
+    --color-going-text: #0b6b63;
+    --color-hosting: #fdf0d0;
+    --color-hosting-text: #7a4b0a;
 
     --font-family: Arial, Helvetica, sans-serif;
     --font-size-body: 1rem;
@@ -25,6 +42,35 @@
     /* Set to url("../images/your-file.webp") to add a decorative background.
        Keep none for a plain background. Add future decorative image variables here. */
     --image-page-background: none;
+    --image-events-banner: none;
+
+    /* Home banner. Swap the image to change the banner; keep the text in the image readable at
+       the left so it stays visible when narrow screens crop the right side.
+       Update the banner's aria-label in Views/Home/Index.cshtml if the image text changes. */
+    --image-home-banner: url("../images/home-banner.png");
+    --home-banner-aspect-ratio: 978 / 167;
+    --home-banner-min-height: 120px;
+    --home-banner-position: left center;
+    --color-home-banner-fallback: #0d2147;
+
+    /* Home feed, sidebar, and post details */
+    --color-cta: #ffd76a;
+    --color-cta-text: #101d43;
+    --color-tag-surface: #e8efff;
+    --color-tag-text: #064cff;
+    --color-badge-surface: #e0f5f6;
+    --color-badge-text: #008c9c;
+    --color-community-tile: #0e8a9a;
+    --color-community-tile-text: #ffffff;
+    --color-avatar: #e8efff;
+    --color-avatar-text: #064cff;
+    --color-overlay: rgb(16 29 67 / 45%);
+
+    /* Messages page */
+    --color-online: #12a150;
+    --color-bubble-theirs: #eef2fa;
+    --color-bubble-mine: #245be8;
+    --color-bubble-mine-text: #ffffff;
 
     --radius: 12px;
 }

@@ -1,3 +1,8 @@
+@*
+author: Andre Di Lascio
+Provides the shared page structure, styles, header, navigation, and script section.
+*@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +11,8 @@
     <title>@ViewData["Title"] - BCIT Social</title>
     <link rel="stylesheet" href="~/css/settings.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -16,7 +23,8 @@
             @RenderBody()
         </main>
     </div>
+    @await Component.InvokeAsync("CreatePostDialog")
+    <script src="~/js/create-post.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-

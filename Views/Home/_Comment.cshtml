@@ -1,0 +1,50 @@
+@model BCIT_Social.ViewModels.CommentViewModel
+@* One comment with a reply form and its nested replies. Expects ViewData["PostId"] and ViewData["ReturnUrl"]. *@
+@{
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+<li class="comment">
+    <span class="avatar" aria-hidden="true">@Model.AuthorInitials</span>
+    <div class="comment-body">
+        <p class="comment-meta">
+            <span class="comment-author">@Model.AuthorName</span>
+            @if (Model.IsPostAuthor)
+            {
+                <span class="author-badge">Author</span>
+            }
+            <span>· <time datetime="@Model.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")">@BCIT_Social.ViewModels.DisplayFormat.TimeAgo(Model.CreatedAt, DateTime.UtcNow)</time></span>
+        </p>
+        <p class="comment-content">@Model.Content</p>
+
+        @if (signedIn)
+        {
+            <details class="reply-toggle">
+                <summary>
+                    <svg class="post-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg>
+                    Reply<span class="visually-hidden"> to @Model.AuthorName</span>
+                </summary>
+                <form class="comment-form" method="post" asp-controller="Comment" asp-action="Create" asp-route-returnUrl="@returnUrl">
+                    <input type="hidden" name="postId" value="@ViewData["PostId"]" />
+                    <input type="hidden" name="parentCommentId" value="@Model.Id" />
+                    <label class="visually-hidden" for="reply-@Model.Id">Reply to @Model.AuthorName</label>
+                    <input class="comment-input" id="reply-@Model.Id" name="content" placeholder="Write a reply..." autocomplete="off" required />
+                    <button class="cta-button" type="submit">Reply</button>
+                </form>
+            </details>
+        }
+
+        @if (Model.Replies.Count > 0)
+        {
+            <details class="replies" open>
+                <summary>@Model.ReplyCount @(Model.ReplyCount == 1 ? "reply" : "replies")</summary>
+                <ul class="comment-list">
+                    @foreach (var reply in Model.Replies)
+                    {
+                        <partial name="_Comment" model="reply" view-data="ViewData" />
+                    }
+                </ul>
+            </details>
+        }
+    </div>
+</li>

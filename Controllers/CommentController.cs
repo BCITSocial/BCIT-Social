@@ -35,11 +35,12 @@ public class CommentController : Controller
     * @param postId The ID of the post to comment on.
     * @param content The content of the comment.
     * @param parentCommentId (Optional) The ID of the parent comment if this is a reply.
-    * @return Redirects to the post details page.
+    * @param returnUrl (Optional) A local URL to return to instead of the post details page.
+    * @return Redirects to returnUrl when it is local, otherwise to the post details page.
     */
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(int postId, string content, int? parentCommentId)
+    public async Task<IActionResult> Create(int postId, string content, int? parentCommentId, string? returnUrl = null)
     {
         if (string.IsNullOrWhiteSpace(content))
         {
@@ -79,6 +80,11 @@ public class CommentController : Controller
         });
 
         await _context.SaveChangesAsync();
+
+        if (Url.IsLocalUrl(returnUrl))
+        {
+            return LocalRedirect(returnUrl);
+        }
 
         return RedirectToAction("Details", "Post", new { id = postId });
     }
