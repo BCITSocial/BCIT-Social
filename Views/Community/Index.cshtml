@@ -3,7 +3,7 @@ frontend view for Communities page.
 - author: jaspreet bath
 *@
 
-@model IEnumerable<BCIT_Social.Models.Community>
+@model IEnumerable<BCIT_Social.ViewModels.CommunityViewModel>
 @using System.IO
 @using System.Text.Json
 @using System.Security.Claims
@@ -123,8 +123,7 @@ frontend view for Communities page.
                                 @* returns first item *@
                                 var location = rawTags.FirstOrDefault(t => campusOptions.Contains(t)) ?? defaultCampusText;
 
-                                var isJoined = (item.Members != null && !string.IsNullOrEmpty(currentUserId) && item.Members.Any(m =>
-                        m.UserId == currentUserId))
+                                var isJoined = item.IsJoined
                                                || rawTags.Contains(featured.GetProperty("statusTag").GetString(), StringComparer.OrdinalIgnoreCase);
 
                                 var descProp = item.GetType().GetProperty("Description");
@@ -152,7 +151,7 @@ frontend view for Communities page.
 
                                         @* member count and location (needs more work later) *@
                                         <div class="member-count">
-                                            <span>@(item.Members?.Count ?? 0) @text.GetProperty("membersLabel").GetString()</span>
+                                            <span>@(item.MembersCount) @text.GetProperty("membersLabel").GetString()</span>
                                             <span>&bull;</span>
                                             <span>@location</span>
                                         </div>
@@ -167,20 +166,12 @@ frontend view for Communities page.
                                         }
                                         else
                                         {
-                                            <form asp-action="Join" asp-route-id="@item.Id" method="post"
-                                                  style="margin: 0; display: inline;">
+                                            <form asp-action="Join" asp-route-id="@item.Id" method="get">
                                                 <button type="submit" class="btn-join" data-text="join-btn">
                                                     @text.GetProperty("joinButton").GetString()
                                                 </button>
                                             </form>
                                         }
-
-                                        <div class="admin-links">
-                                            <a asp-action="Edit" asp-route-id="@item.Id"
-                                               data-text="edit-label">@text.GetProperty("editLabel").GetString()</a>
-                                            <a asp-action="Delete" asp-route-id="@item.Id"
-                                               data-text="delete-label">@text.GetProperty("deleteLabel").GetString()</a>
-                                        </div>
                                     </div>
                                 </div>
                             }

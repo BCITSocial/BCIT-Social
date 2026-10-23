@@ -1,12 +1,13 @@
-@model BCIT_Social.ViewModels.DetailsCommunityViewModel
+@model BCIT_Social.ViewModels.CommunityDetailsViewModel
 @*
 - This is the frontend view for Community Details.
 - author: jaspreet bath
 *@
 
 @using System.IO
-@using System.Text.Json
 @using System.Security.Claims
+@using System.Text.Json
+@using Microsoft.Build.Framework
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 
 @{
@@ -130,12 +131,20 @@ currentUserId))
 
         <div class="meta-right-actions">
             <!-- Modal trigger button instead of route link -->
+            @if (Model?.IsMember ?? false)
+            {   
+                <a asp-action="Leave" asp-route-id="@Model?.Id" class="btn-settings"> Leave </a> //TODO: REPLACE THIS TEXT
+            
             <button type="button" id="open-create-modal" class="btn-create">
                 @meta.GetProperty("createButton").GetString()
             </button>
-            <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn-settings">
-                @meta.GetProperty("settingsButton").GetString()
-            </a>
+            }
+            @if (Model?.IsMod ?? false)
+            {   
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn-settings">
+                    @meta.GetProperty("settingsButton").GetString()
+                </a>
+            }
         </div>
     </div>
 
