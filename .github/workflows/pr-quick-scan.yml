@@ -4,12 +4,10 @@ on:
   pull_request:
     branches-ignore:
       - main
-      - Dev
       - dev
   push:
     branches-ignore:
       - main
-      - Dev
       - dev
   workflow_dispatch:
 
