@@ -23,13 +23,36 @@ public class CommunityController : Controller
     {
         try
         {
-            return View(await _context.Communities.ToListAsync());
+            var communities = IndexViewModelFromCommunity(await _context.Communities.ToListAsync());
+            return View(communities);
         }
         catch
         {
             // Fallback on macOS since I can't connect to the DB!
             return View(new List<Community>());
         }
+    }
+
+    private List<CommunityViewModel> IndexViewModelFromCommunity(List<Community> communities)
+    {
+        var currentUserId = _userManager.GetUserId(User);
+        List<CommunityViewModel> communityViewModels = [];
+        foreach (var community in communities)
+        {
+            bool isJoined = MemberExists(currentUserId, community);
+            var viewModel = new CommunityViewModel
+            {
+                Id = community.Id,
+                Name = community.Name,
+                Type = community.Type,
+                Description = community.Description,
+                IsJoined = isJoined,
+                MembersCount = community.Members.Count,
+            };
+            communityViewModels.Add(viewModel);
+        }
+        return communityViewModels;
+
     }
 
     // GET: COMMUNITYS/Details/5
@@ -47,7 +70,7 @@ public class CommunityController : Controller
             return NotFound();
         }
 
-        DetailsCommunityViewModel viewModel = await DetailsViewModelFromCommunity(community);
+        CommunityDetailsViewModel viewModel = await DetailsViewModelFromCommunity(community);
         return View(viewModel);
     }
 
@@ -57,106 +80,106 @@ public class CommunityController : Controller
     // updates the community status tag to "Going" from communities-text.json,
     // and returns the user to the main index page.
     // POST: Community/Join/5
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    [Authorize]
-    public async Task<IActionResult> Join(int id)
-    {
-        // gets community and its members from db
-        var community = await _context.Communities
-            // eager loading to pull related data from db
-            .Include(c => c.Members)
-            .FirstOrDefaultAsync(c => c.Id == id);
+    // [HttpPost]
+    // [ValidateAntiForgeryToken]
+    // [Authorize]
+    // public async Task<IActionResult> Join(int id)
+    // {
+    //     // gets community and its members from db
+    //     var community = await _context.Communities
+    //         // eager loading to pull related data from db
+    //         .Include(c => c.Members)
+    //         .FirstOrDefaultAsync(c => c.Id == id);
 
-        // redirect id empty/null to 404
-        if (community == null)
-        {
-            return NotFound();
-        }
+    //     // redirect id empty/null to 404
+    //     if (community == null)
+    //     {
+    //         return NotFound();
+    //     }
 
-        // confirming user auth if logged in or not
-        // if so, return: back to login page
-        var currentUserId = _userManager.GetUserId(User);
-        if (string.IsNullOrEmpty(currentUserId))
-        {
-            return Challenge();
-        }
+    //     // confirming user auth if logged in or not
+    //     // if so, return: back to login page
+    //     var currentUserId = _userManager.GetUserId(User);
+    //     if (string.IsNullOrEmpty(currentUserId))
+    //     {
+    //         return Challenge();
+    //     }
 
-        // if DB members is empty, then make empty one
-        // crash pweventing
-        if (community.Members == null)
-        {
-            community.Members = new List<CommunityMember>();
-        }
+    //     // if DB members is empty, then make empty one
+    //     // crash pweventing
+    //     if (community.Members == null)
+    //     {
+    //         community.Members = new List<CommunityMember>();
+    //     }
 
-        // add a member record if not already joined.
-        // this is for user who just made an account and is
-        // trying to make a post. id auth is needed bruv.
-        if (!community.Members.Any(m => m.UserId == currentUserId))
-        {
-            community.Members.Add(new CommunityMember
-            {
-                CommunityId = id,
-                UserId = currentUserId,
-                IsModerator = false
-            });
-        }
+    //     // add a member record if not already joined.
+    //     // this is for user who just made an account and is
+    //     // trying to make a post. id auth is needed bruv.
+    //     if (!community.Members.Any(m => m.UserId == currentUserId))
+    //     {
+    //         community.Members.Add(new CommunityMember
+    //         {
+    //             CommunityId = id,
+    //             UserId = currentUserId,
+    //             IsModerator = false
+    //         });
+    //     }
 
-        // wwwroot/content/communities-text.json
-        var jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "content", "communities-text.json");
-        if (System.IO.File.Exists(jsonPath))
-        {
-            using var jsonDoc = System.Text.Json.JsonDocument.Parse(await System.IO.File.ReadAllTextAsync(jsonPath));
-            var root = jsonDoc.RootElement;
+    //     // wwwroot/content/communities-text.json
+    //     var jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "content", "communities-text.json");
+    //     if (System.IO.File.Exists(jsonPath))
+    //     {
+    //         using var jsonDoc = System.Text.Json.JsonDocument.Parse(await System.IO.File.ReadAllTextAsync(jsonPath));
+    //         var root = jsonDoc.RootElement;
 
-            // looks for key, puts in out var modalElem, then checks for tag names
-            var statusOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            if (root.TryGetProperty("createModal", out var modalElem) &&
-                modalElem.TryGetProperty("statusOptions", out var statusList))
-            {
-                foreach (var opt in statusList.EnumerateArray())
-                {
-                    var optText = opt.GetString();
-                    // validation check before setting
-                    if (!string.IsNullOrWhiteSpace(optText) && !optText.Equals("None", StringComparison.OrdinalIgnoreCase))
-                    {
-                        statusOptions.Add(optText);
-                    }
-                }
-            }
+    //         // looks for key, puts in out var modalElem, then checks for tag names
+    //         var statusOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    //         if (root.TryGetProperty("createModal", out var modalElem) &&
+    //             modalElem.TryGetProperty("statusOptions", out var statusList))
+    //         {
+    //             foreach (var opt in statusList.EnumerateArray())
+    //             {
+    //                 var optText = opt.GetString();
+    //                 // validation check before setting
+    //                 if (!string.IsNullOrWhiteSpace(optText) && !optText.Equals("None", StringComparison.OrdinalIgnoreCase))
+    //                 {
+    //                     statusOptions.Add(optText);
+    //                 }
+    //             }
+    //         }
 
-            // looks for tags with "going", sorts if status tag
-            var targetStatus = "Going";
-            if (root.TryGetProperty("featured", out var featuredElem) &&
-                featuredElem.TryGetProperty("statusTag", out var statusTagElem) &&
-                !string.IsNullOrWhiteSpace(statusTagElem.GetString()))
-            {
-                targetStatus = statusTagElem.GetString()!;
-            }
+    //         // looks for tags with "going", sorts if status tag
+    //         var targetStatus = "Going";
+    //         if (root.TryGetProperty("featured", out var featuredElem) &&
+    //             featuredElem.TryGetProperty("statusTag", out var statusTagElem) &&
+    //             !string.IsNullOrWhiteSpace(statusTagElem.GetString()))
+    //         {
+    //             targetStatus = statusTagElem.GetString()!;
+    //         }
 
-            // strips existing tags
-            var tags = (community.Type ?? "")
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Where(t => !statusOptions.Contains(t))
-                .ToList();
+    //         // strips existing tags
+    //         var tags = (community.Type ?? "")
+    //             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    //             .Where(t => !statusOptions.Contains(t))
+    //             .ToList();
 
-            // joing tag to community type (sports, tech, etc)
-            tags.Add(targetStatus);
-            community.Type = string.Join(", ", tags);
-        }
+    //         // joing tag to community type (sports, tech, etc)
+    //         tags.Add(targetStatus);
+    //         community.Type = string.Join(", ", tags);
+    //     }
 
-        // async on db changes (happens after making a post)
-        await _context.SaveChangesAsync();
+    //     // async on db changes (happens after making a post)
+    //     await _context.SaveChangesAsync();
 
-        // redirects user back to where he made post, fallback is to Index
-        var referer = Request.Headers["Referer"].ToString();
-        if (!string.IsNullOrEmpty(referer) && Uri.IsWellFormedUriString(referer, UriKind.RelativeOrAbsolute))
-        {
-            return Redirect(referer);
-        }
+    //     // redirects user back to where he made post, fallback is to Index
+    //     var referer = Request.Headers["Referer"].ToString();
+    //     if (!string.IsNullOrEmpty(referer) && Uri.IsWellFormedUriString(referer, UriKind.RelativeOrAbsolute))
+    //     {
+    //         return Redirect(referer);
+    //     }
 
-        return RedirectToAction(nameof(Index));
-    }
+    //     return RedirectToAction(nameof(Index));
+    // }
 
 
 
@@ -303,7 +326,7 @@ public class CommunityController : Controller
         {
             return NotFound();
         }
-        if (await MemberExists(currentUserId, community))
+        if (await MemberExistsAsync(currentUserId, community))
         {
             return RedirectToAction(nameof(Index));
         }
@@ -336,7 +359,7 @@ public class CommunityController : Controller
             return Challenge();
         }
 
-        if (await MemberExists(currentUserId, community))
+        if (await MemberExistsAsync(currentUserId, community))
         {
             return RedirectToAction(nameof(Index));
         }
@@ -398,7 +421,7 @@ public class CommunityController : Controller
             // TODO: might have to either not show "Leave" on frontend when creator or give a popup when trying to leave.
         }
 
-        if (await MemberExists(currentUserId, community))
+        if (await MemberExistsAsync(currentUserId, community))
         {
             return View(community);
         }
@@ -431,7 +454,7 @@ public class CommunityController : Controller
             return Challenge();
         }
 
-        if (await MemberExists(currentUserId, community) == false)
+        if (await MemberExistsAsync(currentUserId, community) == false)
         {
             return RedirectToAction(nameof(Index));
         }
@@ -478,7 +501,7 @@ public class CommunityController : Controller
     /// </summary>
     /// <param name="community">a Community</param>
     /// <returns>a view model</returns>
-    private async Task<DetailsCommunityViewModel> DetailsViewModelFromCommunity(Community community)
+    private async Task<CommunityDetailsViewModel> DetailsViewModelFromCommunity(Community community)
     {
         var members = await _context.CommunityMembers
         .Where(m => m.CommunityId == community.Id)
@@ -486,14 +509,27 @@ public class CommunityController : Controller
         .ToListAsync();
         var creator = await _userManager.FindByIdAsync(community.CreatorId);
         var creatorName = creator?.UserName;
-        var viewModel = new DetailsCommunityViewModel
+
+        var currentUserId = _userManager.GetUserId(User);
+        bool isMember = MemberExists(currentUserId, community);
+        bool isMod = false;
+        if (isMember)
+        {
+            var communityMember = _context.CommunityMembers.Find(currentUserId, community.Id);
+            isMod = communityMember?.IsModerator ?? false;
+        }
+
+
+        var viewModel = new CommunityDetailsViewModel
         {
             Id = community.Id,
             Name = community.Name,
             Type = community.Type,
             Description = community.Description,
             Creator = creatorName ?? "Not Found",
-            Members = members
+            Members = members,
+            IsMod = isMod,
+            IsMember = isMember,
         };
         return viewModel;
     }
@@ -552,9 +588,30 @@ public class CommunityController : Controller
     /// <param name="id">User id</param>
     /// <param name="community">Community</param>
     /// <returns>Bool</returns>
-    private async Task<bool> MemberExists(string? id, Community community)
+    private async Task<bool> MemberExistsAsync(string? id, Community community)
     {
         var members = await _context.CommunityMembers.Where(m => m.CommunityId == community.Id).ToListAsync();
+        foreach (var member in members)
+        {
+            if (member.UserId == id)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 22, 2026
+    /// Description: Checks if specific member exists in specific community.
+    /// </summary>
+    /// <param name="id">User id</param>
+    /// <param name="community">Community</param>
+    /// <returns>Bool</returns>
+    private bool MemberExists(string? id, Community community)
+    {
+        var members = _context.CommunityMembers.Where(m => m.CommunityId == community.Id).ToList();
         foreach (var member in members)
         {
             if (member.UserId == id)
