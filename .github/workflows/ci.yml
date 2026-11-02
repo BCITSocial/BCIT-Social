@@ -3,11 +3,11 @@ name: Build and test
 on:
   pull_request:
     branches:
-      - Dev
+      - dev
       - main
   push:
     branches:
-      - Dev
+      - dev
   workflow_dispatch:
 
 permissions:
@@ -21,13 +21,13 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Require Dev, patch, or hotfix as source branch for main
+      - name: Require dev, patch, or hotfix as source branch for main
         if: github.base_ref == 'main'
         shell: pwsh
         run: |
           $headRef = '${{ github.head_ref }}'
-          if ($headRef -ne 'Dev' -and $headRef -notmatch '(?i)(patch|hotfix)') {
-            Write-Error "Pull requests into main must come from Dev or a patch/hotfix branch."
+          if ($headRef -ne 'dev' -and $headRef -notmatch '(?i)(patch|hotfix)') {
+            Write-Error "Pull requests into main must come from dev or a patch/hotfix branch."
             exit 1
           }
 
