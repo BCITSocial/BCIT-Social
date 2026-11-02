@@ -21,11 +21,43 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Require Dev as the source branch for main
-        if: github.base_ref == 'main' && github.head_ref != 'Dev'
+      - name: Require Dev, patch, or hotfix as source branch for main
+        if: github.base_ref == 'main'
+        shell: pwsh
         run: |
-          Write-Error "Pull requests into main must come from Dev."
-          exit 1
+          $headRef = '${{ github.head_ref }}'
+          if ($headRef -ne 'Dev' -and $headRef -notmatch '(?i)(patch|hotfix)') {
+            Write-Error "Pull requests into main must come from Dev or a patch/hotfix branch."
+            exit 1
+          }
+
+      - name: Guard patch/hotfix PR scope into main
+        if: github.base_ref == 'main'
+        shell: pwsh
+        run: |
+          $headRef = '${{ github.head_ref }}'
+          if ($headRef -notmatch '(?i)(patch|hotfix)') {
+            exit 0
+          }
+
+          $event = Get-Content $env:GITHUB_EVENT_PATH | ConvertFrom-Json
+          $changedFiles = [int]$event.pull_request.changed_files
+          if ($changedFiles -gt 30) {
+            Write-Error "Patch/hotfix PRs into main are limited to 30 changed files (found $changedFiles)."
+            exit 1
+          }
+
+          $headers = @{
+            Accept = "application/vnd.github+json"
+            "X-GitHub-Api-Version" = "2022-11-28"
+          }
+          $files = Invoke-RestMethod -Uri "$($event.pull_request.url)/files?per_page=100" -Headers $headers
+          $removedFiles = @($files | Where-Object { $_.status -eq 'removed' })
+          if ($removedFiles.Count -gt 0) {
+            $removedNames = ($removedFiles | ForEach-Object { $_.filename }) -join ', '
+            Write-Error "Patch/hotfix PRs into main cannot delete files. Removed: $removedNames"
+            exit 1
+          }
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
