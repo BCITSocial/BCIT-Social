@@ -1,6 +1,7 @@
 
 namespace BCIT_Social.Models;
 
+// Represents a message sent within a chatbox, including its sender, timestamp, and read receipts.
 public class Message
 {
     public int Id { get; set; }
@@ -17,4 +18,7 @@ public class Message
     public Chatbox Chatbox { get; set; } = null!;
 
     public ApplicationUser Sender { get; set; } = null!;
+
+    public ICollection<MessageReadReceipt> ReadReceipts { get; set; }
+    = new List<MessageReadReceipt>();
 }

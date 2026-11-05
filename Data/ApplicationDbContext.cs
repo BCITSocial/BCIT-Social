@@ -26,6 +26,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ChatboxUser> ChatboxUsers { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<PostPhoto> PostPhotos { get; set; }
+    public DbSet<MessageReadReceipt> MessageReadReceipts { get; set; }
+    public DbSet<ChatboxMembershipHistory> ChatboxMembershipHistory { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -249,5 +251,40 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(m => m.SenderId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // MessageReadReceipt uses MessageId and UserId as a composite primary key.
+        builder.Entity<MessageReadReceipt>()
+            .HasKey(receipt => new
+            {
+                receipt.MessageId,
+                receipt.UserId
+            });
+
+        // One Message can have many MessageReadReceipts.
+        builder.Entity<MessageReadReceipt>()
+            .HasOne(receipt => receipt.Message)
+            .WithMany(message => message.ReadReceipts)
+            .HasForeignKey(receipt => receipt.MessageId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // One ApplicationUser can have many MessageReadReceipts.
+        builder.Entity<MessageReadReceipt>()
+            .HasOne(receipt => receipt.User)
+            .WithMany()
+            .HasForeignKey(receipt => receipt.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // One ApplicationUser can have many ChatboxMembershipHistory records.
+        builder.Entity<ChatboxMembershipHistory>()
+            .HasOne(history => history.User)
+            .WithMany()
+            .HasForeignKey(history => history.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // One Chatbox can have many ChatboxMembershipHistory records.
+        builder.Entity<ChatboxMembershipHistory>()
+            .HasOne(history => history.Chatbox)
+            .WithMany(chatbox => chatbox.MembershipHistory)
+            .HasForeignKey(history => history.ChatboxId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

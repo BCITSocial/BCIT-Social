@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace BCIT_Social.Models;
 
+// Represents a user's current membership and permissions within a chatbox.
 public class ChatboxUser
 {
     public string UserId { get; set; } = null!;
@@ -12,4 +13,6 @@ public class ChatboxUser
     public ApplicationUser User { get; set; } = null!;
 
     public Chatbox Chatbox { get; set; } = null!;
+
+    public bool IsAdmin { get; set; }
 }
