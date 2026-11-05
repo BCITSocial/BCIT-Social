@@ -4,7 +4,7 @@ Renders the shared brand, centered search placeholder, notifications popup, and 
 *@
 
 <header class="site-header">
-    <a class="brand" asp-area="" asp-controller="Home" asp-action="Index"><span class="brand-badge" aria-hidden="true">B</span>BCIT Social</a>
+    <a class="brand" asp-area="" asp-controller="Home" asp-action="Index"><span class="brand-badge brand-logo" aria-hidden="true"><img src="~/images/brandLogo.png" alt="" /></span>BCIT Social</a>
     <label class="header-search">
         <span class="visually-hidden">Search BCIT Social (unavailable)</span>
         <svg class="header-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
@@ -44,6 +44,7 @@ Renders the shared brand, centered search placeholder, notifications popup, and 
         {
             <p class="profile-menu-name">@User.Identity.Name</p>
             <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                <button class="profile-menu-item" asp-controller="Profile" asp-action="Index">View profile</button>
                 <button class="profile-menu-item" type="submit">Log out</button>
             </form>
         }
