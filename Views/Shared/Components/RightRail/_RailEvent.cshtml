@@ -1,0 +1,64 @@
+@using System.Globalization
+@using BCIT_Social.ViewModels
+@model RailEventViewModel
+@* One row in the Upcoming events card, built from one entry in "events" in right-rail-text.json.
+   A line is left out when its value is empty. Button and count wording comes from RightRailText in ViewData. *@
+@{
+    var culture = CultureInfo.InvariantCulture;
+    var text = ViewData[nameof(RightRailText)] as RightRailText ?? new RightRailText();
+    // "SE2 Lab, Burnaby Campus", skipping whichever part is empty.
+    var where = string.Join(", ", new[] { Model.Location, Model.Campus }.Where(s => !string.IsNullOrWhiteSpace(s)));
+    var going = Model.Rsvp == RsvpStatus.Going;
+}
+<article class="rail-event">
+    <div class="rail-event-top">
+        @if (Model.StartsAt is { } start)
+        {
+            <time class="rail-date" datetime="@start.ToString("yyyy-MM-dd'T'HH:mm", culture)">
+                <span class="rail-date-month">@start.ToString("MMM", culture)</span>
+                <span class="rail-date-day">@start.Day</span>
+            </time>
+        }
+        <div class="rail-event-text">
+            <h3><a asp-controller="Events" asp-action="Index">@Model.Title</a></h3>
+            @if (where.Length > 0)
+            {
+                <p>@where</p>
+            }
+            @if (Model.StartsAt is { } at)
+            {
+                <p>@at.ToString("dddd, h:mm tt", culture)</p>
+            }
+        </div>
+    </div>
+    @if (Model.Description.Length > 0)
+    {
+        <p class="rail-event-description">@Model.Description</p>
+    }
+    <div class="rail-event-footer">
+        @if (Model.Attendees.Count > 0 || Model.GoingCount > 0)
+        {
+            <span class="rail-attendees">
+                <span class="rail-avatars" aria-hidden="true">
+                    @foreach (var attendee in Model.Attendees.Take(3))
+                    {
+                        if (!string.IsNullOrWhiteSpace(attendee.PhotoUrl))
+                        {
+                            <img class="rail-avatar" src="@attendee.PhotoUrl" alt="" />
+                        }
+                        else
+                        {
+                            <span class="rail-avatar">@attendee.Initials</span>
+                        }
+                    }
+                </span>
+                @if (Model.GoingCount > 0)
+                {
+                    <span>@RightRailText.Format(text.GoingCount, Model.GoingCount)</span>
+                }
+            </span>
+        }
+        @* TODO(BE): this button stays disabled until the RSVP endpoint exists. *@
+        <button class="rail-button@(going ? " is-selected" : "")" type="button" aria-pressed="@(going ? "true" : "false")" disabled>@(going ? text.ButtonGoing : text.ButtonRsvp)</button>
+    </div>
+</article>
