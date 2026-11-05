@@ -6,6 +6,8 @@
     Layout = "_HomeLayout";
     // The event cards read their badge and button text from here.
     ViewData[nameof(EventsText)] = text;
+    // Card slots in the right rail, top to bottom. The entries come from right-rail-text.json.
+    ViewData["RightRail"] = new[] { RightRailCards.Events, RightRailCards.Links };
 }
 
 @* Events page: banner, heading with status chips, tabs and filter bar, then the card grid.
