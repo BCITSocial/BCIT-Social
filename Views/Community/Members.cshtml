@@ -1,0 +1,62 @@
+@model BCIT_Social.ViewModels.CommunityMembersViewModel
+
+@{
+    ViewData["Title"] = "Members";
+}
+<h3>Members for @Model.Name</h3>
+<div>
+    <hr />
+    <h3>Admin</h3>
+    @* Have a list of the moderators on top *@
+    <table>
+        <tbody>
+            <tr>
+                <th class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.Name)
+                </th>
+                <th class="col-sm-2">
+                    Joined At
+                </th>
+            </tr>
+            @{
+                foreach (var member in Model.Members)
+                {
+                    if (member.IsModerator)
+                    {
+                        <tr>
+                            <td><a asp-action="Profile">@member.User.UserName</a>
+                            </td>
+                            <td>@member.JoinedAt.Date.ToLongDateString()</td>
+                        </tr>
+                    }
+                }
+            }
+        </tbody>
+    </table>
+    <h3>Members</h3>
+    <table>
+        <tbody>
+            <tr>
+                <th class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.Name)
+                </th>
+                <th class="col-sm-2">
+                    Joined At
+                </th>
+            </tr>
+            @{
+                foreach (var member in Model.Members)
+                {
+                    <tr>
+                        <td><a asp-controller="Profile" asp-action="Details"
+                                   asp-route-id="@member.UserId">@member.User.UserName</a>
+                        </td>
+                        <td>@member.JoinedAt.Date.ToLongDateString()</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+
+</div>
