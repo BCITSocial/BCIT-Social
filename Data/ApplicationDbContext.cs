@@ -28,6 +28,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<PostPhoto> PostPhotos { get; set; }
     public DbSet<MessageReadReceipt> MessageReadReceipts { get; set; }
     public DbSet<ChatboxMembershipHistory> ChatboxMembershipHistory { get; set; }
+    public DbSet<FriendRelationship> FriendRelationships { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -286,5 +287,23 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany(chatbox => chatbox.MembershipHistory)
             .HasForeignKey(history => history.ChatboxId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // One ApplicationUser can send many friend requests.
+        builder.Entity<FriendRelationship>()
+            .HasOne(friendship => friendship.Requester)
+            .WithMany()
+            .HasForeignKey(friendship => friendship.RequesterId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // One ApplicationUser can receive many friend requests.
+        builder.Entity<FriendRelationship>()
+            .HasOne(friendship => friendship.Recipient)
+            .WithMany()
+            .HasForeignKey(friendship => friendship.RecipientId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<FriendRelationship>()
+            .HasIndex(friendship => friendship.RelationshipKey)
+            .IsUnique();
     }
 }

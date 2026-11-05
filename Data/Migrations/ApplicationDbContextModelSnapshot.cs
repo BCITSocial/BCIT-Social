@@ -352,6 +352,51 @@ namespace BCIT_Social.Data.Migrations
                     b.ToTable("CommunityMessages");
                 });
 
+            modelBuilder.Entity("BCIT_Social.Models.FriendRelationship", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeactivatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RecipientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RelationshipKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RequesterId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipientId");
+
+                    b.HasIndex("RelationshipKey")
+                        .IsUnique();
+
+                    b.HasIndex("RequesterId");
+
+                    b.ToTable("FriendRelationships");
+                });
+
             modelBuilder.Entity("BCIT_Social.Models.Message", b =>
                 {
                     b.Property<int>("Id")
@@ -850,6 +895,25 @@ namespace BCIT_Social.Data.Migrations
                     b.Navigation("Community");
 
                     b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("BCIT_Social.Models.FriendRelationship", b =>
+                {
+                    b.HasOne("BCIT_Social.Models.ApplicationUser", "Recipient")
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BCIT_Social.Models.ApplicationUser", "Requester")
+                        .WithMany()
+                        .HasForeignKey("RequesterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Recipient");
+
+                    b.Navigation("Requester");
                 });
 
             modelBuilder.Entity("BCIT_Social.Models.Message", b =>
