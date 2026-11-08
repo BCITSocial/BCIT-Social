@@ -75,11 +75,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .OnDelete(DeleteBehavior.Cascade);
 
         // One ApplicationUser can create many CommunityEvents.
+        // Events remain when their creator is permanently deleted.
         builder.Entity<CommunityEvent>()
             .HasOne(e => e.Creator)
             .WithMany()
             .HasForeignKey(e => e.CreatorId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
         // One Community can have many CommunityEvents, and an event may exist without a Community.
         builder.Entity<CommunityEvent>()
@@ -96,11 +97,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .OnDelete(DeleteBehavior.Cascade);
 
         // One ApplicationUser can send many CommunityMessages.
+        // Community messages remain when their sender is permanently deleted.
         builder.Entity<CommunityMessage>()
             .HasOne(m => m.Sender)
             .WithMany()
             .HasForeignKey(m => m.SenderId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
         // One ApplicationUser can author many Posts.
         builder.Entity<Post>()
@@ -145,11 +147,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .IsUnique();
 
         // One ApplicationUser can author many Comments.
+        // Comments may remain after their author is permanently deleted.
         builder.Entity<Comments>()
             .HasOne(c => c.Author)
             .WithMany()
             .HasForeignKey(c => c.AuthorId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
         // One Post can have many Comments.
         builder.Entity<Comments>()
@@ -210,11 +213,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .OnDelete(DeleteBehavior.Cascade);
 
         // One ApplicationUser can create many Chatboxes.
+        // Chatboxes remain when their creator is permanently deleted.
         builder.Entity<Chatbox>()
             .HasOne(c => c.Creator)
             .WithMany()
             .HasForeignKey(c => c.CreatorId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
         // ChatboxUser uses UserId and ChatboxId as a composite primary key.
         builder.Entity<ChatboxUser>()
@@ -246,11 +250,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .OnDelete(DeleteBehavior.Cascade);
 
         // One ApplicationUser can send many Messages.
+        // Chat messages remain when their sender is permanently deleted.
         builder.Entity<Message>()
             .HasOne(m => m.Sender)
             .WithMany()
             .HasForeignKey(m => m.SenderId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
         // MessageReadReceipt uses MessageId and UserId as a composite primary key.
         builder.Entity<MessageReadReceipt>()
@@ -275,11 +280,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .OnDelete(DeleteBehavior.Cascade);
 
         // One ApplicationUser can have many ChatboxMembershipHistory records.
+        // Membership history remains when its user is permanently deleted.
         builder.Entity<ChatboxMembershipHistory>()
             .HasOne(history => history.User)
             .WithMany()
             .HasForeignKey(history => history.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
 
         // One Chatbox can have many ChatboxMembershipHistory records.
         builder.Entity<ChatboxMembershipHistory>()

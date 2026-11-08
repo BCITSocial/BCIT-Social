@@ -37,6 +37,9 @@ namespace BCIT_Social.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DateOfDel")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -124,7 +127,6 @@ namespace BCIT_Social.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("CreatorId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Description")
@@ -158,7 +160,6 @@ namespace BCIT_Social.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -197,7 +198,6 @@ namespace BCIT_Social.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AuthorId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Content")
@@ -251,6 +251,9 @@ namespace BCIT_Social.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<DateTime?>("DateOfDel")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -281,8 +284,10 @@ namespace BCIT_Social.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("CreatorId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("DateOfDel")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("EventDate")
                         .HasColumnType("datetime2");
@@ -337,7 +342,6 @@ namespace BCIT_Social.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SenderId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("SentAt")
@@ -412,7 +416,6 @@ namespace BCIT_Social.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SenderId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Text")
@@ -760,8 +763,7 @@ namespace BCIT_Social.Data.Migrations
                     b.HasOne("BCIT_Social.Models.ApplicationUser", "Creator")
                         .WithMany()
                         .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Creator");
                 });
@@ -777,8 +779,7 @@ namespace BCIT_Social.Data.Migrations
                     b.HasOne("BCIT_Social.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Chatbox");
 
@@ -809,8 +810,7 @@ namespace BCIT_Social.Data.Migrations
                     b.HasOne("BCIT_Social.Models.ApplicationUser", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("BCIT_Social.Models.Comments", "ParentComment")
                         .WithMany("Replies")
@@ -851,8 +851,7 @@ namespace BCIT_Social.Data.Migrations
                     b.HasOne("BCIT_Social.Models.ApplicationUser", "Creator")
                         .WithMany()
                         .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Community");
 
@@ -889,8 +888,7 @@ namespace BCIT_Social.Data.Migrations
                     b.HasOne("BCIT_Social.Models.ApplicationUser", "Sender")
                         .WithMany()
                         .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Community");
 
@@ -927,8 +925,7 @@ namespace BCIT_Social.Data.Migrations
                     b.HasOne("BCIT_Social.Models.ApplicationUser", "Sender")
                         .WithMany()
                         .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Chatbox");
 
