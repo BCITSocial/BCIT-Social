@@ -31,7 +31,6 @@
       "popular": "Most popular"
     },
 
-    "searchPlaceholder": "Search events...",
     "allCommunities": "All communities",
     "allCampuses": "All campuses",
     "sortOption": "Sort: {0}",
@@ -52,7 +51,6 @@
 
     "labelMyEvents": "My events",
     "labelEventsView": "Events view",
-    "labelSearch": "Search events",
     "labelCommunity": "Community",
     "labelCampus": "Campus",
     "labelRange": "Time range",

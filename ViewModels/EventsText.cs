@@ -25,7 +25,6 @@ public class EventsText
     public Dictionary<string, string> Sorts { get; init; } = [];
 
     // Filter bar. {0} in SortOption is replaced with the sort label, e.g. "Sort: Soonest".
-    public string SearchPlaceholder { get; init; } = "Search events...";
     public string AllCommunities { get; init; } = "All communities";
     public string AllCampuses { get; init; } = "All campuses";
     public string SortOption { get; init; } = "Sort: {0}";
@@ -49,7 +48,6 @@ public class EventsText
     // Labels only screen readers hear (visually hidden or aria-label).
     public string LabelMyEvents { get; init; } = "My events";
     public string LabelEventsView { get; init; } = "Events view";
-    public string LabelSearch { get; init; } = "Search events";
     public string LabelCommunity { get; init; } = "Community";
     public string LabelCampus { get; init; } = "Campus";
     public string LabelRange { get; init; } = "Time range";
