@@ -31,9 +31,14 @@
       "popular": "Most popular"
     },
 
+    "filterMenuButton": "Filter & sort",
+    "activeFilters": "{0} filters on",
+    "activeFiltersOne": "{0} filter on",
+    "resetFilters": "Reset filters",
+
     "allCommunities": "All communities",
     "allCampuses": "All campuses",
-    "sortOption": "Sort: {0}",
+    "sortOption": "{0}",
     "apply": "Apply",
 
     "emptyEvents": "No events found.",
