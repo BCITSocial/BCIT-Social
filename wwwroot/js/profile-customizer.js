@@ -66,6 +66,8 @@
 
             save({ ...preferences, theme, accentColor: themes[theme] },
                 "Theme applied, but could not be saved in this browser.");
+            // The theme buttons sit in the customizer, so keep its colour field in step with the new theme.
+            accentInput.value = themes[theme];
         });
     });
 

@@ -60,6 +60,14 @@ This view renders the user's profile page, including their profile information, 
                                 </svg>
                                 Edit profile
                             </a>
+                            <button class="profile-button profile-button-outline profile-customize-button"
+                                    type="button" data-open-profile-customizer>
+                                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M12 3a9 9 0 1 0 0 18c1 0 1.5-.7 1.5-1.5 0-1.2-1-1.5-1-2.5s.8-1.5 1.8-1.5H17a4 4 0 0 0 4-4c0-4.7-4-8.5-9-8.5Z" />
+                                    <circle cx="7.5" cy="11" r="1" /><circle cx="10" cy="7" r="1" /><circle cx="15" cy="7" r="1" />
+                                </svg>
+                                Customize
+                            </button>
                         </div>
 
                         <h1 id="profile-heading" class="profile-name">@profile.DisplayName</h1>
@@ -188,154 +196,98 @@ This view renders the user's profile page, including their profile information, 
                 </section>
 
             </div>
-
-            <aside class="profile-sidebar" aria-label="Profile information">
-                <section class="profile-side-card profile-quick-info" aria-labelledby="profile-quick-info-heading">
-                    <h2 id="profile-quick-info-heading">Quick info</h2>
-                    <dl class="profile-info-list">
-                        @if (!string.IsNullOrWhiteSpace(profile.Program))
-                        {
-                            <div>
-                                <dt>
-                                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                        <path d="M4 20V5h11v15M15 10h5v10M7 8h2m3 0h1M7 12h2m3 0h1M7 16h2m3 0h1m5-2h1m-1 3h1" />
-                                    </svg>
-                                    Program
-                                </dt>
-                                <dd>@profile.Program</dd>
-                            </div>
-                        }
-                        @if (!string.IsNullOrWhiteSpace(profile.Campus))
-                        {
-                            <div>
-                                <dt>
-                                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                        <path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" />
-                                        <circle cx="12" cy="10" r="2.2" />
-                                    </svg>
-                                    Campus
-                                </dt>
-                                <dd>@profile.Campus</dd>
-                            </div>
-                        }
-                        @if (string.IsNullOrWhiteSpace(profile.Program) && string.IsNullOrWhiteSpace(profile.Campus))
-                        {
-                            <dd class="profile-info-empty">Add your program and campus to complete your profile.</dd>
-                        }
-                    </dl>
-                </section>
-
-                <section class="profile-side-card profile-quick-info" aria-labelledby="profile-quick-info-heading">
-                    <div class="profile-themes" aria-labelledby="profile-themes-heading">
-                        <h3 id="profile-themes-heading">Profile themes</h3>
-                        <div class="profile-theme-options" role="group" aria-label="Choose a profile theme">
-                            <button class="profile-theme-option" type="button" data-profile-theme-choice="campus" aria-pressed="false">
-                                <span class="profile-theme-swatch profile-theme-swatch-campus" aria-hidden="true"></span>
-                                Campus
-                            </button>
-                            <button class="profile-theme-option" type="button" data-profile-theme-choice="ocean" aria-pressed="false">
-                                <span class="profile-theme-swatch profile-theme-swatch-ocean" aria-hidden="true"></span>
-                                Ocean
-                            </button>
-                            <button class="profile-theme-option" type="button" data-profile-theme-choice="forest" aria-pressed="false">
-                                <span class="profile-theme-swatch profile-theme-swatch-forest" aria-hidden="true"></span>
-                                Forest
-                            </button>
-                            <button class="profile-theme-option" type="button" data-profile-theme-choice="lavender" aria-pressed="false">
-                                <span class="profile-theme-swatch profile-theme-swatch-lavender" aria-hidden="true"></span>
-                                Lavender
-                            </button>
-                            <button class="profile-theme-option" type="button" data-profile-theme-choice="dark" aria-pressed="false">
-                                <span class="profile-theme-swatch profile-theme-swatch-dark" aria-hidden="true"></span>
-                                Dark
-                            </button>
-                            <button class="profile-theme-option" type="button" data-profile-theme-choice="colorblind" aria-pressed="false">
-                                <span class="profile-theme-swatch profile-theme-swatch-colorblind" aria-hidden="true"></span>
-                                Red-green safe
-                            </button>
-                        </div>
-                    </div>
-
-                    <button class="profile-button profile-button-outline profile-customize-button"
-                            type="button" data-open-profile-customizer>
-                        Customize profile
-                    </button>
-                </section>
-
-                <section class="profile-side-card profile-discover" aria-labelledby="profile-discover-heading">
-                    <div class="profile-side-heading">
-                        <h2 id="profile-discover-heading">Discover communities</h2>
-                        <a asp-controller="Community" asp-action="Index">See all</a>
-                    </div>
-                    <p>Find student communities, meet people, and explore what’s happening at BCIT.</p>
-                    <a class="profile-button profile-button-primary"
-                       asp-controller="Community"
-                       asp-action="Index">Browse communities</a>
-                </section>
-            </aside>
         </div>
+
+        @* Inside .profile-page so profile-customizer.js and profile-theme.js find the theme buttons. *@
+        <dialog class="profile-customizer" data-profile-customizer aria-labelledby="profile-customizer-heading">
+            <form class="profile-customizer-form" data-profile-customizer-form>
+                <header class="profile-customizer-header">
+                    <div>
+                        <h2 id="profile-customizer-heading">Customize your profile</h2>
+                        <p>Personalize the look of your page and profile.</p>
+                    </div>
+                    <button class="profile-customizer-close" type="button" data-close-profile-customizer aria-label="Close customization">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </header>
+
+                <div class="profile-themes" aria-labelledby="profile-themes-heading">
+                    <h3 id="profile-themes-heading">Profile themes</h3>
+                    <div class="profile-theme-options" role="group" aria-label="Choose a profile theme">
+                        <button class="profile-theme-option" type="button" data-profile-theme-choice="campus" aria-pressed="false">
+                            <span class="profile-theme-swatch profile-theme-swatch-campus" aria-hidden="true"></span>
+                            Campus
+                        </button>
+                        <button class="profile-theme-option" type="button" data-profile-theme-choice="ocean" aria-pressed="false">
+                            <span class="profile-theme-swatch profile-theme-swatch-ocean" aria-hidden="true"></span>
+                            Ocean
+                        </button>
+                        <button class="profile-theme-option" type="button" data-profile-theme-choice="forest" aria-pressed="false">
+                            <span class="profile-theme-swatch profile-theme-swatch-forest" aria-hidden="true"></span>
+                            Forest
+                        </button>
+                        <button class="profile-theme-option" type="button" data-profile-theme-choice="lavender" aria-pressed="false">
+                            <span class="profile-theme-swatch profile-theme-swatch-lavender" aria-hidden="true"></span>
+                            Lavender
+                        </button>
+                        <button class="profile-theme-option" type="button" data-profile-theme-choice="dark" aria-pressed="false">
+                            <span class="profile-theme-swatch profile-theme-swatch-dark" aria-hidden="true"></span>
+                            Dark
+                        </button>
+                        <button class="profile-theme-option" type="button" data-profile-theme-choice="colorblind" aria-pressed="false">
+                            <span class="profile-theme-swatch profile-theme-swatch-colorblind" aria-hidden="true"></span>
+                            Red-green safe
+                        </button>
+                    </div>
+                </div>
+
+                <div class="profile-customizer-fields">
+                    <div class="profile-customizer-field">
+                        <label for="profile-accent-color">Page accent color</label>
+                        <input id="profile-accent-color" name="accentColor" type="color" value="#173a63" />
+                    </div>
+                    <div class="profile-customizer-field">
+                        <label for="profile-cover-style">Cover style</label>
+                        <select id="profile-cover-style" name="coverStyle">
+                            <option value="gradient">Soft gradient</option>
+                            <option value="glow">Color glow</option>
+                            <option value="stripes">Diagonal stripes</option>
+                        </select>
+                    </div>
+                    <div class="profile-customizer-field">
+                        <label for="profile-avatar-shape">Avatar shape</label>
+                        <select id="profile-avatar-shape" name="avatarShape">
+                            <option value="circle">Circle</option>
+                            <option value="rounded">Rounded square</option>
+                        </select>
+                    </div>
+                    <div class="profile-customizer-field">
+                        <label for="profile-card-style">Card style</label>
+                        <select id="profile-card-style" name="cardStyle">
+                            <option value="standard">Standard</option>
+                            <option value="lifted">Lifted</option>
+                        </select>
+                    </div>
+                </div>
+
+                <p class="profile-customizer-status" data-profile-customizer-status role="status" aria-live="polite"></p>
+
+                <footer class="profile-customizer-actions">
+                    <button class="profile-button profile-button-outline" type="button" data-reset-profile-customizer>
+                        Reset
+                    </button>
+                    <div>
+                        <button class="profile-button profile-button-outline" type="button" data-close-profile-customizer>
+                            Cancel
+                        </button>
+                        <button class="profile-button profile-button-primary" type="submit">Save changes</button>
+                    </div>
+                </footer>
+            </form>
+        </dialog>
     }
 </div>
 
-@if (profile != null)
-{
-    <dialog class="profile-customizer" data-profile-customizer aria-labelledby="profile-customizer-heading">
-        <form class="profile-customizer-form" data-profile-customizer-form>
-            <header class="profile-customizer-header">
-                <div>
-                    <h2 id="profile-customizer-heading">Customize your profile</h2>
-                    <p>Personalize the look of your page and profile.</p>
-                </div>
-                <button class="profile-customizer-close" type="button" data-close-profile-customizer aria-label="Close customization">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </header>
-
-            <div class="profile-customizer-fields">
-                <div class="profile-customizer-field">
-                    <label for="profile-accent-color">Page accent color</label>
-                    <input id="profile-accent-color" name="accentColor" type="color" value="#173a63" />
-                </div>
-                <div class="profile-customizer-field">
-                    <label for="profile-cover-style">Cover style</label>
-                    <select id="profile-cover-style" name="coverStyle">
-                        <option value="gradient">Soft gradient</option>
-                        <option value="glow">Color glow</option>
-                        <option value="stripes">Diagonal stripes</option>
-                    </select>
-                </div>
-                <div class="profile-customizer-field">
-                    <label for="profile-avatar-shape">Avatar shape</label>
-                    <select id="profile-avatar-shape" name="avatarShape">
-                        <option value="circle">Circle</option>
-                        <option value="rounded">Rounded square</option>
-                    </select>
-                </div>
-                <div class="profile-customizer-field">
-                    <label for="profile-card-style">Card style</label>
-                    <select id="profile-card-style" name="cardStyle">
-                        <option value="standard">Standard</option>
-                        <option value="lifted">Lifted</option>
-                    </select>
-                </div>
-            </div>
-
-            <p class="profile-customizer-status" data-profile-customizer-status role="status" aria-live="polite"></p>
-
-            <footer class="profile-customizer-actions">
-                <button class="profile-button profile-button-outline" type="button" data-reset-profile-customizer>
-                    Reset
-                </button>
-                <div>
-                    <button class="profile-button profile-button-outline" type="button" data-close-profile-customizer>
-                        Cancel
-                    </button>
-                    <button class="profile-button profile-button-primary" type="submit">Save changes</button>
-                </div>
-            </footer>
-        </form>
-    </dialog>
-}
 
 @section Scripts {
     <script src="~/js/profile-sections.js" asp-append-version="true" defer></script>

@@ -933,3 +933,40 @@ body[data-profile-cover="gradient"] .profile-edit-cover {
         align-self: flex-start;
     }
 }
+/* Single-column profile: the right sidebar is gone, so the profile sits in a centred column and the
+   app shell (left nav + profile) is centred on wide screens. Program and campus already show as tags
+   on the profile card; the theme picker lives in the Customize dialog. */
+.profile-layout {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 760px;
+    margin-inline: auto;
+}
+
+.app-shell:has(.profile-page) {
+    max-width: 1080px;
+    margin-inline: auto;
+    width: 100%;
+}
+
+@media (min-width: 1081px) {
+    .app-shell:has(.profile-page) {
+        border-left: 1px solid var(--color-border);
+    }
+}
+
+.profile-card-actions {
+    justify-content: flex-start;
+}
+
+.profile-card-actions > .profile-avatar {
+    margin-right: auto;
+}
+
+.profile-card-actions .profile-customize-button {
+    width: auto;
+    margin-top: 0;
+}
+
+.profile-customizer .profile-themes {
+    margin-bottom: 18px;
+}
