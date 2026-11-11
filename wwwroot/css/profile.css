@@ -226,6 +226,168 @@ body[data-profile-cover="gradient"] .profile-edit-cover {
     min-height: 208px;
 }
 
+.profile-post-list {
+    display: grid;
+    gap: 12px;
+    padding: 12px;
+}
+
+.profile-section-empty {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    min-height: 208px;
+    padding: 32px 20px;
+    text-align: center;
+}
+
+.profile-section-empty h2 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.profile-section-empty p {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.8125rem;
+}
+
+.profile-bookmarks-empty {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    min-height: 270px;
+    padding: 28px 20px;
+    overflow: hidden;
+    text-align: center;
+    isolation: isolate;
+}
+
+.profile-bookmarks-empty::before {
+    position: absolute;
+    z-index: -1;
+    top: -88px;
+    left: 50%;
+    width: 280px;
+    height: 210px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--color-accent) 9%, var(--color-surface));
+    content: "";
+    transform: translateX(-50%);
+}
+
+.profile-bookmarks-art {
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    margin-bottom: 2px;
+    border: 1px solid color-mix(in srgb, var(--color-accent) 16%, var(--color-border));
+    border-radius: 24px;
+    background: var(--color-surface);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--color-accent) 12%, transparent);
+    color: var(--color-accent);
+    transform: rotate(-4deg);
+}
+
+.profile-bookmarks-art svg {
+    width: 48px;
+    height: 48px;
+    fill: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+}
+
+.profile-bookmarks-eyebrow {
+    color: var(--color-accent);
+    font-size: 0.6875rem;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.profile-bookmarks-empty h2 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.profile-bookmarks-empty p {
+    max-width: 320px;
+    margin: 0 0 4px;
+    color: var(--color-muted);
+    font-size: 0.8125rem;
+}
+
+.profile-community-list {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 12px;
+    list-style: none;
+}
+
+.profile-community-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.profile-community-item:hover {
+    background: var(--color-input);
+}
+
+.profile-community-avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--color-selected);
+    color: var(--color-accent);
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-bold);
+}
+
+.profile-community-copy {
+    display: grid;
+    flex: 1;
+    gap: 3px;
+    min-width: 0;
+}
+
+.profile-community-copy strong,
+.profile-community-copy span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-community-copy strong {
+    font-size: 0.875rem;
+}
+
+.profile-community-copy span {
+    color: var(--color-muted);
+    font-size: 0.75rem;
+}
+
+.profile-community-arrow {
+    flex: none;
+    color: var(--color-muted);
+    font-size: 1.5rem;
+}
+
 .profile-empty-posts {
     display: grid;
     justify-items: center;

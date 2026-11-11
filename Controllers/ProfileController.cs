@@ -28,7 +28,78 @@ public class ProfileController : Controller
     // GET: PROFILES
     public async Task<IActionResult> Index()
     {
-        return View(await _context.Profiles.ToListAsync());
+        var userId = _userManager.GetUserId(User);
+        if (userId == null)
+        {
+            return Challenge();
+        }
+
+        var profile = await _context.Profiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.UserId == userId);
+
+        if (profile == null)
+        {
+            return View(new ProfilePageViewModel());
+        }
+
+        var posts = await ProjectProfileCards(
+                _context.Posts
+                    .Where(post => post.AuthorId == userId && post.DateOfDel == null)
+                    .OrderByDescending(post => post.CreatedAt)
+                    .ThenByDescending(post => post.Id),
+                userId)
+            .ToListAsync();
+
+        var bookmarkedPosts = await ProjectProfileCards(
+                _context.Bookmarks
+                    .Where(bookmark => bookmark.UserId == userId && bookmark.Post.DateOfDel == null)
+                    .OrderByDescending(bookmark => bookmark.SavedAt)
+                    .ThenByDescending(bookmark => bookmark.PostId)
+                    .Select(bookmark => bookmark.Post),
+                userId)
+            .ToListAsync();
+
+        var communities = await _context.CommunityMembers
+            .AsNoTracking()
+            .Where(member => member.UserId == userId)
+            .OrderBy(member => member.Community.Name)
+            .Select(member => new CommunityLinkViewModel
+            {
+                Id = member.CommunityId,
+                Name = member.Community.Name,
+                Type = member.Community.Type,
+                MemberCount = member.Community.Members.Count()
+            })
+            .ToListAsync();
+
+        return View(new ProfilePageViewModel
+        {
+            Profile = profile,
+            Posts = posts,
+            Bookmarks = bookmarkedPosts,
+            Communities = communities
+        });
+    }
+
+    private IQueryable<PostCardViewModel> ProjectProfileCards(IQueryable<Post> posts, string userId)
+    {
+        return posts.AsNoTracking().Select(post => new PostCardViewModel
+        {
+            Id = post.Id,
+            Title = post.Title,
+            Content = post.Content,
+            AuthorName = _context.Profiles
+                .Where(profile => profile.UserId == post.AuthorId)
+                .Select(profile => profile.DisplayName)
+                .FirstOrDefault() ?? post.Author.UserName ?? "",
+            CommunityName = post.Community != null ? post.Community.Name : null,
+            CreatedAt = post.CreatedAt,
+            Tags = post.PostTags.Select(postTag => postTag.Tag.Name).ToList(),
+            CommentCount = _context.Comments.Count(comment => comment.PostId == post.Id),
+            IsAuthor = post.AuthorId == userId,
+            IsSaved = _context.Bookmarks.Any(bookmark => bookmark.UserId == userId && bookmark.PostId == post.Id)
+        });
     }
 
     // GET: PROFILES/Details/5

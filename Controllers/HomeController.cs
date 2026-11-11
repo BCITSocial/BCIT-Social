@@ -11,9 +11,9 @@ namespace BCIT_Social.Controllers;
 public class HomeController : Controller
 {
     // The first page shows 20 posts; scrolling loads 10 more at a time.
-    private const int FirstPageSize = 20;
-    private const int NextPageSize = 10;
-    private const int YourCommunitiesShown = 3;
+    private const int FIRSTPAGESIZE = 20;
+    private const int NEXTPAGESIZE = 10;
+    private const int YOURCOMMUNITIESSHOWN = 3;
 
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
@@ -27,7 +27,7 @@ public class HomeController : Controller
     public async Task<IActionResult> Index()
     {
         var userId = _userManager.GetUserId(User);
-        var (posts, hasMore) = await LoadFeedAsync(null, null, FirstPageSize);
+        var (posts, hasMore) = await LoadFeedAsync(null, null, FIRSTPAGESIZE);
 
         return View(new HomeViewModel
         {
@@ -35,7 +35,7 @@ public class HomeController : Controller
             HasMore = hasMore,
             YourCommunities = userId is null
                 ? []
-                : await _context.YourCommunitiesAsync(userId, YourCommunitiesShown),
+                : await _context.YourCommunitiesAsync(userId, YOURCOMMUNITIESSHOWN),
             CurrentUserInitials = await CurrentUserInitialsAsync(userId),
         });
     }
@@ -45,7 +45,7 @@ public class HomeController : Controller
     [HttpGet]
     public async Task<IActionResult> Feed(long beforeTicks, int beforeId)
     {
-        var (posts, hasMore) = await LoadFeedAsync(new DateTime(beforeTicks), beforeId, NextPageSize);
+        var (posts, hasMore) = await LoadFeedAsync(new DateTime(beforeTicks), beforeId, NEXTPAGESIZE);
         Response.Headers["X-Feed-Has-More"] = hasMore ? "true" : "false";
         return PartialView("_PostCards", posts);
     }

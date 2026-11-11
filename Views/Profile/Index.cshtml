@@ -1,16 +1,26 @@
 @*
 Frontend for the profile page
 Author: Jonathan Yeh
+Last Revised: Nov 11, 2026
+This view renders the user's profile page, including their profile information, posts, bookmarks, and communities
 *@
 
-@model IEnumerable<BCIT_Social.Models.Profile>
+@model BCIT_Social.ViewModels.ProfilePageViewModel
+@using BCIT_Social.ViewModels
 
 @{
     ViewData["Title"] = "My Profile";
     Layout = "_HomeLayout";
 
     var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-    var profile = Model.FirstOrDefault(item => item.UserId == currentUserId);
+    var profile = Model.Profile;
+    var activeSection = Context.Request.Query["section"].ToString();
+    if (activeSection is not ("communities" or "bookmarks"))
+    {
+        activeSection = "posts";
+    }
+
+    var postReturnUrl = Url.Action("Index", "Profile", new { section = activeSection }) ?? "/Profile";
     var displayName = profile?.DisplayName ?? "My profile";
     var avatarInitials = string.Concat(
         displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
@@ -65,47 +75,117 @@ Author: Jonathan Yeh
                             }
                         </div>
 
-                        <p class="profile-bio" id="profile-about">
+                        <p class="profile-bio">
                             @(string.IsNullOrWhiteSpace(profile.Bio)
                                 ? "Add a short introduction to tell the BCIT community about yourself."
                                 : profile.Bio)
                         </p>
 
                         <div class="profile-stats" aria-label="Profile activity">
-                            <span><strong>—</strong> Posts</span>
-                            <span><strong>—</strong> Communities</span>
-                            <span><strong>—</strong> Bookmarks</span>
+                            <span><strong>@Model.Posts.Count</strong> Posts</span>
+                            <span><strong>@Model.Communities.Count</strong> Communities</span>
+                            <span><strong>@Model.Bookmarks.Count</strong> Bookmarks</span>
                         </div>
                     </div>
                 </section>
 
                 <div class="profile-feed-toolbar">
-                    <nav class="profile-tabs" aria-label="Profile sections">
-                        <a class="profile-tab" href="#profile-posts" aria-current="page">Posts</a>
-                        <a class="profile-tab" asp-controller="Community" asp-action="Index">Communities</a>
-                        <a class="profile-tab" href="#profile-bookmarks">Bookmarks</a>
-                        <a class="profile-tab" href="#profile-about">About</a>
+                    <nav class="profile-tabs" role="tablist" aria-label="Profile sections">
+                        <button class="profile-tab" id="profile-posts-tab" type="button" role="tab"
+                                aria-controls="profile-posts" aria-selected="@(activeSection == "posts")"
+                                tabindex="@(activeSection == "posts" ? "0" : "-1")" data-profile-tab="posts">Posts</button>
+                        <button class="profile-tab" id="profile-communities-tab" type="button" role="tab"
+                                aria-controls="profile-communities" aria-selected="@(activeSection == "communities")"
+                                tabindex="@(activeSection == "communities" ? "0" : "-1")" data-profile-tab="communities">Communities</button>
+                        <button class="profile-tab" id="profile-bookmarks-tab" type="button" role="tab"
+                                aria-controls="profile-bookmarks" aria-selected="@(activeSection == "bookmarks")"
+                                tabindex="@(activeSection == "bookmarks" ? "0" : "-1")" data-profile-tab="bookmarks">Bookmarks</button>
                     </nav>
-
                 </div>
 
-                <section class="profile-posts" id="profile-posts" aria-labelledby="profile-posts-heading">
-                    <h2 id="profile-posts-heading" class="visually-hidden">Posts</h2>
-                    <div class="profile-empty-posts">
-                        <div class="profile-empty-posts-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" focusable="false">
-                                <path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v10a1.5 1.5 0 0 1-1.5 1.5H9l-5.5 3v-3.2A1.5 1.5 0 0 1 3 16V6a1.5 1.5 0 0 1 2-1.5Z" />
-                                <path d="M7 9h10M7 12.5h7" />
-                            </svg>
+                <section class="profile-posts" id="profile-posts" role="tabpanel"
+                         aria-labelledby="profile-posts-tab" data-profile-panel="posts" hidden="@(activeSection != "posts")">
+                    @if (Model.Posts.Count == 0)
+                    {
+                        <div class="profile-empty-posts">
+                            <div class="profile-empty-posts-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v10a1.5 1.5 0 0 1-1.5 1.5H9l-5.5 3v-3.2A1.5 1.5 0 0 1 3 16V6a1.5 1.5 0 0 1 2-1.5Z" />
+                                    <path d="M7 9h10M7 12.5h7" />
+                                </svg>
+                            </div>
+                            <h3>No posts yet</h3>
+                            <p>Share an update and start a conversation with your community.</p>
+                            <a class="profile-button profile-button-primary"
+                               asp-controller="Post"
+                               asp-action="Create">Create a post</a>
                         </div>
-                        <h3>No posts yet</h3>
-                        <p>Share an update and start a conversation with your community.</p>
-                        <a class="profile-button profile-button-primary"
-                           asp-controller="Post"
-                           asp-action="Create">Create a post</a>
-                    </div>
+                    }
+                    else
+                    {
+                        ViewData["PostReturnUrl"] = Url.Action("Index", "Profile", new { section = "posts" });
+                        <div class="profile-post-list">
+                            <partial name="~/Views/Home/_PostCards.cshtml" model="Model.Posts" />
+                        </div>
+                    }
                 </section>
 
+                <section class="profile-posts profile-content-panel" id="profile-communities" role="tabpanel"
+                         aria-labelledby="profile-communities-tab" data-profile-panel="communities" hidden="@(activeSection != "communities")">
+                    @if (Model.Communities.Count == 0)
+                    {
+                        <div class="profile-section-empty">
+                            <h2>You haven’t joined any communities yet</h2>
+                            <p>Find a community that shares your interests and meet other BCIT students.</p>
+                            <a class="profile-button profile-button-primary"
+                               asp-controller="Community" asp-action="Index">Explore communities</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <ul class="profile-community-list">
+                            @foreach (var community in Model.Communities)
+                            {
+                                <li>
+                                    <a class="profile-community-item" asp-controller="Community" asp-action="Details" asp-route-id="@community.Id">
+                                        <span class="profile-community-avatar" aria-hidden="true">@community.Initials</span>
+                                        <span class="profile-community-copy">
+                                            <strong>@community.Name</strong>
+                                            <span>@DisplayFormat.Count(community.MemberCount) @(community.MemberCount == 1 ? "member" : "members") · @community.Type</span>
+                                        </span>
+                                        <span class="profile-community-arrow" aria-hidden="true">›</span>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </section>
+
+                <section class="profile-posts profile-content-panel" id="profile-bookmarks" role="tabpanel"
+                         aria-labelledby="profile-bookmarks-tab" data-profile-panel="bookmarks" hidden="@(activeSection != "bookmarks")">
+                    @if (Model.Bookmarks.Count == 0)
+                    {
+                        <div class="profile-bookmarks-empty">
+                            <div class="profile-bookmarks-art" aria-hidden="true">
+                                <svg viewBox="0 0 64 64" focusable="false">
+                                    <path d="M20 12h24a4 4 0 0 1 4 4v36L32 42l-16 10V16a4 4 0 0 1 4-4Z" />
+                                    <path d="m49 10 1.5 4.5L55 16l-4.5 1.5L49 22l-1.5-4.5L43 16l4.5-1.5L49 10Z" />
+                                    <path d="m13 24 1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3Z" />
+                                </svg>
+                            </div>
+                            <span class="profile-bookmarks-eyebrow">Your collection</span>
+                            <h2>There’s no bookmarked post</h2>
+                            <p>Save posts you love and they’ll be waiting for you here.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        ViewData["PostReturnUrl"] = Url.Action("Index", "Profile", new { section = "bookmarks" });
+                        <div class="profile-post-list">
+                            <partial name="~/Views/Home/_PostCards.cshtml" model="Model.Bookmarks" />
+                        </div>
+                    }
+                </section>
 
             </div>
 
@@ -258,5 +338,6 @@ Author: Jonathan Yeh
 }
 
 @section Scripts {
+    <script src="~/js/profile-sections.js" asp-append-version="true" defer></script>
     <script src="~/js/profile-customizer.js" asp-append-version="true" defer></script>
 }
