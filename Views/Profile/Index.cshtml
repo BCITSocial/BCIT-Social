@@ -42,6 +42,7 @@ Author: Jonathan Yeh
                         <div class="profile-card-actions">
                             <div class="profile-avatar" aria-hidden="true">@avatarInitials</div>
                             <a class="profile-button profile-button-outline"
+                               asp-controller="Profile"
                                asp-action="Edit"
                                asp-route-userid="@profile.UserId">
                                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -85,11 +86,7 @@ Author: Jonathan Yeh
                         <a class="profile-tab" href="#profile-bookmarks">Bookmarks</a>
                         <a class="profile-tab" href="#profile-about">About</a>
                     </nav>
-                    <a class="profile-button profile-button-new"
-                       asp-controller="Post"
-                       asp-action="Create">
-                        <span aria-hidden="true">+</span> New post
-                    </a>
+
                 </div>
 
                 <section class="profile-posts" id="profile-posts" aria-labelledby="profile-posts-heading">
@@ -109,10 +106,7 @@ Author: Jonathan Yeh
                     </div>
                 </section>
 
-                <section class="profile-section-card" id="profile-bookmarks" aria-labelledby="profile-bookmarks-heading">
-                    <h2 id="profile-bookmarks-heading">Bookmarks</h2>
-                    <p>Posts you save will be easy to find here.</p>
-                </section>
+
             </div>
 
             <aside class="profile-sidebar" aria-label="Profile information">
