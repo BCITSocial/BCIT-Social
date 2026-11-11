@@ -1,0 +1,35 @@
+@using System.Security.Claims
+@*
+Discord-style profile popout. Clicking any element marked data-user-popout (post and comment avatars and names)
+opens this card beside it, with a link to the person's profile and a "Message @name" box.
+Typing a message and pressing Enter opens the direct chat with them and sends it (MessagesController.MessageUser).
+Filled in and positioned by user-popout.js. Signed-out visitors get only the profile link.
+*@
+@{
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+    // "__id__" is swapped for the person's id in user-popout.js.
+    var profileUrl = Url.Action("Details", "Profile", new { userid = "__id__" });
+}
+<div class="user-popout" id="user-popout" role="dialog" aria-modal="false" aria-labelledby="user-popout-name" hidden
+     data-user-popout-card data-current-user-id="@currentUserId" data-profile-url="@profileUrl">
+    <div class="user-popout-banner" aria-hidden="true"></div>
+    <div class="user-popout-avatar" aria-hidden="true" data-popout-initials></div>
+    <div class="user-popout-body">
+        <h2 class="user-popout-name" id="user-popout-name" data-popout-name></h2>
+        <a class="user-popout-link" href="#" data-popout-profile>View profile</a>
+        @if (signedIn)
+        {
+            <form class="user-popout-message" method="post" asp-controller="Messages" asp-action="MessageUser" data-popout-form>
+                <input type="hidden" name="recipientId" data-popout-recipient />
+                <label class="visually-hidden" for="user-popout-text" data-popout-label>Message</label>
+                <input class="user-popout-input" id="user-popout-text" name="text" type="text" maxlength="5000"
+                       autocomplete="off" placeholder="Message" data-popout-text />
+                <button class="user-popout-send" type="submit" aria-label="Send message">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 3 10.5 13.5M21 3l-6.5 18-4-7.5L3 9.5Z" /></svg>
+                </button>
+            </form>
+            <p class="user-popout-self" hidden data-popout-self>This is you.</p>
+        }
+    </div>
+</div>

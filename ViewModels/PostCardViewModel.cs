@@ -8,6 +8,8 @@ public class PostCardViewModel
     public string Content { get; init; } = "";
     // Profile display name, or the account user name when there is no profile.
     public string AuthorName { get; init; } = "";
+    // Author's user id, for the avatar popout (profile link and quick message). Empty when unknown.
+    public string AuthorId { get; init; } = "";
     // Null when the post is not in a community.
     public string? CommunityName { get; init; }
     // Stored in UTC.

@@ -108,29 +108,83 @@
     // ---- Start a conversation ----
 
     // Search the backend for recipients; ignore stale results if the query changes while a request is in flight.
-    const newMessageButton = page.querySelector("[data-new-message]");
+    // One person picked opens a direct chat (StartConversation); two or more create a group chat (CreateGroup).
+    const newMessageButtons = page.querySelectorAll("[data-new-message]");
     const newMessageDialog = page.querySelector("[data-new-message-dialog]");
+    const dialogHeading = newMessageDialog?.querySelector("[data-new-message-heading]");
     const recipientSearch = newMessageDialog?.querySelector("[data-recipient-search]");
     const recipientResults = newMessageDialog?.querySelector("[data-recipient-results]");
     const recipientStatus = newMessageDialog?.querySelector("[data-recipient-status]");
+    const recipientChips = newMessageDialog?.querySelector("[data-recipient-chips]");
     const startConversationForm = newMessageDialog?.querySelector("[data-start-conversation]");
     const startConversationButton = startConversationForm?.querySelector("[data-start-conversation-button]");
+    const recipientIdInput = startConversationForm?.querySelector("input[name='recipientId']");
+    const memberInputs = startConversationForm?.querySelector("[data-member-inputs]");
+    const findUsersUrl = newMessageButtons[0]?.dataset.findUsersUrl;
     let recipientSearchTimer;
     let recipientSearchVersion = 0;
+    let groupMode = false;
+    // Picked people, in the order they were picked: user id -> name.
+    const selected = new Map();
 
-    newMessageButton?.addEventListener("click", () => {
+    // Keeps the chips, hidden inputs, form action, and button label in step with the picked people.
+    function syncSelection() {
+        recipientChips.replaceChildren();
+        selected.forEach((name, id) => {
+            const chip = document.createElement("li");
+            chip.className = "msg-recipient-chip";
+            chip.append(name);
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.textContent = "×";
+            remove.setAttribute("aria-label", `Remove ${name}`);
+            remove.addEventListener("click", () => {
+                selected.delete(id);
+                recipientResults.querySelector(`[data-user-id="${CSS.escape(id)}"]`)?.setAttribute("aria-pressed", "false");
+                syncSelection();
+                recipientSearch.focus();
+            });
+            chip.append(remove);
+            recipientChips.append(chip);
+        });
+
+        const ids = [...selected.keys()];
+        const isGroup = ids.length > 1;
+        startConversationForm.action = isGroup ? startConversationForm.dataset.groupAction : startConversationForm.dataset.dmAction;
+        recipientIdInput.value = isGroup ? "" : ids[0] ?? "";
+        memberInputs.replaceChildren(...(isGroup ? ids : []).map((id) => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "memberIds";
+            input.value = id;
+            return input;
+        }));
+
+        const ready = groupMode ? ids.length >= 2 : ids.length >= 1;
+        startConversationButton.disabled = !ready;
+        startConversationButton.textContent = isGroup ? `Create group (${ids.length + 1})` : groupMode ? "Pick at least 2 people" : "Open conversation";
+    }
+
+    function openPicker(mode) {
         if (!newMessageDialog) return;
+        groupMode = mode === "group";
+        dialogHeading.textContent = groupMode ? newMessageDialog.dataset.headingGroup : newMessageDialog.dataset.headingDm;
+        newMessageDialog.querySelector("[data-new-message-hint]").textContent = groupMode ? newMessageDialog.dataset.hintGroup : newMessageDialog.dataset.hintDm;
+        selected.clear();
+        recipientSearch.value = "";
+        recipientResults.replaceChildren();
+        recipientStatus.textContent = "Enter at least 2 characters.";
+        syncSelection();
         newMessageDialog.showModal();
-        recipientSearch?.focus();
-    });
+        recipientSearch.focus();
+    }
+
+    newMessageButtons.forEach((button) => button.addEventListener("click", () => openPicker(button.dataset.newMessage)));
 
     recipientSearch?.addEventListener("input", () => {
         clearTimeout(recipientSearchTimer);
         const version = ++recipientSearchVersion;
         const query = recipientSearch.value.trim();
-        const recipientId = startConversationForm.querySelector("input[name='recipientId']");
-        recipientId.value = "";
-        startConversationButton.disabled = true;
         recipientResults.replaceChildren();
 
         if (query.length < 2) {
@@ -141,7 +195,7 @@
         recipientStatus.textContent = "Searching...";
         recipientSearchTimer = setTimeout(async () => {
             try {
-                const url = new URL(newMessageButton.dataset.findUsersUrl, window.location.href);
+                const url = new URL(findUsersUrl, window.location.href);
                 url.searchParams.set("q", query);
                 const response = await fetch(url, { headers: { Accept: "application/json" } });
                 if (!response.ok) throw new Error("Search failed");
@@ -149,18 +203,23 @@
                 if (version !== recipientSearchVersion) return;
 
                 recipientResults.replaceChildren();
-                recipientStatus.textContent = users.length ? "Choose an alumnus to message." : "No matching alumni found.";
+                recipientStatus.textContent = users.length ? "Choose who to message. Pick more than one for a group." : "No matching alumni found.";
                 users.forEach((user) => {
                     const item = document.createElement("li");
                     const option = document.createElement("button");
                     option.type = "button";
                     option.className = "msg-recipient-option";
+                    option.dataset.userId = user.id;
                     option.textContent = user.program ? `${user.name} · ${user.program}` : user.name;
+                    option.setAttribute("aria-pressed", String(selected.has(user.id)));
                     option.addEventListener("click", () => {
-                        recipientId.value = user.id;
-                        recipientResults.querySelectorAll("button").forEach((button) => button.setAttribute("aria-pressed", "false"));
-                        option.setAttribute("aria-pressed", "true");
-                        startConversationButton.disabled = false;
+                        if (selected.has(user.id)) {
+                            selected.delete(user.id);
+                        } else {
+                            selected.set(user.id, user.name);
+                        }
+                        option.setAttribute("aria-pressed", String(selected.has(user.id)));
+                        syncSelection();
                     });
                     item.append(option);
                     recipientResults.append(item);
@@ -172,14 +231,13 @@
     });
 
     startConversationForm?.addEventListener("submit", (event) => {
-        const recipientId = startConversationForm.querySelector("input[name='recipientId']").value;
-        if (!recipientId) {
+        if (selected.size === 0 || (groupMode && selected.size < 2)) {
             event.preventDefault();
-            recipientStatus.textContent = "Choose an alumnus first.";
+            recipientStatus.textContent = groupMode ? "Choose at least 2 people for a group." : "Choose an alumnus first.";
             return;
         }
         startConversationButton.disabled = true;
-        startConversationButton.textContent = "Opening...";
+        startConversationButton.textContent = selected.size > 1 ? "Creating group..." : "Opening...";
     });
 
     // ---- Conversation list search ----

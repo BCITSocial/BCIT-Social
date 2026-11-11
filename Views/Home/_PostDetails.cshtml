@@ -11,7 +11,15 @@
 }
 <article class="post-details" aria-labelledby="post-details-title">
     <div class="post-details-author">
-        <span class="avatar avatar-large" aria-hidden="true">@post.AuthorInitials</span>
+        @if (post.AuthorId.Length > 0)
+        {
+            <button class="avatar avatar-large user-trigger" type="button" data-user-popout data-user-id="@post.AuthorId"
+                    data-user-name="@post.AuthorName" aria-label="Open @post.AuthorName's profile card">@post.AuthorInitials</button>
+        }
+        else
+        {
+            <span class="avatar avatar-large" aria-hidden="true">@post.AuthorInitials</span>
+        }
         <div>
             <p class="post-details-name">@post.AuthorName</p>
             <p class="post-details-meta">

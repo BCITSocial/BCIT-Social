@@ -7,10 +7,27 @@
 @foreach (var post in Model)
 {
     <article class="post-card" data-post-id="@post.Id" data-created-ticks="@post.CreatedAt.Ticks" aria-labelledby="post-title-@post.Id">
-        <div class="post-avatar" aria-hidden="true">@post.AuthorInitials</div>
+        @if (post.AuthorId.Length > 0)
+        {
+            @* Opens the author's popout: profile link and a quick "Message" box. *@
+            <button class="post-avatar user-trigger" type="button" data-user-popout data-user-id="@post.AuthorId"
+                    data-user-name="@post.AuthorName" aria-label="Open @post.AuthorName's profile card">@post.AuthorInitials</button>
+        }
+        else
+        {
+            <div class="post-avatar" aria-hidden="true">@post.AuthorInitials</div>
+        }
         <div class="post-body">
             <p class="post-meta">
-                <span class="post-author">@post.AuthorName</span>
+                @if (post.AuthorId.Length > 0)
+                {
+                    <button class="post-author user-trigger user-trigger-text" type="button" data-user-popout
+                            data-user-id="@post.AuthorId" data-user-name="@post.AuthorName">@post.AuthorName</button>
+                }
+                else
+                {
+                    <span class="post-author">@post.AuthorName</span>
+                }
                 @if (post.CommunityName is not null)
                 {
                     <span>· @post.CommunityName</span>

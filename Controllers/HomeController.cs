@@ -123,6 +123,7 @@ public class HomeController : Controller
                 .Where(profile => profile.UserId == post.AuthorId)
                 .Select(profile => profile.DisplayName)
                 .FirstOrDefault() ?? post.Author.UserName ?? "",
+            AuthorId = post.AuthorId,
             CommunityName = post.Community != null ? post.Community.Name : null,
             CreatedAt = post.CreatedAt,
             Tags = post.PostTags.Select(postTag => postTag.Tag.Name).ToList(),
@@ -151,6 +152,7 @@ public class HomeController : Controller
                         .Where(profile => profile.UserId == comment.AuthorId)
                         .Select(profile => profile.DisplayName)
                         .FirstOrDefault() ?? comment.Author.UserName ?? "",
+                    AuthorId = comment.AuthorId,
                     IsPostAuthor = comment.AuthorId == postAuthorId,
                     Content = comment.Content,
                     CreatedAt = comment.CreatedAt,

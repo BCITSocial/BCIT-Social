@@ -5,6 +5,8 @@ public class CommentViewModel
 {
     public int Id { get; init; }
     public string AuthorName { get; init; } = "";
+    // Author's user id, for the avatar popout (profile link and quick message).
+    public string AuthorId { get; init; } = "";
     // True when the comment was written by the post's author; shows an "Author" badge.
     public bool IsPostAuthor { get; init; }
     public string Content { get; init; } = "";
