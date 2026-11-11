@@ -33,27 +33,6 @@ public class CommunityController : Controller
         }
     }
 
-    private List<CommunityViewModel> IndexViewModelFromCommunity(List<Community> communities)
-    {
-        var currentUserId = _userManager.GetUserId(User);
-        List<CommunityViewModel> communityViewModels = [];
-        foreach (var community in communities)
-        {
-            bool isJoined = MemberExists(currentUserId, community);
-            var viewModel = new CommunityViewModel
-            {
-                Id = community.Id,
-                Name = community.Name,
-                Type = community.Type,
-                Description = community.Description,
-                IsJoined = isJoined,
-                MembersCount = community.Members.Count,
-            };
-            communityViewModels.Add(viewModel);
-        }
-        return communityViewModels;
-    }
-
     // GET: COMMUNITY/Details/5
     public async Task<IActionResult> Details(int? id)
     {
@@ -269,7 +248,7 @@ public class CommunityController : Controller
         }
         if (currentUserId == null)
         {
-            return Challenge();
+            return Forbid();
         }
 
         if (await MemberExistsAsync(currentUserId, community))
@@ -390,6 +369,170 @@ public class CommunityController : Controller
 
     /// <summary>
     /// Author: Tin Trinh
+    /// Last Revised: Nov. 11, 2026
+    /// Description: GET call to kick a member from a community
+    /// Redirects to the Kick page, checks if the user is in this community and if user has rights to kick, otherwise redirects/forbids
+    /// </summary>
+    /// <param name="id">community id</param>
+    /// <param name="userid">user id</param>
+    // GET: COMMUNITYS/Kick/5/abc
+    [Authorize]
+    [Route("Community/Kick/{id}/{userid}")]
+    public async Task<IActionResult> Kick(int? id, string? userid)
+    {
+        var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
+        string? currentUserId = _userManager.GetUserId(User);
+        var currentCommunityUser = await _context.CommunityMembers.FindAsync(currentUserId, id);
+
+        if (id == null || userid == null || communityMember == null)
+            return NotFound();
+        if (currentUserId == null || currentCommunityUser == null)
+            return Forbid();
+
+        var community = await _context.Communities
+        .FirstOrDefaultAsync(m => m.Id == id);
+        if (community == null)
+            return NotFound();
+
+        // user has to be a mod
+        if (!currentCommunityUser.IsModerator)
+        {
+            return Forbid();
+        }
+        // if the community member is a mod, only the creator can edit
+        if (communityMember.IsModerator && currentUserId != community?.CreatorId)
+        {
+            return RedirectToAction(nameof(Details), new
+            {
+                community?.Id
+            });
+        }
+
+        if (await MemberExistsAsync(userid, community))
+        {
+            return View(communityMember);
+        }
+        return RedirectToAction(nameof(Members), new
+        {
+            community.Id
+        });
+
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Nov. 11, 2026
+    /// Description: POST call to kick a member from a community
+    /// Removes specified user from a community, otherwise redirects to members.
+    /// </summary>
+    /// <param name="id">community id</param>
+    /// <param name="userid">user id</param>
+    /// <returns></returns>
+    // POST: COMMUNITYS/Kick/5/abc
+    [HttpPost, ActionName("Kick")]
+    [Route("Community/Kick/{id}/{userid}")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> KickConfirmed(int? id, string? userid)
+    {
+        var community = await _context.Communities.FindAsync(id);
+        var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
+        string? currentUserId = _userManager.GetUserId(User);
+        if (community == null || communityMember == null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Challenge();
+        }
+
+        if (communityMember.CommunityId != id)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (ModelState.IsValid)
+        {
+            community.Members.Remove(communityMember);
+            _context.Remove(communityMember);
+            _context.Update(community);
+
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction(nameof(Members), new
+        {
+            community.Id
+        });
+    }
+
+    // GET: COMMUNITYS/Delete/5
+    [Authorize]
+    public async Task<IActionResult> Delete(int? id)
+    {
+        if (id == null)
+        {
+            return NotFound();
+        }
+
+        var community = await _context.Communities
+            .FirstOrDefaultAsync(m => m.Id == id);
+        if (community == null)
+        {
+            return NotFound();
+        }
+        if (!CommunityAccessChecker(true, community))
+        {
+            return Forbid();
+        }
+
+        return View(community);
+    }
+
+    // POST: COMMUNITYS/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> DeleteConfirmed(int? id)
+    {
+        var community = await _context.Communities.FindAsync(id);
+        if (community != null)
+        {
+            CommunityAccessChecker(true, community);
+            _context.Communities.Remove(community);
+        }
+
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
+
+    // ---------------------
+    // CREATING VIEW MODELS
+    // ---------------------
+
+    private List<CommunityViewModel> IndexViewModelFromCommunity(List<Community> communities)
+    {
+        var currentUserId = _userManager.GetUserId(User);
+        List<CommunityViewModel> communityViewModels = [];
+        foreach (var community in communities)
+        {
+            bool isJoined = MemberExists(currentUserId, community);
+            var viewModel = new CommunityViewModel
+            {
+                Id = community.Id,
+                Name = community.Name,
+                Type = community.Type,
+                Description = community.Description,
+                IsJoined = isJoined,
+                MembersCount = community.Members.Count,
+            };
+            communityViewModels.Add(viewModel);
+        }
+        return communityViewModels;
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
     /// Last Revised: Oct. 14, 2026
     /// Description: Creates a view model for Community Editing
     /// </summary>
@@ -482,45 +625,10 @@ public class CommunityController : Controller
         return viewModel;
     }
 
-    // GET: COMMUNITYS/Delete/5
-    [Authorize]
-    public async Task<IActionResult> Delete(int? id)
-    {
-        if (id == null)
-        {
-            return NotFound();
-        }
+    // -------
+    // HELPERS
+    // -------
 
-        var community = await _context.Communities
-            .FirstOrDefaultAsync(m => m.Id == id);
-        if (community == null)
-        {
-            return NotFound();
-        }
-        if (!CommunityAccessChecker(true, community))
-        {
-            return Forbid();
-        }
-
-        return View(community);
-    }
-
-    // POST: COMMUNITYS/Delete/5
-    [HttpPost, ActionName("Delete")]
-    [ValidateAntiForgeryToken]
-    [Authorize]
-    public async Task<IActionResult> DeleteConfirmed(int? id)
-    {
-        var community = await _context.Communities.FindAsync(id);
-        if (community != null)
-        {
-            CommunityAccessChecker(true, community);
-            _context.Communities.Remove(community);
-        }
-
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
 
     private bool CommunityExists(int? id)
     {

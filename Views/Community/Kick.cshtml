@@ -1,0 +1,18 @@
+@model BCIT_Social.Models.CommunityMember
+
+@{
+    ViewData["Title"] = "Kick";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<h3>Kick from @Model.Community.Name?</h3>
+<div>
+    <h4>@Model.Community.Name</h4>
+    <hr />
+    <form asp-action="Kick" asp-route-id="@Model.CommunityId" asp-route-userid="@Model.UserId" method="post">
+        @* <input type="hidden" asp-for="CommunityId" /> *@
+        <input type="submit" value="Kick" class="btn btn-primary" /> |
+        <a asp-action="Index">Back to List</a>
+    </form>
+</div>

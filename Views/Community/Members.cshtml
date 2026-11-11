@@ -38,8 +38,8 @@
                             <td>@member.JoinedAt.Date.ToLongDateString()</td>
                             @if (Model.IsCreator && member.UserId != Model.CreatorId)
                             {
-                                <td><a asp-controller="Profile" asp-action="Details" asp-route-id="@member.User.Id">Kick</a>
-                                    <a asp-controller="Profile" asp-action="Details" asp-route-id="@member.User.Id">Edit Mod</a>
+                                <td><a asp-action="Kick" asp-route-id="@member.User.Id">Kick</a>
+                                    <a asp-action="Details" asp-route-id="@member.User.Id">Edit Mod</a>
                                 </td>
                             }
                         </tr>
@@ -75,8 +75,8 @@
                         && member.UserId != Model.CreatorId
                         && !Model.Moderators.Contains(member))
                         {
-                            <td><a asp-controller="Profile" asp-action="Details" asp-route-id="@member.User.Id">Kick</a>
-                                <a asp-controller="Profile" asp-action="Details" asp-route-id="@member.User.Id">Edit Mod</a>
+                            <td><a asp-action="Kick" asp-route-id="@member.CommunityId" asp-route-userid="@member.User.Id">Kick</a>
+                                <a asp-action="Details" asp-route-id="@member.User.Id">Edit Mod</a>
                             </td>
                         }
                     </tr>
