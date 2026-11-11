@@ -9,27 +9,40 @@ Displays the basic account signup form and password requirements.
     Layout = "/Views/Shared/_HomeLayout.cshtml";
 }
 <section class="auth-panel" aria-labelledby="signup-title">
+    <span class="auth-brand" aria-hidden="true">B</span>
     <h1 id="signup-title">Create an account</h1>
-    <p>Join BCIT Social with your email address.</p>
-    <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
+    <p class="auth-lead">Join BCIT Social with your email address.</p>
+    <form method="post" asp-route-returnUrl="@Model.ReturnUrl" data-auth-form>
         <div asp-validation-summary="ModelOnly" class="auth-errors" role="alert"></div>
         <div class="auth-field">
             <label asp-for="Input.Email"></label>
-            <input asp-for="Input.Email" autocomplete="username" required />
+            <input asp-for="Input.Email" autocomplete="username" placeholder="you@example.com" required />
             <span asp-validation-for="Input.Email" class="auth-errors"></span>
         </div>
         <div class="auth-field">
             <label asp-for="Input.Password"></label>
-            <input asp-for="Input.Password" autocomplete="new-password" aria-describedby="password-help" required />
+            <div class="auth-password">
+                <input asp-for="Input.Password" autocomplete="new-password" aria-describedby="password-help" required />
+                <button class="auth-reveal" type="button" aria-controls="Input_Password" aria-pressed="false" hidden data-reveal-password>Show</button>
+            </div>
             <p id="password-help" class="auth-help">@Model.PasswordHelp</p>
             <span asp-validation-for="Input.Password" class="auth-errors"></span>
         </div>
         <div class="auth-field">
             <label asp-for="Input.ConfirmPassword"></label>
-            <input asp-for="Input.ConfirmPassword" autocomplete="new-password" required />
+            <div class="auth-password">
+                <input asp-for="Input.ConfirmPassword" autocomplete="new-password" required />
+                <button class="auth-reveal" type="button" aria-controls="Input_ConfirmPassword" aria-pressed="false" hidden data-reveal-password>Show</button>
+            </div>
             <span asp-validation-for="Input.ConfirmPassword" class="auth-errors"></span>
         </div>
-        <button class="primary-button" type="submit">Sign up</button>
+        <button class="auth-submit" type="submit" data-busy-text="Creating account...">Sign up</button>
     </form>
-    <p>Already have an account? <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Log in</a></p>
+    <div class="auth-links">
+        <p>Already have an account? <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Log in</a></p>
+    </div>
 </section>
+
+@section Scripts {
+    <script src="~/js/auth.js" asp-append-version="true" defer></script>
+}
