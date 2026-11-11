@@ -18,7 +18,7 @@ public class CommunityController : Controller
         _userManager = userManager;
     }
 
-    // GET: COMMUNITYS
+    // GET: COMMUNITY
     public async Task<IActionResult> Index()
     {
         try
@@ -54,7 +54,7 @@ public class CommunityController : Controller
         return communityViewModels;
     }
 
-    // GET: COMMUNITYS/Details/5
+    // GET: COMMUNITY/Details/5
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null)
@@ -73,7 +73,7 @@ public class CommunityController : Controller
         return View(viewModel);
     }
 
-    // GET: COMMUNITYS/Members/5
+    // GET: COMMUNITY/Members/5
     public async Task<IActionResult> Members(int? id)
     {
         if (id == null)
@@ -460,14 +460,10 @@ public class CommunityController : Controller
         .Where(m => m.CommunityId == community.Id)
         .Include(u => u.User)
         .ToListAsync();
-        var creator = await _context.CommunityMembers.FindAsync(community.CreatorId, community.Id);
-        if (creator == null)
-        {
-
-        }
         var currentUserId = _userManager.GetUserId(User);
         bool isMember = MemberExists(currentUserId, community);
         bool isMod = false;
+        bool isCreator = currentUserId == community.CreatorId;
         if (isMember)
         {
             var communityMember = _context.CommunityMembers.Find(currentUserId, community.Id);
@@ -478,9 +474,10 @@ public class CommunityController : Controller
         {
             Id = community.Id,
             Name = community.Name,
-            Creator = creator,
+            CreatorId = community.CreatorId,
             Members = members,
             IsMod = isMod,
+            IsCreator = isCreator
         };
         return viewModel;
     }

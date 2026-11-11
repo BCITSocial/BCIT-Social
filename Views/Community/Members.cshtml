@@ -17,6 +17,9 @@
                 <th class="col-sm-2">
                     Joined At
                 </th>
+                @{ if()
+                    
+                }
             </tr>
             @{
                 foreach (var member in Model.Members)
@@ -49,7 +52,7 @@
                 {
                     <tr>
                         <td><a asp-controller="Profile" asp-action="Details"
-                                   asp-route-id="@member.UserId">@member.User.UserName</a>
+                                   asp-route-id="@member.User.Id">@member.User.UserName</a>
                         </td>
                         <td>@member.JoinedAt.Date.ToLongDateString()</td>
                     </tr>
