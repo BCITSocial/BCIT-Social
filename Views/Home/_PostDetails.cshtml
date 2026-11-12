@@ -50,28 +50,40 @@
         </ul>
     }
 
+    @* Owner actions (Edit, Delete) on the left; Save and Share grouped on the right so they never crowd each other. *@
     <div class="post-details-actions">
-        @if (signedIn)
-        {
-            <form method="post" asp-controller="Bookmarks" asp-action="@(post.IsSaved ? "Remove" : "Save")" asp-route-postId="@post.Id" asp-route-returnUrl="@returnUrl">
-                <button class="link-action" type="submit" aria-pressed="@(post.IsSaved ? "true" : "false")">
-                    <svg class="post-icon @(post.IsSaved ? "is-filled" : "")" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h12v18l-6-4.5L6 21Z" /></svg>
-                    @(post.IsSaved ? "Saved" : "Save")
-                </button>
-            </form>
-        }
         @if (post.IsAuthor)
         {
-            <a class="link-action" asp-controller="Post" asp-action="Edit" asp-route-id="@post.Id">Edit</a>
-            <form method="post" asp-controller="Post" asp-action="Delete" asp-route-id="@post.Id" onsubmit="return confirm('Delete this post?');">
-                <button class="link-action" type="submit">Delete</button>
-            </form>
+            <div class="post-details-owner-actions">
+                <a class="link-action" asp-controller="Post" asp-action="Edit" asp-route-id="@post.Id">Edit</a>
+                <form method="post" asp-controller="Post" asp-action="Delete" asp-route-id="@post.Id" onsubmit="return confirm('Delete this post?');">
+                    <button class="link-action" type="submit">Delete</button>
+                </form>
+            </div>
         }
-        <button class="link-action share-action" type="button" data-share-url="@returnUrl" data-share-title="@post.Title">
-            <svg class="post-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></svg>
-            Share
-        </button>
-        <span class="share-status" role="status"></span>
+        <div class="post-details-share-actions">
+            <span class="share-status" role="status"></span>
+            @if (signedIn)
+            {
+                <form method="post" asp-controller="Bookmarks" asp-action="@(post.IsSaved ? "Remove" : "Save")" asp-route-postId="@post.Id" asp-route-returnUrl="@returnUrl">
+                    <button class="link-action bookmark-action@(post.IsSaved ? " is-saved" : "")" type="submit" aria-pressed="@(post.IsSaved ? "true" : "false")">
+                        <svg class="post-icon @(post.IsSaved ? "is-filled" : "")" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h12v18l-6-4.5L6 21Z" /></svg>
+                        @(post.IsSaved ? "Saved" : "Bookmark")
+                    </button>
+                </form>
+            }
+            else
+            {
+                <a class="link-action bookmark-action" asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="@returnUrl">
+                    <svg class="post-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h12v18l-6-4.5L6 21Z" /></svg>
+                    Bookmark<span class="visually-hidden"> (log in to bookmark posts)</span>
+                </a>
+            }
+            <button class="link-action share-action" type="button" data-share-url="@returnUrl" data-share-title="@post.Title">
+                <svg class="post-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></svg>
+                Share
+            </button>
+        </div>
     </div>
 </article>
 
