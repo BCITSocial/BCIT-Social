@@ -6,6 +6,7 @@ using BCIT_Social.Data;
 using Microsoft.AspNetCore.Authorization;
 using BCIT_Social.ViewModels;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 
 public class CommunityController : Controller
 {
@@ -262,7 +263,6 @@ public class CommunityController : Controller
             CommunityId = community.Id,
             IsModerator = false,
         };
-        Console.WriteLine(communityMember.User);
         if (ModelState.IsValid)
         {
             community.Members.Add(communityMember);
@@ -380,8 +380,10 @@ public class CommunityController : Controller
     [Route("Community/Kick/{id}/{userid}")]
     public async Task<IActionResult> Kick(int? id, string? userid)
     {
-        Console.WriteLine("\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n");
-        var communityMember = await _context.CommunityMembers.Include(m => m.User).Where(m => m.UserId == userid && m.CommunityId == id).FirstAsync();
+        var communityMemberSearch = _context.CommunityMembers.Include(m => m.User).Where(m => m.UserId == userid && m.CommunityId == id);
+        if (communityMemberSearch.IsNullOrEmpty())
+            return NotFound();
+        var communityMember = await communityMemberSearch.FirstAsync();
 
         string? currentUserId = _userManager.GetUserId(User);
         var currentCommunityUser = await _context.CommunityMembers.FindAsync(currentUserId, id);
@@ -420,7 +422,6 @@ public class CommunityController : Controller
 
         if (await MemberExistsAsync(userid, community))
         {
-            Console.WriteLine("\n\nBBBBBBBBBBBBBBB\n\n");
             var viewModel = await MemberDetailViewModelFromCommunity(communityMember);
             return View(viewModel);
         }
@@ -447,7 +448,6 @@ public class CommunityController : Controller
     [Authorize]
     public async Task<IActionResult> KickConfirmed(int? id, string? userid, CommunityMemberDetailsViewModel viewModel)
     {
-        Console.WriteLine("\n\nCCCCCCCC\n\n");
         var community = await _context.Communities.FindAsync(id);
         var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
         string? currentUserId = _userManager.GetUserId(User);
@@ -462,12 +462,10 @@ public class CommunityController : Controller
         // checks if community member is even in the community
         if (communityMember.CommunityId != id)
         {
-            Console.WriteLine("\n\nEEEEE\n\n");
             return RedirectToAction(nameof(Index));
         }
         if (ModelState.IsValid)
         {
-            Console.WriteLine("\n\nDDDDDDDD\n\n");
             community.Members.Remove(communityMember);
             _context.Remove(communityMember);
             _context.Update(community);
@@ -493,12 +491,18 @@ public class CommunityController : Controller
     [Route("Community/EditStatus/{id}/{userid}")]
     public async Task<IActionResult> EditStatus(int? id, string? userid)
     {
-        var communityMember = await _context.CommunityMembers.Include(m => m.User).Where(m => m.UserId == userid && m.CommunityId == id).FirstAsync();
+        var communityMemberSearch = _context.CommunityMembers.Include(m => m.User).Where(m => m.UserId == userid && m.CommunityId == id);
+        if (communityMemberSearch.IsNullOrEmpty())
+        {
+            return NotFound();
+        }
+        var communityMember = await communityMemberSearch.FirstAsync();
+
         string? currentUserId = _userManager.GetUserId(User);
         var currentCommunityUser = await _context.CommunityMembers.FindAsync(currentUserId, id);
         var community = await _context.Communities.FirstOrDefaultAsync(m => m.Id == id);
 
-        if (id == null || userid == null || communityMember == null || community == null)
+        if (id == null || userid == null || community == null)
             return NotFound();
         if (currentUserId == null || currentCommunityUser == null)
             return Forbid();
@@ -558,8 +562,6 @@ public class CommunityController : Controller
 
         if (ModelState.IsValid)
         {
-            Console.WriteLine(222222222);
-            Console.WriteLine(viewModel.IsModerator);
             communityMember.IsModerator = viewModel.IsModerator;
             _context.Update(communityMember);
             await _context.SaveChangesAsync();
@@ -739,7 +741,6 @@ public class CommunityController : Controller
     /// <returns>a view model</returns>
     private async Task<CommunityMemberDetailsViewModel> MemberDetailViewModelFromCommunity(CommunityMember communityMember)
     {
-        Console.WriteLine("\n\n!!!!!!!!!!!!!!!!!!!!!!!!");
         // TODO: replace Username with displayname when db is updated
         var profile = await _context.Profiles.FindAsync(communityMember.UserId);
         string displayname = profile?.DisplayName ?? communityMember.User.UserName ?? "No Name Found";
