@@ -8,7 +8,7 @@ namespace BCIT_Social.Controllers;
 // Handles /Events: reads the filters from the URL, builds the page data, and shows the view.
 public class EventsController : Controller
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter() },
     };
@@ -52,7 +52,7 @@ public class EventsController : Controller
             var json = System.IO.File.ReadAllText(path);
             return string.IsNullOrWhiteSpace(json)
                 ? new EventsContent()
-                : JsonSerializer.Deserialize<EventsContent>(json, JsonOptions) ?? new EventsContent();
+                : JsonSerializer.Deserialize<EventsContent>(json, _jsonOptions) ?? new EventsContent();
         }
         catch (JsonException ex)
         {

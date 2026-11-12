@@ -1,3 +1,5 @@
+using BCIT_Social.Models;
+
 namespace BCIT_Social.ViewModels;
 
 // Data for one post card in the Home feed.
@@ -8,6 +10,7 @@ public class PostCardViewModel
     public string Content { get; init; } = "";
     // Profile display name, or the account user name when there is no profile.
     public string AuthorName { get; init; } = "";
+	public List<PostPhoto> Photos { get; set; } = new();
     // Null when the post is not in a community.
     public string? CommunityName { get; init; }
     // Stored in UTC.
