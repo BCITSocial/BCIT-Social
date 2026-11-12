@@ -65,18 +65,21 @@ frontend view for Communities page.
         </button>
     </div>
 
-    @* category pill *@
-    <div id="category-pills" class="filter-pills">
-        @{
-            var isFirst = true;
-            foreach (var category in text.GetProperty("categories").EnumerateArray())
-            {
-                <button type="button" class="filter-pill @(isFirst ? "active" : "")" data-category="@category.GetString()">
-                    @category.GetString()
-                </button>
-                isFirst = false;
+    @* category pills: one row, with "Show all" on the right when they don't fit (community-pills.js) *@
+    <div class="filter-pills-row" data-pills-row>
+        <div id="category-pills" class="filter-pills">
+            @{
+                var isFirst = true;
+                foreach (var category in text.GetProperty("categories").EnumerateArray())
+                {
+                    <button type="button" class="filter-pill @(isFirst ? "active" : "")" data-category="@category.GetString()">
+                        @category.GetString()
+                    </button>
+                    isFirst = false;
+                }
             }
-        }
+        </div>
+        <button type="button" class="filter-pills-toggle" data-pills-toggle aria-controls="category-pills" aria-expanded="false" hidden>Show all</button>
     </div>
 
     @* search bar *@
@@ -132,28 +135,33 @@ frontend view for Communities page.
 
                                 <div class="community-card" data-name="@item.Name?.ToLower()" data-type="@item.Type?.ToLower()">
                                     <div>
-                                        <a asp-action="Details" asp-route-id="@item.Id" class="card-clickable-link">
-                                            <h3 class="community-card-title">@item.Name</h3>
-                                        </a>
+                                        @* Picture slot (left), then the name with its tags, then members and campus under it. *@
+                                        <div class="community-card-head">
+                                            @* Placeholder until communities have pictures: the first letter of the name. *@
+                                            <div class="community-card-photo" aria-hidden="true">@(string.IsNullOrEmpty(item.Name) ? "?" : item.Name.Substring(0, 1).ToUpperInvariant())</div>
+                                            <div class="community-card-heading">
+                                                <div class="community-card-title-row">
+                                                    <a asp-action="Details" asp-route-id="@item.Id" class="card-clickable-link">
+                                                        <h3 class="community-card-title">@item.Name</h3>
+                                                    </a>
+                                                    @foreach (var rawTag in rawTags)
+                                                    {
+                                                        if (campusOptions.Contains(rawTag)) { continue; }
 
-                                        @* badges *@
-                                        <div class="badge-row" style="flex-wrap: wrap;">
-                                            @foreach (var rawTag in rawTags)
-                                            {
-                                                if (campusOptions.Contains(rawTag)) { continue; }
+                                                        var badgeClass = statusTags.Contains(rawTag) ? "status-badge"
+                                                                       : timeTags.Contains(rawTag) ? "time-badge"
+                                                                       : "";
+                                                        <span class="category-badge @badgeClass">@rawTag</span>
+                                                    }
+                                                </div>
 
-                                                var badgeClass = statusTags.Contains(rawTag) ? "status-badge"
-                                                               : timeTags.Contains(rawTag) ? "time-badge"
-                                                               : "";
-                                                <span class="category-badge @badgeClass">@rawTag</span>
-                                            }
-                                        </div>
-
-                                        @* member count and location (needs more work later) *@
-                                        <div class="member-count">
-                                            <span>@(item.MembersCount) @text.GetProperty("membersLabel").GetString()</span>
-                                            <span>&bull;</span>
-                                            <span>@location</span>
+                                                @* member count and location *@
+                                                <div class="member-count">
+                                                    <span>@(item.MembersCount) @text.GetProperty("membersLabel").GetString()</span>
+                                                    <span>&bull;</span>
+                                                    <span>@location</span>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <p class="community-desc" data-text="default-desc">@finalDesc</p>
@@ -186,4 +194,5 @@ frontend view for Communities page.
 
         @section Scripts {
             <script src="~/js/communities.js" asp-append-version="true"></script>
+            <script src="~/js/community-pills.js" asp-append-version="true" defer></script>
         }

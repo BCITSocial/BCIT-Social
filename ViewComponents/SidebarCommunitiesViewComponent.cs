@@ -25,6 +25,20 @@ public class SidebarCommunitiesViewComponent : ViewComponent
         var communities = userId is null
             ? []
             : await _context.YourCommunitiesAsync(userId, CommunitiesShown);
+
+        // A community page sets ActiveCommunityId when the viewer is a member. Make sure that community
+        // is in the list (it may be older than the five shown) so the sidebar can highlight it.
+        if (userId is not null && ViewData["ActiveCommunityId"] is int activeId
+            && communities.All(community => community.Id != activeId))
+        {
+            var active = (await _context.YourCommunitiesAsync(userId, int.MaxValue))
+                .FirstOrDefault(community => community.Id == activeId);
+            if (active is not null)
+            {
+                communities.Add(active);
+            }
+        }
+
         return View(communities);
     }
 }

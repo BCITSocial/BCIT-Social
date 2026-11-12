@@ -16,7 +16,8 @@ Renders sidebar navigation, marks the active controller route, and lists the use
             </a>
         </li>
         <li>
-            <a asp-controller="Community" asp-action="Index" aria-current="@(currentController == "Community" ? "page" : null)">
+            @* Inside a community you belong to, that community is highlighted under "Your communities" instead. *@
+            <a asp-controller="Community" asp-action="Index" aria-current="@(currentController == "Community" && ViewData["ActiveCommunityId"] is null ? "page" : null)">
                 <svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3.2" /><path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" /><circle cx="17" cy="9" r="2.5" /><path d="M16 13.2c2.7.3 5 2.4 5 5.3" /></svg>
                 Communities
             </a>

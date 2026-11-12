@@ -221,24 +221,6 @@
     display: none;
 }
 
-/* 3. Navigation Tabs (Single Tab) */
-.details-tabs {
-    display: flex;
-    gap: 1.5rem;
-    border-bottom: 1px solid var(--details-border);
-}
-
-.tab-link {
-    background: none;
-    border: none;
-    padding: 0.5rem 0.25rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--brand-blue);
-    cursor: default;
-    border-bottom: 2px solid var(--brand-blue);
-}
-
 /* 4. Discussions Layout */
 .discussions-section-container {
     display: flex;
@@ -297,10 +279,6 @@
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.discussion-card.discussion-extra.is-hidden {
-    display: none;
-}
-
 .avatar-initials {
     width: 36px;
     height: 36px;
@@ -328,4 +306,12 @@
 .discussion-footer {
     font-size: 0.75rem;
     color: var(--text-muted);
+}
+/* Shown when the community has no posts yet. */
+.discussions-empty {
+    margin: 0;
+    padding: 1.5rem 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-align: center;
 }

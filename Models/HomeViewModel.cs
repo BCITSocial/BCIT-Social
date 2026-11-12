@@ -12,8 +12,6 @@ public class HomeViewModel
     public IReadOnlyList<PostCardViewModel> Posts { get; init; } = [];
     // True when older posts exist past the last card.
     public bool HasMore { get; init; }
-    // Up to three communities the signed-in user has joined. Empty when signed out.
-    public IReadOnlyList<CommunityLinkViewModel> YourCommunities { get; init; } = [];
     // The active feed filter, one of FeedFilters.
     public string Filter { get; init; } = FeedFilters.ALL;
     // The campus shown when Filter is campus. Null otherwise.

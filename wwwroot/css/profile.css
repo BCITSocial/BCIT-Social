@@ -1067,17 +1067,7 @@ body[data-profile-cover="gradient"] .profile-edit-cover {
     margin-inline: auto;
 }
 
-.app-shell:has(.profile-page) {
-    max-width: 1080px;
-    margin-inline: auto;
-    width: 100%;
-}
-
-@media (min-width: 1081px) {
-    .app-shell:has(.profile-page) {
-        border-left: 1px solid var(--color-border);
-    }
-}
+/* The centred app shell is shared by every page; see .app-shell in home.css. */
 
 .profile-card-actions {
     justify-content: flex-start;

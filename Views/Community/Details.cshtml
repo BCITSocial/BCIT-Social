@@ -11,6 +11,13 @@
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 
 @{
+    // Same shell as the other pages: site header, left nav, centred content.
+    Layout = "_HomeLayout";
+    // Members see this community highlighted under "Your communities" in the left nav instead of "Communities".
+    if (Model?.IsMember == true)
+    {
+        ViewData["ActiveCommunityId"] = Model.Id;
+    }
     var jsonPath = System.IO.Path.Combine(Env.WebRootPath, "content", "community-details-text.json");
     var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
     var text = jsonDoc.RootElement;
@@ -66,8 +73,6 @@
 currentUserId))
                        || rawTags.Contains(activeStatus, StringComparer.OrdinalIgnoreCase);
 
-    var seeAllText = discussionsSection.GetProperty("seeAllText").GetString();
-    var showLessText = discussionsSection.GetProperty("showLessText").GetString();
 
     var defaultEmptyDesc = mainText.GetProperty("defaultDescription").GetString();
     var communityDesc = !string.IsNullOrWhiteSpace(Model?.Description) ? Model.Description : defaultEmptyDesc;
@@ -149,13 +154,6 @@ currentUserId))
         </div>
     </div>
 
-    <!-- 3. Navigation Tabs -->
-    <div class="details-tabs">
-        <button type="button" class="tab-link active">
-            @text.GetProperty("navTabs")[0].GetString()
-        </button>
-    </div>
-
     <!-- 4. About Card -->
     <div class="details-card">
         <h3 class="section-title" style="margin-bottom: 0.45rem;">@text.GetProperty("aboutHeading").GetString()</h3>
@@ -168,39 +166,23 @@ currentUserId))
     <div class="discussions-section-container">
         <div class="section-header-row">
             <h3 class="section-title">@discussionsSection.GetProperty("title").GetString()</h3>
-            <button type="button" id="toggle-discussions-btn" class="link-action-btn" data-see-all="@seeAllText"
-                    data-show-less="@showLessText">
-                @seeAllText
-            </button>
         </div>
-        <div id="discussions-list" class="discussions-list">
-            @{
-                var discussionIndex = 0;
-                foreach (var discussion in discussionsSection.GetProperty("discussions").EnumerateArray())
-                {
-                    var isHiddenByDefault = discussionIndex >= 2;
-                    <div class="discussion-card @(isHiddenByDefault ? "discussion-extra is-hidden" : "")">
-                        <div class="avatar-initials">@discussion.GetProperty("initials").GetString()</div>
-                        <div class="discussion-content">
-                            <div class="discussion-top-row">
-                                <h4 style="font-size: 0.925rem; font-weight: 700; margin: 0;">
-                                    @discussion.GetProperty("title").GetString()</h4>
-                                    <span
-                                    style="font-size: 0.75rem; color: var(--text-muted);">@discussion.GetProperty("time").GetString()</span>
-                                </div>
-                                <p>@discussion.GetProperty("body").GetString()</p>
-                                <div class="discussion-footer">
-                                    <span>@discussion.GetProperty("authorMeta").GetString()</span>
-                                    <span>@discussion.GetProperty("repliesCount").GetString()</span>
-                                </div>
-                            </div>
-                        </div>
-                        discussionIndex++;
-                    }
-                }
+        @* The community's real posts, as the same clickable cards as the Home feed. *@
+        @if (Model!.Posts.Count == 0)
+        {
+            <p class="discussions-empty">No posts in this community yet.</p>
+        }
+        else
+        {
+            ViewData["PostReturnUrl"] = Url.Action("Details", "Community", new { id = Model.Id });
+            <div class="feed-list">
+                <partial name="~/Views/Home/_PostCards.cshtml" model="Model.Posts" />
             </div>
-        </div>
+        }
     </div>
+</div>
+
+<partial name="_PostDialog" />
 
     <!-- Modular Modal Partial Inclusion -->
     <partial name="_CreateCommunityModal" model="modal" />
@@ -208,5 +190,5 @@ currentUserId))
     @section Scripts {
         <!-- communities.js drives modal opening, closing, and tag synchronization -->
         <script src="~/js/communities.js" asp-append-version="true"></script>
-        <script src="~/js/community-details.js" asp-append-version="true"></script>
+        <script src="~/js/post-details.js" asp-append-version="true" defer></script>
     }

@@ -129,6 +129,42 @@
     border-color: var(--brand-blue);
 }
 
+/* Category pills on one row with "Show all" on the right (community-pills.js sets --pills-row-height
+   to one pill's height). Without the script the pills simply wrap. */
+.filter-pills-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.filter-pills-row .filter-pills {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.filter-pills-row.is-collapsed .filter-pills {
+    max-height: var(--pills-row-height);
+    overflow: hidden;
+}
+
+.filter-pills-toggle {
+    flex: none;
+    padding: 0.35rem 0.25rem;
+    border: 0;
+    background: transparent;
+    color: var(--brand-blue);
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.filter-pills-toggle:hover {
+    text-decoration: underline;
+}
+
 .search-bar-row {
     margin-bottom: 1.25rem;
 }
@@ -299,6 +335,70 @@
     font-size: 0.875rem;
     color: var(--text-secondary);
     margin-bottom: 1rem;
+}
+
+/* Card header: picture slot on the left; name and tags on one line, members and campus under it. */
+.community-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 0.75rem;
+}
+
+.community-card-photo {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background-color: var(--avatar-box-bg);
+    color: var(--text-secondary);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.community-card-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.community-card-heading {
+    min-width: 0;
+}
+
+.community-card-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.25rem;
+}
+
+.community-card-title-row .community-card-title {
+    margin: 0;
+}
+
+.community-card-heading .member-count {
+    margin-bottom: 0;
+}
+
+.community-card > div > .community-desc {
+    margin: 0;
+}
+
+/* Join / Joined sits in the card's top-right corner; the header leaves room for it. */
+.community-card > .card-actions {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    margin: 0;
+}
+
+.community-card .community-card-head {
+    padding-right: 5.5rem;
 }
 
 /* Card actions row */

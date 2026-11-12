@@ -13,7 +13,6 @@ public class HomeController : Controller
     // The first page shows 20 posts; scrolling loads 10 more at a time.
     private const int FIRSTPAGESIZE = 20;
     private const int NEXTPAGESIZE = 10;
-    private const int YOURCOMMUNITIESSHOWN = 3;
 
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
@@ -48,9 +47,6 @@ public class HomeController : Controller
                 .Distinct()
                 .OrderBy(name => name)
                 .ToListAsync(),
-            YourCommunities = userId is null
-                ? []
-                : await _context.YourCommunitiesAsync(userId, YOURCOMMUNITIESSHOWN),
             CurrentUserInitials = await CurrentUserInitialsAsync(userId),
         });
     }
@@ -72,7 +68,7 @@ public class HomeController : Controller
     public async Task<IActionResult> Post(int id)
     {
         var userId = _userManager.GetUserId(User);
-        var post = await ProjectCards(_context.Posts.Where(post => post.Id == id && post.DateOfDel == null), userId)
+        var post = await _context.ProjectCards(_context.Posts.Where(post => post.Id == id && post.DateOfDel == null), userId)
             .FirstOrDefaultAsync();
         if (post is null)
         {
@@ -141,34 +137,10 @@ public class HomeController : Controller
             .OrderByDescending(post => post.CreatedAt)
             .ThenByDescending(post => post.Id)
             .Take(take + 1);
-        var posts = await ProjectCards(ordered, userId).ToListAsync();
+        var posts = await _context.ProjectCards(ordered, userId).ToListAsync();
 
         var hasMore = posts.Count > take;
         return (posts.Take(take).ToList(), hasMore);
-    }
-
-    // Maps posts to card data. Keeps the query's order.
-    private IQueryable<PostCardViewModel> ProjectCards(IQueryable<Post> posts, string? userId)
-    {
-        return posts.AsNoTracking().Select(post => new PostCardViewModel
-        {
-            Id = post.Id,
-            Title = post.Title,
-            Content = post.Content,
-            AuthorName = _context.Profiles
-                .Where(profile => profile.UserId == post.AuthorId)
-                .Select(profile => profile.DisplayName)
-                .FirstOrDefault() ?? post.Author.UserName ?? "",
-            Photos = post.Photos.OrderBy(photo => photo.DisplayOrder).ToList(),
-            CommunityName = post.Community != null ? post.Community.Name : null,
-            CreatedAt = post.CreatedAt,
-            Tags = post.PostTags.Select(postTag => postTag.Tag.Name).ToList(),
-            CommentCount = _context.Comments.Count(comment => comment.PostId == post.Id),
-            IsAuthor = userId != null && post.AuthorId == userId,
-            AuthorId = post.AuthorId,
-            IsSaved = userId != null && _context.Bookmarks
-                .Any(bookmark => bookmark.UserId == userId && bookmark.PostId == post.Id),
-        });
     }
 
     // Loads every comment on the post and nests replies under their parent, oldest first.

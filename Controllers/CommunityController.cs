@@ -10,6 +10,9 @@ using Microsoft.IdentityModel.Tokens;
 
 public class CommunityController : Controller
 {
+    // Posts shown on a community page, newest first.
+    private const int COMMUNITYPOSTSSHOWN = 50;
+
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
 
@@ -742,6 +745,14 @@ public class CommunityController : Controller
             Members = members,
             IsMod = isMod,
             IsMember = isMember,
+            Posts = await _context.ProjectCards(
+                    _context.Posts
+                        .Where(post => post.CommunityId == community.Id && post.DateOfDel == null)
+                        .OrderByDescending(post => post.CreatedAt)
+                        .ThenByDescending(post => post.Id)
+                        .Take(COMMUNITYPOSTSSHOWN),
+                    currentUserId)
+                .ToListAsync(),
         };
         return viewModel;
     }
