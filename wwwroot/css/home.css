@@ -438,3 +438,14 @@ body:has(.create-dialog[open]) { overflow: hidden; }
     text-decoration: none;
     font-weight: 600;
 }
+
+/* Post details actions: owner tools (Edit, Delete) on the left, Bookmark and Share together on the right. */
+.post-details-actions { flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.post-details-owner-actions,
+.post-details-share-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.post-details-owner-actions form,
+.post-details-share-actions form { margin: 0; }
+.post-details-share-actions { margin-left: auto; }
+.post-details-share-actions .share-action { margin-left: 0; }
+.bookmark-action { min-height: 40px; color: var(--color-accent); text-decoration: none; }
+.bookmark-action.is-saved .post-icon { fill: currentColor; }
