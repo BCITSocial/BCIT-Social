@@ -24,11 +24,19 @@ public class EventsText
     public Dictionary<string, string> Ranges { get; init; } = [];
     public Dictionary<string, string> Sorts { get; init; } = [];
 
-    // Filter bar. {0} in SortOption is replaced with the sort label, e.g. "Sort: Soonest".
-    public string SearchPlaceholder { get; init; } = "Search events...";
+    // Filter menu button. {0} in ActiveFilters is the number of settings changed from the default;
+    // screen readers hear it after the button text, e.g. "Filter & sort, 2 filters on".
+    // ActiveFiltersOne is used when exactly one is on.
+    public string FilterMenuButton { get; init; } = "Filter & sort";
+    public string ActiveFilters { get; init; } = "{0} filters on";
+    public string ActiveFiltersOne { get; init; } = "{0} filter on";
+    public string ResetFilters { get; init; } = "Reset filters";
+
+    // Filter menu fields. {0} in SortOption is replaced with the sort label. The Sort label above the dropdown names it,
+    // so the option shows just the label ("Soonest").
     public string AllCommunities { get; init; } = "All communities";
     public string AllCampuses { get; init; } = "All campuses";
-    public string SortOption { get; init; } = "Sort: {0}";
+    public string SortOption { get; init; } = "{0}";
     public string Apply { get; init; } = "Apply";
 
     // Messages shown instead of the card grid.
@@ -49,7 +57,6 @@ public class EventsText
     // Labels only screen readers hear (visually hidden or aria-label).
     public string LabelMyEvents { get; init; } = "My events";
     public string LabelEventsView { get; init; } = "Events view";
-    public string LabelSearch { get; init; } = "Search events";
     public string LabelCommunity { get; init; } = "Community";
     public string LabelCampus { get; init; } = "Campus";
     public string LabelRange { get; init; } = "Time range";
