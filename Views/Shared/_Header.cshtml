@@ -65,9 +65,8 @@ Renders the shared brand, centered search placeholder, notifications popup, and 
         </div>
         <div class="header-popover profile-menu" id="profile-menu" popover>
             <p class="profile-menu-name">@User.Identity.Name</p>
-            <form asp-area="Identity" asp-page="/Account/Logout"
-                  asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
-                <button class="profile-menu-item" asp-controller="Profile" asp-action="Index">View profile</button>
+            <a class="profile-menu-item" asp-area="" asp-controller="Profile" asp-action="Index">View profile</a>
+            <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
                 <button class="profile-menu-item" type="submit">Log out</button>
             </form>
         </div>
