@@ -1,48 +1,82 @@
 @model BCIT_Social.ViewModels.ProfileViewModel
-
+@*
+Create profile form, shown when a signed-in account has no profile yet.
+Uses the account-form styles (auth.css) with a live preview of the avatar and name (auth.js).
+*@
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create your profile";
+    Layout = "_HomeLayout";
+    // Campus values match the ones already stored on profiles (for example "Burnaby", "Downtown").
+    var campuses = new[] { "Burnaby", "Downtown", "Aerospace", "Annacis Island", "Marine", "Online" };
+    var programs = new[]
+    {
+        "Accounting", "Business Information Technology", "Computer Information Technology",
+        "Computer Systems Technology", "Mechanical Engineering", "New Media Design and Web Development",
+    };
 }
 
-<h1>Create</h1>
+<section class="auth-panel is-wide" aria-labelledby="create-profile-title">
+    <h1 id="create-profile-title">Create your profile</h1>
+    <p class="auth-lead">Tell the BCIT community who you are. You can change this any time.</p>
 
-<h4>Profile</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group">
-                <label asp-for="DisplayName" class="control-label"></label>
-                <input asp-for="DisplayName" class="form-control" />
-                <span asp-validation-for="DisplayName" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Bio" class="control-label"></label>
-                <input asp-for="Bio" class="form-control" />
-                <span asp-validation-for="Bio" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Program" class="control-label"></label>
-                <input asp-for="Program" class="form-control" />
-                <span asp-validation-for="Program" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Campus" class="control-label"></label>
-                <input asp-for="Campus" class="form-control" />
-                <span asp-validation-for="Campus" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+    <div class="profile-create-preview" aria-hidden="true"
+         data-profile-preview data-name-field="DisplayName" data-program-field="Program" data-campus-field="Campus">
+        <span class="profile-create-avatar" data-preview-initials>?</span>
+        <div>
+            <strong data-preview-name>Your name</strong>
+            <span data-preview-detail>Program · Campus</span>
+        </div>
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+    <form asp-action="Create" method="post" data-auth-form>
+        <div asp-validation-summary="ModelOnly" class="auth-errors" role="alert"></div>
+
+        <div class="auth-field">
+            <label asp-for="DisplayName">Display name</label>
+            <input asp-for="DisplayName" autocomplete="name" maxlength="60" placeholder="e.g. Maya Chen" required />
+            <span asp-validation-for="DisplayName" class="auth-errors"></span>
+        </div>
+
+        <div class="auth-row">
+            <div class="auth-field">
+                <label asp-for="Program"></label>
+                <input asp-for="Program" list="program-options" autocomplete="off" placeholder="Start typing your program" required />
+                <datalist id="program-options">
+                    @foreach (var program in programs)
+                    {
+                        <option value="@program"></option>
+                    }
+                </datalist>
+                <span asp-validation-for="Program" class="auth-errors"></span>
+            </div>
+
+            <div class="auth-field">
+                <label asp-for="Campus"></label>
+                <select asp-for="Campus" required>
+                    <option value="">Choose a campus</option>
+                    @foreach (var campus in campuses)
+                    {
+                        <option value="@campus">@campus</option>
+                    }
+                </select>
+                <span asp-validation-for="Campus" class="auth-errors"></span>
+            </div>
+        </div>
+
+        <div class="auth-field">
+            <label asp-for="Bio"></label>
+            <textarea asp-for="Bio" rows="4" maxlength="500" placeholder="A sentence or two about you: what you study, what you're into, what you're looking for." aria-describedby="bio-help" required></textarea>
+            <div class="auth-help-row">
+                <p id="bio-help" class="auth-help">Shown on your profile.</p>
+                <p class="auth-help" aria-live="polite" data-char-count="Bio"></p>
+            </div>
+            <span asp-validation-for="Bio" class="auth-errors"></span>
+        </div>
+
+        <button class="auth-submit" type="submit" data-busy-text="Creating profile...">Create profile</button>
+    </form>
+</section>
+
+@section Scripts {
+    <script src="~/js/auth.js" asp-append-version="true" defer></script>
+}
