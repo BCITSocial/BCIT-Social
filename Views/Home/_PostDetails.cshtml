@@ -31,6 +31,14 @@
             <p>@paragraph</p>
         }
     </div>
+    <div>
+        @foreach (PostPhoto photo in post.Photos.OrderBy(photo => photo.DisplayOrder))
+        {
+            <img src="@Url.Action("Photo", "Post", new { id = photo.Id })"
+                    alt="@photo.OriginalFileName"
+                    style="max-width: 100px; height: auto;" />
+        }
+    </div> 
     @if (post.Tags.Count > 0)
     {
         <ul class="post-tags" aria-label="Tags">
