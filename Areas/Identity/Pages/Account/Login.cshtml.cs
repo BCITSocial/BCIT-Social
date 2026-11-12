@@ -35,6 +35,13 @@ public class LoginModel(SignInManager<ApplicationUser> signInManager) : PageMode
         OnGet(returnUrl);
         if (!ModelState.IsValid) return Page();
 
+        if (!Input.Email.EndsWith("@bcit.ca", StringComparison.OrdinalIgnoreCase)
+            && !Input.Email.EndsWith("@my.bcit.ca", StringComparison.OrdinalIgnoreCase))
+        {
+            ModelState.AddModelError("Input.Email", "Use your BCIT email address.");
+            return Page();
+        }
+
         var result = await signInManager.PasswordSignInAsync(
             Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
         if (result.Succeeded) return LocalRedirect(ReturnUrl);

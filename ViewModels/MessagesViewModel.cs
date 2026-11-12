@@ -24,7 +24,7 @@ public class MessagesViewModel
         return values;
     }
 
-    public static readonly IReadOnlyList<(string Value, string Label)> Filters = [("all", "All"), ("unread", "Unread")];
+    public static readonly IReadOnlyList<(string Value, string Label)> filters = [("all", "All"), ("unread", "Unread")];
 
     // List row time: "10:24 AM" today, "Yesterday", the weekday within a week, otherwise "Oct 3".
     public static string ListTime(DateTime sentAt)

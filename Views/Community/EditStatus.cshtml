@@ -1,0 +1,28 @@
+@model BCIT_Social.ViewModels.CommunityMemberDetailsViewModel
+
+@{
+    ViewData["Title"] = "Edit Member Status";
+}
+
+<h1>@Model.CommunityName</h1>
+<h2>@ViewData["Title"]</h2>
+
+<h3>@Model.DisplayName</h3>
+<div>
+    <hr />
+    <form asp-action="EditStatus" asp-route-id="@Model.CommunityId" asp-route-userid="@Model.Id" method="post">
+
+        <div class="form-group">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="DisplayName" />
+            <input type="hidden" asp-for="CommunityName" />
+            <input type="hidden" asp-for="CommunityId" />
+            <label asp-for="IsModerator" class="control-label"></label>
+            @Html.RadioButtonFor(m => m.IsModerator, true) Moderator
+            @Html.RadioButtonFor(m => m.IsModerator, false) Member
+            <span asp-validation-for="IsModerator" class="text-danger"></span>
+        </div>
+        <input type="submit" value="Submit" class="btn btn-primary" /> |
+        <a asp-action="Members" asp-route-id="@Model.CommunityId">Back to List</a>
+    </form>
+</div>

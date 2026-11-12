@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BCIT_Social.Models;
 using BCIT_Social.Data;
+using BCIT_Social.Services;
 using BCIT_Social.ViewModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -11,6 +12,7 @@ public class PostController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly UploadService _uploadService;
 
     /// <summary>
     /// Description: Initializes the Post controller with database and user management services
@@ -19,10 +21,12 @@ public class PostController : Controller
     /// <param name="userManager">Provides access to the currently authenticated user.</param>
     public PostController(
         ApplicationDbContext context,
-        UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> userManager,
+        UploadService uploadService)
     {
         _context = context;
         _userManager = userManager;
+        _uploadService = uploadService;
     }
 
     // GET: POSTS
@@ -31,10 +35,34 @@ public class PostController : Controller
         var posts = await _context.Posts
             .Include(post => post.PostTags)
             .ThenInclude(postTag => postTag.Tag)
+            .Include(post => post.Photos)
             .Where(post => post.DateOfDel == null)
             .ToListAsync();
 
         return View(posts);
+    }
+
+    // GET: POSTS/Photo/5
+    /// <summary>
+    /// Description: Streams a post photo from Blob Storage for display.
+    /// Author: Justin Chik
+    /// </summary>
+    /// <param name="id">The ID of the post photo.</param>
+    /// <param name="cancellationToken">A token that can cancel the download operation.</param>
+    /// <returns>The photo file, or a not found result if the photo record does not exist.</returns>
+    [HttpGet]
+    public async Task<IActionResult> Photo(int id, CancellationToken cancellationToken)
+    {
+        var photo = await _context.PostPhotos
+            .FirstOrDefaultAsync(photo => photo.Id == id, cancellationToken);
+
+        if (photo == null)
+        {
+            return NotFound();
+        }
+
+        var image = await _uploadService.DownloadAsync(photo.StorageKey, cancellationToken);
+        return File(image.Content, photo.ContentType);
     }
 
     // GET: POSTS/Details/5
@@ -121,7 +149,9 @@ public class PostController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Create(CreatePostViewModel viewModel)
+    public async Task<IActionResult> Create(
+        CreatePostViewModel viewModel,
+        CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
@@ -154,24 +184,98 @@ public class PostController : Controller
             DateOfDel = null
         };
 
-        _context.Posts.Add(post);
-
-        await _context.SaveChangesAsync();
-
-        var postTag = new PostTags
+        var uploadedPhotos = new List<UploadedFile>();
+        try
         {
-            PostId = post.Id,
-            TagId = viewModel.TagId
-        };
+            foreach (var photo in viewModel.Photos.Where(photo => photo.Length > 0))
+            {
+                uploadedPhotos.Add(await _uploadService.UploadAsync(
+                    photo,
+                    "post",
+                    cancellationToken));
+            }
+        }
+        // If an error occurs during upload it deletes any photos already uploaded.
+        catch (ArgumentException exception)
+        {
+            await DeleteUploadedPhotosAsync(uploadedPhotos);
+            ModelState.AddModelError(nameof(viewModel.Photos), exception.Message);
+            viewModel.PostTypes = await _context.Tags
+                .OrderBy(tag => tag.Name)
+                .Select(tag => new SelectListItem
+                {
+                    Value = tag.Id.ToString(),
+                    Text = tag.Name
+                })
+                .ToListAsync();
 
-        _context.PostTags.Add(postTag);
+            return View(viewModel);
+        }
+        catch
+        {
+            await DeleteUploadedPhotosAsync(uploadedPhotos);
+            throw;
+        }
 
-        await _context.SaveChangesAsync();
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            _context.Posts.Add(post);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var postTag = new PostTags
+            {
+                PostId = post.Id,
+                TagId = viewModel.TagId
+            };
+
+            _context.PostTags.Add(postTag);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            for (var displayOrder = 0; displayOrder < uploadedPhotos.Count; displayOrder++)
+            {
+                var photo = uploadedPhotos[displayOrder];
+                _context.PostPhotos.Add(new PostPhoto
+                {
+                    PostId = post.Id,
+                    StorageKey = photo.StorageKey,
+                    OriginalFileName = photo.OriginalFileName,
+                    ContentType = photo.ContentType,
+                    FileSizeBytes = photo.FileSizeBytes,
+                    DisplayOrder = displayOrder,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(CancellationToken.None);
+            await DeleteUploadedPhotosAsync(uploadedPhotos);
+            throw;
+        }
 
         return RedirectToAction("Post", "Home", new
         {
             id = post.Id
         });
+    }
+
+    // Cleanup: uploaded post photos
+    /// <summary>
+    /// Description: Deletes uploaded post photos when post creation fails.
+    /// Author: Justin Chik
+    /// </summary>
+    /// <param name="uploadedPhotos">The uploaded photo metadata to clean up.</param>
+    /// <returns>A task representing the asynchronous cleanup operation.</returns>
+    private async Task DeleteUploadedPhotosAsync(IEnumerable<UploadedFile> uploadedPhotos)
+    {
+        foreach (var photo in uploadedPhotos)
+        {
+            await _uploadService.DeleteAsync(photo.StorageKey, CancellationToken.None);
+        }
     }
 
     // GET: POSTS/Edit/5
