@@ -65,10 +65,19 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: |
+          dotnet restore BCIT-Social.csproj
+          dotnet restore tests/BCIT-Social.Tests.csproj
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: |
+          dotnet build BCIT-Social.csproj --configuration Release --no-restore
+          dotnet build tests/BCIT-Social.Tests.csproj --configuration Release --no-restore
+
+      - name: Install Playwright browsers
+        shell: pwsh
+        run: |
+          & ./tests/bin/Release/net10.0/playwright.ps1 install chromium
 
       - name: Test
-        run: dotnet test --configuration Release --no-build
+        run: dotnet test tests/BCIT-Social.Tests.csproj --configuration Release --no-build
