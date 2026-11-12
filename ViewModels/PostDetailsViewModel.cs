@@ -8,7 +8,7 @@ public class CommentViewModel
     // True when the comment was written by the post's author; shows an "Author" badge.
 
     // Id of the user who created the post
-    public string? AuthorId { get; init; }
+    public string? AuthorId { get; init; } = "";
     public bool IsPostAuthor { get; init; }
     public string Content { get; init; } = "";
     // Stored in UTC.
@@ -39,7 +39,7 @@ public class PostDetailsViewModel
     public DateTime CreatedAt { get; set; }
 
     public bool CanEdit { get; set; }
-  
+
     // Data for the post details modal and page: the post plus its comment threads.
     public PostCardViewModel Post { get; init; } = new();
     // Top-level comments, oldest first. Replies are nested inside each comment.
