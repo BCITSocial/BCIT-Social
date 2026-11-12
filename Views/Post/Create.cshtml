@@ -23,15 +23,12 @@
             <span asp-validation-for="Title" class="text-danger"></span>
         </div>
         <div class="form-group">
-            <label asp-for="TagId" class="control-label"></label>
-
-            <select asp-for="TagId"
-                    asp-items="Model.PostTypes"
-                    class="form-control">
-                <option value="">Select post type...</option>
-            </select>
-
-            <span asp-validation-for="TagId" class="text-danger"></span>
+            <label class="control-label">Tags (choose up to 3)</label>
+            @foreach (var tag in Model.PostTypes)
+            {
+                <label><input type="checkbox" name="TagIds" value="@tag.Value" checked="@Model.TagIds.Contains(int.Parse(tag.Value))" /> @tag.Text</label>
+            }
+            <span asp-validation-for="TagIds" class="text-danger"></span>
         </div>
     </div>
 

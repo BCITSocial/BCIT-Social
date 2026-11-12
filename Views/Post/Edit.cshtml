@@ -1,61 +1,68 @@
 @model BCIT_Social.ViewModels.EditPostViewModel
-
+@using Microsoft.AspNetCore.Mvc.Rendering
+@*
+Edit post page. Same look as the create post popup (create-* styles in home.css), on a page instead
+of a popup. Saves to PostController.Edit, which goes back to Model.ReturnUrl.
+*@
 @{
-    ViewData["Title"] = "Edit Post";
+    ViewData["Title"] = "Edit post";
+    Layout = "_HomeLayout";
 }
 
-<h1>Edit Post</h1>
-
-<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
-
-    <input asp-for="Id" type="hidden" />
-
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-    <div class="form-group">
-        <label asp-for="Title" class="control-label"></label>
-        <input asp-for="Title" class="form-control" maxlength="150" />
-        <span asp-validation-for="Title" class="text-danger"></span>
+<section class="panel edit-post" aria-labelledby="edit-post-title">
+    <div class="create-dialog-top">
+        <div>
+            <h1 class="create-title" id="edit-post-title">Edit post</h1>
+            <p class="create-subtitle">
+                @if (Model.CommunityName is null)
+                {
+                    @:Update your post. Changes show up right away.
+                }
+                else
+                {
+                    @:Posted in <strong>@Model.CommunityName</strong>
+                }
+            </p>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label asp-for="TagId" class="control-label"></label>
+    <form class="create-form" method="post" asp-action="Edit" asp-route-id="@Model.Id">
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="ReturnUrl" type="hidden" />
 
-        <select asp-for="TagId"
-                asp-items="Model.PostTypes"
-                class="form-control">
-            <option value="">Select post type...</option>
-        </select>
+        <div class="create-form-body">
+            <div asp-validation-summary="ModelOnly" class="create-error"></div>
 
-        <span asp-validation-for="TagId" class="text-danger"></span>
-    </div>
+            @{
+                var tagChoices = Model.PostTypes.Select(tag => new SelectListItem(tag.Text, tag.Value, Model.TagIds.Contains(int.Parse(tag.Value))));
+            }
+            <partial name="_TagPicker" model='new BCIT_Social.ViewModels.TagPickerViewModel { Name = "TagIds", Options = tagChoices, Min = 1 }' />
+            <span asp-validation-for="TagIds" class="create-error"></span>
 
-    <div class="form-group">
-        <label asp-for="Content" class="control-label"></label>
+            <div class="create-field">
+                <label asp-for="Title">Title</label>
+                <input asp-for="Title" maxlength="150" required />
+                <span asp-validation-for="Title" class="create-error"></span>
+            </div>
 
-        <textarea asp-for="Content"
-                  class="form-control"
-                  rows="6"></textarea>
+            <div class="create-field">
+                <label asp-for="Content">Content</label>
+                <div class="content-editor">
+                    <textarea asp-for="Content" rows="8" required></textarea>
+                    <div class="content-toolbar" aria-label="Formatting (not available yet)">
+                        <button type="button" disabled aria-label="Bold"><strong>B</strong></button>
+                        <button type="button" disabled aria-label="Italic"><em>I</em></button>
+                        <button type="button" disabled aria-label="Quote"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg></button>
+                        <button type="button" disabled aria-label="List"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 7h14M5 12h14M5 17h14" /></svg></button>
+                    </div>
+                </div>
+                <span asp-validation-for="Content" class="create-error"></span>
+            </div>
+        </div>
 
-        <span asp-validation-for="Content" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">
-            Save Changes
-        </button>
-
-        <a asp-action="Details"
-           asp-route-id="@Model.Id"
-           class="btn btn-secondary">
-            Cancel
-        </a>
-    </div>
-
-</form>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
+        <div class="create-footer">
+            <a class="secondary-button edit-post-cancel" href="@Model.ReturnUrl">Cancel</a>
+            <button class="cta-button publish-button" type="submit">Save changes</button>
+        </div>
+    </form>
+</section>

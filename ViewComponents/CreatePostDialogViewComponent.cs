@@ -7,7 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace BCIT_Social.ViewComponents;
 
 // The create post modal in the shared layout. Signed-out visitors get nothing, so Create links
-// fall through to /Post/Create, which sends them to log in.
+// fall through to /Post/Create, which sends them to log in. Inside a community page the layout
+// passes that community's id, and the post is made in that community.
 public class CreatePostDialogViewComponent : ViewComponent
 {
     private readonly ApplicationDbContext _context;
@@ -17,7 +18,7 @@ public class CreatePostDialogViewComponent : ViewComponent
         _context = context;
     }
 
-    public async Task<IViewComponentResult> InvokeAsync()
+    public async Task<IViewComponentResult> InvokeAsync(int? communityId = null)
     {
         if (UserClaimsPrincipal.Identity?.IsAuthenticated != true)
         {
@@ -33,6 +34,17 @@ public class CreatePostDialogViewComponent : ViewComponent
                 .Select(tag => new SelectListItem { Value = tag.Id.ToString(), Text = tag.Name })
                 .ToListAsync(),
         };
+
+        if (communityId is int id)
+        {
+            model.CommunityName = await _context.Communities
+                .AsNoTracking()
+                .Where(community => community.Id == id)
+                .Select(community => community.Name)
+                .FirstOrDefaultAsync();
+            // A community that no longer exists falls back to a normal post.
+            model.CommunityId = model.CommunityName is null ? null : id;
+        }
         return View(model);
     }
 }

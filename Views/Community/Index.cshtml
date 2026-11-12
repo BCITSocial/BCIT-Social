@@ -60,7 +60,7 @@ frontend view for Communities page.
             <h1 class="communities-title" data-text="page-title">@text.GetProperty("pageTitle").GetString()</h1>
             <p class="communities-subtitle" data-text="page-subtitle">@text.GetProperty("pageSubtitle").GetString()</p>
         </div>
-        <button type="button" id="open-create-modal" class="btn-create" data-text="create-button">
+        <button type="button" class="create-button" data-text="create-button" data-open-create="create-community-dialog">
             @text.GetProperty("createButton").GetString()
         </button>
     </div>

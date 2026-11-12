@@ -1,7 +1,7 @@
 {
     "pageTitle": "Communities",
     "pageSubtitle": "Your communities!, Join any that are listed below.",
-    "createButton": "+ Create",
+    "createButton": "Create",
     "searchPlaceholder": "Search communities...",
     "categories": [
         "All",
@@ -39,12 +39,6 @@
     "editLabel": "Edit",
     "deleteLabel": "Delete",
     "createModal": {
-        "tabs": [
-            "Post",
-            "Event",
-            "Community"
-        ],
-        "activeTab": "Community",
         "title": "Create community",
         "subtitle": "Build a space around a shared interest.",
         "coverTitle": "Add a cover image",

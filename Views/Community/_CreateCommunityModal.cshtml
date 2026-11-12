@@ -1,138 +1,78 @@
 @*
 - Partial View: Create Community Pop-up Modal
 - author: jaspreet bath
+- Uses the same popup style as Create post (create-dialog in home.css); create-post.js opens and closes it.
+  The wording comes from the "createModal" section of communities-text.json.
 *@
 
 @model System.Text.Json.JsonElement
 
-<div id="create-community-modal" class="modal-backdrop-custom" aria-hidden="true">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        <!-- Top Switcher Bar & Close Button -->
-        <div class="modal-top-bar">
-            <div class="modal-switcher">
-                @{
-                    var activeTabName = Model.GetProperty("activeTab").GetString();
-                    foreach (var tab in Model.GetProperty("tabs").EnumerateArray())
-                    {
-                        var tabText = tab.GetString();
-                        <button type="button" class="switcher-tab @(tabText == activeTabName ? "active" : "")">
-                            @tabText
-                        </button>
-                    }
-                }
-            </div>
-            <button type="button" id="close-create-modal" class="modal-close-btn" aria-label="Close">&times;</button>
+<dialog class="create-dialog" id="create-community-dialog" aria-labelledby="create-community-title">
+    <div class="create-dialog-top">
+        <div>
+            <h2 class="create-title" id="create-community-title">@Model.GetProperty("title").GetString()</h2>
+            <p class="create-subtitle">@Model.GetProperty("subtitle").GetString()</p>
         </div>
+        <button class="icon-button" type="button" data-close-create aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        </button>
+    </div>
 
-        <h2 id="modal-title" class="modal-title">@Model.GetProperty("title").GetString()</h2>
-        <p class="modal-subtitle">@Model.GetProperty("subtitle").GetString()</p>
-
-        <!-- Form posts to CommunityController.Create -->
-        <form id="create-community-form" asp-action="Create" method="post">
-            <!-- Cover Image Placeholder Box -->
-            <div class="cover-upload-box">
-                <div class="cover-text-group">
-                    <span class="cover-title">@Model.GetProperty("coverTitle").GetString()</span>
-                    <span class="cover-sub">@Model.GetProperty("coverSubtitle").GetString()</span>
-                </div>
-                <div class="avatar-upload-box">+</div>
-            </div>
-
-            <!-- Community Name -->
-            <div class="modal-field">
-                <label for="Name" class="modal-label">@Model.GetProperty("nameLabel").GetString()</label>
-                <input type="text" id="Name" name="Name" class="modal-input" required
+    <!-- Form posts to CommunityController.Create -->
+    <form id="create-community-form" class="create-form" method="post" asp-area="" asp-controller="Community" asp-action="Create">
+        <div class="create-form-body">
+            <div class="create-field">
+                <label for="Name">@Model.GetProperty("nameLabel").GetString()</label>
+                <input type="text" id="Name" name="Name" required
                        placeholder="@Model.GetProperty("namePlaceholder").GetString()" />
             </div>
 
-            <!-- Description -->
-            <div class="modal-field">
-                <label for="Description" class="modal-label">@Model.GetProperty("descriptionLabel").GetString()</label>
-                <textarea id="Description" name="Description" rows="3" class="modal-input"
+            <div class="create-field">
+                <label for="Description">@Model.GetProperty("descriptionLabel").GetString()</label>
+                <textarea id="Description" name="Description" rows="3"
                           placeholder="@Model.GetProperty("descriptionPlaceholder").GetString()"></textarea>
             </div>
 
-            <!-- 1. Category & Campus Row -->
-            <div class="modal-row-2col">
-                <div class="modal-field">
-                    <label for="modal-category-select"
-                           class="modal-label">@Model.GetProperty("categoryLabel").GetString()</label>
-                    <select id="modal-category-select" class="modal-input">
-                        @foreach (var opt in Model.GetProperty("categoryOptions").EnumerateArray())
-                        {
-                            <option value="@opt.GetString()">@opt.GetString()</option>
-                        }
-                    </select>
-                </div>
+            @{
+                // Category and tag used to be two dropdowns; they are one list of tags now.
+                var tagChoices = Model.GetProperty("categoryOptions").EnumerateArray()
+                    .Concat(Model.GetProperty("tagOptions").EnumerateArray())
+                    .Select(opt => opt.GetString()!)
+                    .Where(opt => !opt.Equals("None", StringComparison.OrdinalIgnoreCase))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Select(opt => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem(opt, opt));
+            }
+            <partial name="_TagPicker" model='new BCIT_Social.ViewModels.TagPickerViewModel { Id = "community-tags", Legend = "Tags", Options = tagChoices, Min = 1 }' />
 
-                <div class="modal-field">
-                    <label for="Campus" class="modal-label">@Model.GetProperty("campusLabel").GetString()</label>
-                    <select id="Campus" name="Campus" class="modal-input">
-                        @foreach (var campus in Model.GetProperty("campusOptions").EnumerateArray())
-                        {
-                            <option value="@campus.GetString()">@campus.GetString()</option>
-                        }
-                    </select>
-                </div>
-            </div>
-
-            <!-- 2. Tag (Blue) & Status Tag (Green) Row -->
-            <div class="modal-row-2col">
-                <div class="modal-field">
-                    <label for="modal-tag-select" class="modal-label">@Model.GetProperty("tagLabel").GetString()</label>
-                    <select id="modal-tag-select" class="modal-input input-tag">
-                        @foreach (var opt in Model.GetProperty("tagOptions").EnumerateArray())
-                        {
-                            <option value="@opt.GetString()">@opt.GetString()</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="modal-field">
-                    <label for="modal-status-select"
-                           class="modal-label">@Model.GetProperty("statusTagLabel").GetString()</label>
-                    <select id="modal-status-select" class="modal-input input-status">
-                        @foreach (var opt in Model.GetProperty("statusOptions").EnumerateArray())
-                        {
-                            <option value="@opt.GetString()">@opt.GetString()</option>
-                        }
-                    </select>
-                </div>
-            </div>
-
-            <!-- 3. Time Tag (Orange) Dropdown -->
-            <div class="modal-field">
-                <label for="modal-time-select"
-                       class="modal-label">@Model.GetProperty("timeTagLabel").GetString()</label>
-                <select id="modal-time-select" class="modal-input input-time">
-                    @foreach (var opt in Model.GetProperty("timeOptions").EnumerateArray())
+            <div class="create-field">
+                <label for="Campus">@Model.GetProperty("campusLabel").GetString()</label>
+                <select id="Campus" name="Campus">
+                    @foreach (var campus in Model.GetProperty("campusOptions").EnumerateArray())
                     {
-                        <option value="@opt.GetString()">@opt.GetString()</option>
+                        <option value="@campus.GetString()">@campus.GetString()</option>
                     }
                 </select>
             </div>
 
-            <!-- Hidden input for combined tags synced to backend model Community.Type -->
-            <input type="hidden" id="combined-type-input" name="Type" value="Club" />
+            <!-- communities.js merges the ticked tags and the campus into Community.Type -->
+            <input type="hidden" id="combined-type-input" name="Type" value="" />
 
-            <!-- Live Tag Preview Box -->
-            <div class="modal-field" style="margin-top: 0.5rem;">
-                <label class="modal-label" style="color: var(--text-muted); font-size: 0.75rem;">Tags preview</label>
-                <div id="modal-tag-preview" class="badge-row" style="flex-wrap: wrap; min-height: 26px; gap: 0.4rem;">
-                </div>
-            </div>
+            <button class="attach-box" type="button" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="5" width="17" height="14" rx="1.5" /><circle cx="9" cy="10" r="1.6" /><path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5" /></svg>
+                @Model.GetProperty("coverTitle").GetString()
+                <span class="visually-hidden">(not available yet)</span>
+            </button>
 
-            <p class="modal-helper-note">@Model.GetProperty("helperNote").GetString()</p>
+            <p class="create-help">@Model.GetProperty("helperNote").GetString()</p>
+        </div>
 
-            <!-- Modal Footer Buttons -->
-            <div class="modal-footer-actions">
-                <button type="button" id="cancel-create-modal" class="btn-cancel">
-                    @Model.GetProperty("cancelButton").GetString()
-                </button>
-                <button type="submit" class="btn-create">
-                    @Model.GetProperty("submitButton").GetString()
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+        <div class="create-footer">
+            <button class="secondary-button" type="button" data-close-create>
+                @Model.GetProperty("cancelButton").GetString()
+            </button>
+            <button class="cta-button publish-button" type="submit">
+                @Model.GetProperty("submitButton").GetString()
+            </button>
+        </div>
+    </form>
+</dialog>

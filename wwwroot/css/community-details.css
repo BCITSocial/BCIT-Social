@@ -315,3 +315,89 @@
     font-size: 0.9rem;
     text-align: center;
 }
+
+/* 3. Tabs: Overview and Members (community-tabs.js) */
+.details-tabs {
+    display: flex;
+    gap: 1.5rem;
+    border-bottom: 1px solid var(--details-border);
+}
+
+.tab-link {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.tab-link:hover {
+    color: var(--text-main);
+}
+
+.tab-link[aria-selected="true"] {
+    color: var(--brand-blue);
+    border-bottom-color: var(--brand-blue);
+}
+
+.details-tab-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.details-tab-panel[hidden] {
+    display: none;
+}
+
+/* Members tab list */
+.member-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.member-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0;
+    border-top: 1px solid var(--details-border);
+}
+
+.member-row:first-child {
+    border-top: 0;
+}
+
+.member-info {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.member-name {
+    overflow: hidden;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-name:hover {
+    text-decoration: underline;
+}
+
+.member-joined {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+.join-form { margin: 0; }

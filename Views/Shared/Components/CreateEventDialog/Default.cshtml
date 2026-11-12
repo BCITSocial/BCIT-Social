@@ -1,0 +1,63 @@
+@model BCIT_Social.ViewModels.CreateEventViewModel
+@*
+The create event popup on the Events page, in the same style as Create post (create-dialog in home.css).
+Front-end mockup only: there is no backend to save events yet, so the form uses method="dialog" and
+submitting just closes the popup. TODO(BE): point the form at a create event action when one exists.
+*@
+<dialog class="create-dialog" id="create-event-dialog" aria-labelledby="create-event-title">
+    <div class="create-dialog-top">
+        <div>
+            <h2 class="create-title" id="create-event-title">Create event</h2>
+            <p class="create-subtitle">Bring people together on campus or online.</p>
+        </div>
+        <button class="icon-button" type="button" data-close-create aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        </button>
+    </div>
+
+    <form class="create-form" method="dialog">
+        <div class="create-form-body">
+            <div class="create-field">
+                <label for="create-event-title-input">Title</label>
+                <input id="create-event-title-input" name="Title" maxlength="150" placeholder="Intro to Git workshop" required />
+            </div>
+
+            <partial name="_TagPicker" model='new BCIT_Social.ViewModels.TagPickerViewModel { Name = "TagIds", Options = Model.Tags }' />
+
+            <div class="create-row">
+                <div class="create-field">
+                    <label for="create-event-date">Date and time</label>
+                    <input id="create-event-date" name="EventDate" type="datetime-local" required
+                           min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                </div>
+
+                <div class="create-field">
+                    <label for="create-event-community">Hosted by</label>
+                    <select id="create-event-community" name="CommunityId">
+                        <option value="">Just me</option>
+                        @foreach (var community in Model.Communities)
+                        {
+                            <option value="@community.Value">@community.Text</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="create-field">
+                <label for="create-event-location">Location</label>
+                <input id="create-event-location" name="Location" placeholder="SE12 room 101, or an online link" />
+            </div>
+
+            <div class="create-field">
+                <label for="create-event-description">Description</label>
+                <textarea id="create-event-description" name="Description" rows="3" placeholder="What will happen, and who should come?"></textarea>
+                <p class="create-help">Preview only: events aren't saved yet.</p>
+            </div>
+        </div>
+
+        <div class="create-footer">
+            <button class="secondary-button" type="button" data-close-create>Cancel</button>
+            <button class="cta-button publish-button" type="submit">Create event</button>
+        </div>
+    </form>
+</dialog>

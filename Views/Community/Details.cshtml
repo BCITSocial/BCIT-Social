@@ -17,6 +17,8 @@
     if (Model?.IsMember == true)
     {
         ViewData["ActiveCommunityId"] = Model.Id;
+        // The layout's create post popup posts into this community.
+        ViewData["CreatePostCommunityId"] = Model.Id;
     }
     var jsonPath = System.IO.Path.Combine(Env.WebRootPath, "content", "community-details-text.json");
     var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
@@ -72,6 +74,10 @@
     var isUserJoined = (Model?.Members != null && !string.IsNullOrEmpty(currentUserId) && Model.Members.Any(m => m.UserId ==
 currentUserId))
                        || rawTags.Contains(activeStatus, StringComparer.OrdinalIgnoreCase);
+    // The creator owns the community: their pill says Owner and they get no Leave button.
+    // Model.Creator is the creator's username, the same value as User.Identity.Name.
+    var isOwner = !string.IsNullOrEmpty(User.Identity?.Name)
+                  && string.Equals(Model?.Creator, User.Identity.Name, StringComparison.OrdinalIgnoreCase);
 
 
     var defaultEmptyDesc = mainText.GetProperty("defaultDescription").GetString();
@@ -101,18 +107,14 @@ currentUserId))
             <div>
                 <div class="title-line">
                     <h2 class="community-main-title">@Model?.Name</h2>
-                    @if (isUserJoined)
+                    @if (isOwner)
+                    {
+                        <span class="pill-joined" data-text="owner-label">@meta.GetProperty("ownerLabel").GetString()</span>
+                    }
+                    else if (isUserJoined)
                     {
                         <span class="pill-joined"
                               data-text="joined-label">@meta.GetProperty("joinedLabel").GetString()</span>
-                    }
-                    else
-                    {
-                        <form asp-action="Join" asp-route-id="@Model?.Id" method="post" style="margin: 0; display: inline;">
-                            <button type="submit" class="btn-create" style="padding: 0.2rem 0.65rem; font-size: 0.75rem;">
-                                @meta.GetProperty("joinButton").GetString()
-                            </button>
-                        </form>
                     }
                 </div>
                 <div class="meta-sub-row">
@@ -125,9 +127,8 @@ currentUserId))
                                        : "";
                         <span class="category-badge @badgeClass">@rawTag</span>
                     }
-                    <span>@meta.GetProperty("privacy").GetString()</span>
-                    <span>&bull;</span>
-                    <a asp-action="Members" asp-route-id="@Model?.Id">
+                    @* Opens the Members tab below (community-tabs.js). Without JavaScript it goes to the old Members page. *@
+                    <a class="members-link" asp-action="Members" asp-route-id="@Model?.Id" data-show-tab="members">
                     <span>@(Model?.Members?.Count ?? 0) @mainText.GetProperty("membersLabel").GetString()</span></a>
                     <span>&bull;</span>
                     <span>@modelLocation</span>
@@ -136,14 +137,22 @@ currentUserId))
         </div>
 
         <div class="meta-right-actions">
-            <!-- Modal trigger button instead of route link -->
             @if (Model?.IsMember ?? false)
-            {   
-                <a asp-action="Leave" asp-route-id="@Model?.Id" class="btn-settings"> Leave </a> //TODO: REPLACE THIS TEXT
-            
-            <button type="button" id="open-create-modal" class="btn-create">
-                @meta.GetProperty("createButton").GetString()
-            </button>
+            {
+                @* Owners can't leave their own community. *@
+                if (!isOwner)
+                {
+                    <a asp-action="Leave" asp-route-id="@Model?.Id" class="btn-settings">@meta.GetProperty("leaveButton").GetString()</a>
+                }
+                <button type="button" class="create-button" data-open-create="create-post-dialog">
+                    @meta.GetProperty("createButton").GetString()
+                </button>
+            }
+            else if (!isUserJoined)
+            {
+                <form asp-action="Join" asp-route-id="@Model?.Id" method="post" class="join-form">
+                    <button type="submit" class="create-button">@meta.GetProperty("joinButton").GetString()</button>
+                </form>
             }
             @if (Model?.IsMod ?? false)
             {   
@@ -154,41 +163,88 @@ currentUserId))
         </div>
     </div>
 
-    <!-- 4. About Card -->
-    <div class="details-card">
-        <h3 class="section-title" style="margin-bottom: 0.45rem;">@text.GetProperty("aboutHeading").GetString()</h3>
-        <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">
-            @communityDesc
-        </p>
+    <!-- 3. Tabs: Overview (about + posts) and Members. community-tabs.js switches them. -->
+    <div class="details-tabs" role="tablist" aria-label="Community sections">
+        <button type="button" class="tab-link" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true" data-tab="overview">
+            @text.GetProperty("navTabs")[0].GetString()
+        </button>
+        <button type="button" class="tab-link" role="tab" id="tab-members" aria-controls="panel-members" aria-selected="false" data-tab="members" tabindex="-1">
+            @text.GetProperty("navTabs")[1].GetString()
+        </button>
     </div>
 
-    <!-- 5. Latest Discussions -->
-    <div class="discussions-section-container">
-        <div class="section-header-row">
-            <h3 class="section-title">@discussionsSection.GetProperty("title").GetString()</h3>
+    <div class="details-tab-panel" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
+        <!-- 4. About Card -->
+        <div class="details-card">
+            <h3 class="section-title" style="margin-bottom: 0.45rem;">@text.GetProperty("aboutHeading").GetString()</h3>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">
+                @communityDesc
+            </p>
         </div>
-        @* The community's real posts, as the same clickable cards as the Home feed. *@
-        @if (Model!.Posts.Count == 0)
-        {
-            <p class="discussions-empty">No posts in this community yet.</p>
-        }
-        else
-        {
-            ViewData["PostReturnUrl"] = Url.Action("Details", "Community", new { id = Model.Id });
-            <div class="feed-list">
-                <partial name="~/Views/Home/_PostCards.cshtml" model="Model.Posts" />
+
+        <!-- 5. Latest Discussions -->
+        <div class="discussions-section-container">
+            <div class="section-header-row">
+                <h3 class="section-title">@discussionsSection.GetProperty("title").GetString()</h3>
             </div>
-        }
+            @* The community's real posts, as the same clickable cards as the Home feed. *@
+            @if (Model!.Posts.Count == 0)
+            {
+                <p class="discussions-empty">No posts in this community yet.</p>
+            }
+            else
+            {
+                ViewData["PostReturnUrl"] = Url.Action("Details", "Community", new { id = Model.Id });
+                <div class="feed-list">
+                    <partial name="~/Views/Home/_PostCards.cshtml" model="Model.Posts" />
+                </div>
+            }
+        </div>
+    </div>
+
+    @* Everyone in the community, moderators first. Kick and moderator changes stay on the Manage members page. *@
+    <div class="details-tab-panel" role="tabpanel" id="panel-members" aria-labelledby="tab-members" hidden>
+        <div class="details-card">
+            <div class="section-header-row">
+                <h3 class="section-title">@text.GetProperty("navTabs")[1].GetString() (@(Model?.Members?.Count ?? 0))</h3>
+                @if (Model?.IsMod ?? false)
+                {
+                    <a class="link-action-btn" asp-action="Members" asp-route-id="@Model?.Id">Manage members</a>
+                }
+            </div>
+            @if ((Model?.Members?.Count ?? 0) == 0)
+            {
+                <p class="discussions-empty">No members yet.</p>
+            }
+            else
+            {
+                <ul class="member-list">
+                    @foreach (var member in Model!.Members.OrderByDescending(m => m.IsModerator).ThenBy(m => m.JoinedAt))
+                    {
+                        var memberName = member.User?.UserName ?? "Member";
+                        var initials = memberName.Length >= 2 ? memberName[..2].ToUpperInvariant() : memberName.ToUpperInvariant();
+                        <li class="member-row">
+                            <span class="avatar-initials" aria-hidden="true">@initials</span>
+                            <div class="member-info">
+                                <a class="member-name" asp-controller="Profile" asp-action="Details" asp-route-id="@member.UserId">@memberName</a>
+                                <span class="member-joined">Joined @member.JoinedAt.ToString("MMM d, yyyy")</span>
+                            </div>
+                            @if (member.IsModerator)
+                            {
+                                <span class="category-badge">Moderator</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
     </div>
 </div>
 
 <partial name="_PostDialog" />
 
-    <!-- Modular Modal Partial Inclusion -->
-    <partial name="_CreateCommunityModal" model="modal" />
-
-    @section Scripts {
-        <!-- communities.js drives modal opening, closing, and tag synchronization -->
-        <script src="~/js/communities.js" asp-append-version="true"></script>
-        <script src="~/js/post-details.js" asp-append-version="true" defer></script>
-    }
+@* The Create button opens the layout's create post popup, already set to this community. *@
+@section Scripts {
+    <script src="~/js/post-details.js" asp-append-version="true" defer></script>
+    <script src="~/js/community-tabs.js" asp-append-version="true" defer></script>
+}

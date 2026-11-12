@@ -43,77 +43,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     searchInput?.addEventListener("input", filterCards);
 
-    // modal Open / Close
-    const modal = document.getElementById("create-community-modal");
-    const toggleModal = (show) => modal?.classList.toggle("open", show);
+    // The create community popup is opened and closed by create-post.js.
+    const modal = document.getElementById("create-community-dialog");
 
-    document.getElementById("open-create-modal")?.addEventListener("click", () => {
-        syncModalTags();
-        toggleModal(true);
-    });
-    document.getElementById("close-create-modal")?.addEventListener("click", () => toggleModal(false));
-    document.getElementById("cancel-create-modal")?.addEventListener("click", () => toggleModal(false));
-    modal?.addEventListener("click", (e) => { if (e.target === modal) toggleModal(false); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") toggleModal(false); });
-
-    // modal Dropdowns -> Colored Preview & Type Sync
-    const categorySelect = document.getElementById("modal-category-select");
-    const tagSelect = document.getElementById("modal-tag-select");
-    const statusSelect = document.getElementById("modal-status-select");
-    const timeSelect = document.getElementById("modal-time-select");
+    // Ticked tags (_TagPicker) plus the campus are saved together in Community.Type, comma separated.
+    const tagPicker = document.getElementById("community-tags");
     const campusSelect = document.getElementById("Campus");
     const hiddenTypeInput = document.getElementById("combined-type-input");
-    const previewContainer = document.getElementById("modal-tag-preview");
 
     function syncModalTags() {
         if (!hiddenTypeInput) return;
 
-        const allTags = [];
-        const previewPills = [];
+        const allTags = [...(tagPicker?.querySelectorAll("input:checked") ?? [])].map(box => box.value);
 
-        // Category (Blue)
-        const cat = categorySelect?.value?.trim();
-        if (cat && cat !== "None") {
-            allTags.push(cat);
-            previewPills.push(`<span class="category-badge">${cat}</span>`);
-        }
-
-        // Tag (Blue)
-        const tag = tagSelect?.value?.trim();
-        if (tag && tag !== "None" && !allTags.includes(tag)) {
-            allTags.push(tag);
-            previewPills.push(`<span class="category-badge">${tag}</span>`);
-        }
-
-        // Status Tag (Green)
-        const status = statusSelect?.value?.trim();
-        if (status && status !== "None" && !allTags.includes(status)) {
-            allTags.push(status);
-            previewPills.push(`<span class="category-badge status-badge">${status}</span>`);
-        }
-
-        // Time Tag (Orange)
-        const time = timeSelect?.value?.trim();
-        if (time && time !== "None" && !allTags.includes(time)) {
-            allTags.push(time);
-            previewPills.push(`<span class="category-badge time-badge">${time}</span>`);
-        }
-
-        // Campus / Location (Bundled for backend persistence, not previewed as a pill)
+        // Campus / Location (Bundled for backend persistence, not shown as a tag)
         const campus = campusSelect?.value?.trim();
         if (campus && campus !== "None" && campus !== "All campuses" && !allTags.includes(campus)) {
             allTags.push(campus);
         }
 
         hiddenTypeInput.value = allTags.join(", ");
-
-        if (previewContainer) {
-            previewContainer.innerHTML = previewPills.join("");
-        }
     }
 
-    modal?.querySelectorAll("select").forEach(select => {
-        select.addEventListener("change", syncModalTags);
+    modal?.querySelectorAll("select, input[type=checkbox]").forEach(field => {
+        field.addEventListener("change", syncModalTags);
     });
     modal?.querySelector("form")?.addEventListener("submit", syncModalTags);
 

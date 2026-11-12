@@ -153,6 +153,12 @@ public class PostController : Controller
         CreatePostViewModel viewModel,
         CancellationToken cancellationToken)
     {
+        var tagIds = viewModel.TagIds.Distinct().ToList();
+        if (await _context.Tags.CountAsync(tag => tagIds.Contains(tag.Id), cancellationToken) != tagIds.Count)
+        {
+            ModelState.AddModelError(nameof(viewModel.TagIds), "Please select valid tags.");
+        }
+
         if (!ModelState.IsValid)
         {
             viewModel.PostTypes = await _context.Tags
@@ -174,10 +180,19 @@ public class PostController : Controller
             return Challenge();
         }
 
+        // Only members can post into a community.
+        if (viewModel.CommunityId is int communityId
+            && !await _context.CommunityMembers.AnyAsync(
+                member => member.CommunityId == communityId && member.UserId == authorId,
+                cancellationToken))
+        {
+            return Forbid();
+        }
+
         var post = new Post
         {
             AuthorId = authorId,
-            CommunityId = null,
+            CommunityId = viewModel.CommunityId,
             Title = viewModel.Title,
             Content = viewModel.Content,
             CreatedAt = DateTime.UtcNow,
@@ -223,13 +238,14 @@ public class PostController : Controller
             _context.Posts.Add(post);
             await _context.SaveChangesAsync(cancellationToken);
 
-            var postTag = new PostTags
+            foreach (var tagId in viewModel.TagIds.Distinct())
             {
-                PostId = post.Id,
-                TagId = viewModel.TagId
-            };
-
-            _context.PostTags.Add(postTag);
+                _context.PostTags.Add(new PostTags
+                {
+                    PostId = post.Id,
+                    TagId = tagId
+                });
+            }
             await _context.SaveChangesAsync(cancellationToken);
 
             for (var displayOrder = 0; displayOrder < uploadedPhotos.Count; displayOrder++)
@@ -256,10 +272,10 @@ public class PostController : Controller
             throw;
         }
 
-        return RedirectToAction("Post", "Home", new
-        {
-            id = post.Id
-        });
+        // Back to the feed the post was made from: the community's page, or the home feed.
+        return post.CommunityId is int postCommunityId
+            ? RedirectToAction("Details", "Community", new { id = postCommunityId })
+            : RedirectToAction("Index", "Home");
     }
 
     // Cleanup: uploaded post photos
@@ -285,7 +301,7 @@ public class PostController : Controller
     /// <param name="id">The ID of the post being edited.</param>
     /// <returns>The Edit Post view, or an error result when the post cannot be edited.</returns>
     [Authorize]
-    public async Task<IActionResult> Edit(int? id)
+    public async Task<IActionResult> Edit(int? id, string? returnUrl)
     {
         if (id == null)
         {
@@ -309,15 +325,19 @@ public class PostController : Controller
             return Forbid();
         }
 
-        var postTag = await _context.PostTags
-            .FirstOrDefaultAsync(postTag => postTag.PostId == post.Id);
+        var postTagIds = await _context.PostTags
+            .Where(postTag => postTag.PostId == post.Id)
+            .Select(postTag => postTag.TagId)
+            .ToListAsync();
 
         var viewModel = new EditPostViewModel
         {
             Id = post.Id,
             Title = post.Title,
             Content = post.Content,
-            TagId = postTag?.TagId ?? 0,
+            TagIds = postTagIds,
+            ReturnUrl = EditReturnUrl(returnUrl, post),
+            CommunityName = await CommunityNameAsync(post.CommunityId),
             PostTypes = await _context.Tags
                 .OrderBy(tag => tag.Name)
                 .Select(tag => new SelectListItem
@@ -368,18 +388,22 @@ public class PostController : Controller
             return Forbid();
         }
 
-        bool tagExists = await _context.Tags
-            .AnyAsync(tag => tag.Id == viewModel.TagId);
+        var tagIds = viewModel.TagIds.Distinct().ToList();
+        bool tagsExist = await _context.Tags
+            .CountAsync(tag => tagIds.Contains(tag.Id)) == tagIds.Count;
 
-        if (!tagExists)
+        if (!tagsExist)
         {
             ModelState.AddModelError(
-                nameof(viewModel.TagId),
-                "Please select a valid post type.");
+                nameof(viewModel.TagIds),
+                "Please select valid tags.");
         }
+
+        viewModel.ReturnUrl = EditReturnUrl(viewModel.ReturnUrl, post);
 
         if (!ModelState.IsValid)
         {
+            viewModel.CommunityName = await CommunityNameAsync(post.CommunityId);
             viewModel.PostTypes = await _context.Tags
                 .OrderBy(tag => tag.Name)
                 .Select(tag => new SelectListItem
@@ -401,19 +425,42 @@ public class PostController : Controller
 
         _context.PostTags.RemoveRange(existingPostTags);
 
-        _context.PostTags.Add(new PostTags
+        foreach (var tagId in tagIds)
         {
-            PostId = post.Id,
-            TagId = viewModel.TagId
-        });
+            _context.PostTags.Add(new PostTags
+            {
+                PostId = post.Id,
+                TagId = tagId
+            });
+        }
 
         await _context.SaveChangesAsync();
 
-        return RedirectToAction("Post", "Home", new
-        {
-            id = post.Id
-        });
+        return LocalRedirect(viewModel.ReturnUrl);
     }
+
+    // Where the edit page goes back to: the page that opened it when that's on this site,
+    // otherwise the post's community page or the home feed.
+    private string EditReturnUrl(string? returnUrl, Post post)
+    {
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return returnUrl;
+        }
+
+        return post.CommunityId is int communityId
+            ? Url.Action("Details", "Community", new { id = communityId })!
+            : Url.Action("Index", "Home")!;
+    }
+
+    // The community name shown on the edit page, or null for a post on the main feed.
+    private Task<string?> CommunityNameAsync(int? communityId) =>
+        communityId is null
+            ? Task.FromResult<string?>(null)
+            : _context.Communities
+                .Where(community => community.Id == communityId)
+                .Select(community => community.Name)
+                .FirstOrDefaultAsync();
 
     // GET: POSTS/Delete/5
     /// <summary>

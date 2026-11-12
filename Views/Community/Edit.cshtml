@@ -85,32 +85,19 @@
                               placeholder="@modal.GetProperty("descriptionPlaceholder").GetString()">@description</textarea>
                 </div>
 
-                @* category dropdown
-                   returns true if one is selected(.Any) *@
+                @* Tags: category and tag used to be two dropdowns; they are one list of up to 3 tags now.
+                   community-edit.js saves the ticked tags plus the campus into Type. *@
+                @{
+                    var tagNames = (dropdownTypes ?? Enumerable.Empty<SelectListItem>()).Select(opt => opt.Value ?? opt.Text)
+                        .Concat(edit.GetProperty("categoryOptions").EnumerateArray().Select(opt => opt.GetString()!))
+                        .Concat(edit.GetProperty("tagOptions").EnumerateArray().Select(opt => opt.GetString()!))
+                        .Where(opt => !string.IsNullOrWhiteSpace(opt) && !opt.Equals("None", StringComparison.OrdinalIgnoreCase))
+                        .Distinct(StringComparer.OrdinalIgnoreCase);
+                    var tagChoices = tagNames.Select(opt => new SelectListItem(opt, opt,
+                        existingTags.Contains(opt, StringComparer.OrdinalIgnoreCase)));
+                }
                 <div class="modal-field">
-                    <label for="edit-category-select"
-                           class="modal-label">@edit.GetProperty("categoryLabel").GetString()</label>
-                    <select id="edit-category-select" class="modal-input">
-                        @if (dropdownTypes != null && dropdownTypes.Any())
-                        {
-                            @foreach (var opt in dropdownTypes)
-                            {
-                                var optVal = opt.Value ?? opt.Text;
-                                var isSelected = existingTags.Contains(optVal, StringComparer.OrdinalIgnoreCase);
-                                <option value="@optVal" selected="@isSelected">@opt.Text</option>
-                            }
-                        }
-                        @* fallback, if no list from viewmodel, uses json *@
-                        else
-                        {
-                            @foreach (var opt in edit.GetProperty("categoryOptions").EnumerateArray())
-                            {
-                                var optVal = opt.GetString();
-                                var isSelected = existingTags.Contains(optVal, StringComparer.OrdinalIgnoreCase);
-                                <option value="@optVal" selected="@isSelected">@optVal</option>
-                            }
-                        }
-                    </select>
+                    <partial name="_TagPicker" model='new BCIT_Social.ViewModels.TagPickerViewModel { Id = "edit-community-tags", Legend = "Tags", Options = tagChoices, Min = 1 }' />
                 </div>
 
                 @* location campus dropdown *@
@@ -125,58 +112,6 @@
                             <option value="@cVal" selected="@isSelected">@cVal</option>
                         }
                     </select>
-                </div>
-
-                @* tag dropdown *@
-                <div class="modal-field">
-                    <label for="edit-tag-select" class="modal-label">@edit.GetProperty("tagLabel").GetString()</label>
-                    <select id="edit-tag-select" class="modal-input input-tag">
-                        @foreach (var opt in edit.GetProperty("tagOptions").EnumerateArray())
-                        {
-                            var optVal = opt.GetString();
-                            var isSelected = optVal != "None" && existingTags.Contains(optVal,
-                        StringComparer.OrdinalIgnoreCase);
-                            <option value="@optVal" selected="@isSelected">@optVal</option>
-                        }
-                    </select>
-                </div>
-
-                @* status dropdown *@
-                <div class="modal-field">
-                    <label for="edit-status-select"
-                           class="modal-label">@edit.GetProperty("statusTagLabel").GetString()</label>
-                    <select id="edit-status-select" class="modal-input input-status">
-                        @foreach (var opt in edit.GetProperty("statusOptions").EnumerateArray())
-                        {
-                            var optVal = opt.GetString();
-                            var isSelected = optVal != "None" && existingTags.Contains(optVal,
-                        StringComparer.OrdinalIgnoreCase);
-                            <option value="@optVal" selected="@isSelected">@optVal</option>
-                        }
-                    </select>
-                </div>
-
-                @* time tag dropdown *@
-                <div class="modal-field">
-                    <label for="edit-time-select"
-                           class="modal-label">@edit.GetProperty("timeTagLabel").GetString()</label>
-                    <select id="edit-time-select" class="modal-input input-time">
-                        @foreach (var opt in edit.GetProperty("timeOptions").EnumerateArray())
-                        {
-                            var optVal = opt.GetString();
-                            var isSelected = optVal != "None" && existingTags.Contains(optVal,
-                        StringComparer.OrdinalIgnoreCase);
-                            <option value="@optVal" selected="@isSelected">@optVal</option>
-                        }
-                    </select>
-                </div>
-
-                @* live tag preview box *@
-                <div class="modal-field" style="margin-top: 1.25rem;">
-                    <label class="modal-label"
-                           style="color: var(--text-muted);">@edit.GetProperty("previewLabel").GetString()</label>
-                    <div id="edit-tag-preview" class="badge-row"
-                         style="flex-wrap: wrap; min-height: 28px; gap: 0.4rem;"></div>
                 </div>
 
                 @* action buttons *@

@@ -7,15 +7,17 @@
     },
     "communityMeta": {
         "joinedLabel": "Joined",
-        "joinButton": "+ Join",
-        "privacy": "Public community",
+        "joinButton": "Join",
+        "leaveButton": "Leave",
+        "ownerLabel": "Owner",
         "campus": "Burnaby Campus",
-        "createButton": "+ Create",
+        "createButton": "Create",
         "settingsButton": "Settings"
     },
     "aboutHeading": "About",
     "navTabs": [
-        "Overview"
+        "Overview",
+        "Members"
     ],
     "discussionsSection": {
         "title": "Latest discussions",

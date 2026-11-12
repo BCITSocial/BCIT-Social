@@ -5,6 +5,8 @@
 
 /* Panel header: title on the left, status chips on the right. */
 .events-panel-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.events-head-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.events-head-actions .create-button { min-height: 44px; }
 .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip-group a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; border-radius: 8px; background: var(--color-input); color: var(--color-muted); text-decoration: none; }
 .chip-group [aria-current="page"] { background: var(--color-selected); color: var(--color-accent); font-weight: var(--font-weight-bold); }

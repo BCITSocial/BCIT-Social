@@ -38,8 +38,10 @@ Renders the Home banner, share box, feed, and discovery panel.
     <section class="panel home-section share-box" aria-labelledby="share-heading">
         <h2 id="share-heading" class="visually-hidden">Create a post</h2>
         <span class="avatar" aria-hidden="true">@(Model.CurrentUserInitials == "" ? "?" : Model.CurrentUserInitials)</span>
-        <a class="share-prompt" asp-controller="Post" asp-action="Create" data-open-create>What would you like to share?</a>
-        <a class="cta-button" asp-controller="Post" asp-action="Create" data-open-create>+ Create</a>
+        @* Whatever is typed here becomes the post's content when Create opens the popup (create-post.js). *@
+        <label class="visually-hidden" for="share-prompt">What would you like to share?</label>
+        <input class="share-prompt" id="share-prompt" type="text" placeholder="What would you like to share?" autocomplete="off" data-create-prefill-source />
+        <a class="create-button" asp-controller="Post" asp-action="Create" data-open-create="create-post-dialog" data-create-prefill="#share-prompt">Create</a>
         <p class="share-hint">Ask a question, find friends, or share an update.</p>
     </section>
 }

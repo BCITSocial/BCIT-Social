@@ -82,7 +82,7 @@
             }
             @if (post.IsAuthor)
             {
-                <a class="post-action" asp-controller="Post" asp-action="Edit" asp-route-id="@post.Id">Edit</a>
+                <a class="post-action" asp-controller="Post" asp-action="Edit" asp-route-id="@post.Id" asp-route-returnUrl="@returnUrl">Edit</a>
                 <form class="post-manage" method="post" asp-controller="Post" asp-action="Delete" asp-route-id="@post.Id" onsubmit="return confirm('Delete this post?');">
                     <button class="post-action" type="submit">Delete</button>
                 </form>

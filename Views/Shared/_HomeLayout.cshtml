@@ -32,8 +32,10 @@ Provides the shared page structure, styles, header, navigation, and script secti
             @await Component.InvokeAsync("RightRail", new { cards = rightRail })
         }
     </div>
-    @await Component.InvokeAsync("CreatePostDialog")
+    @* A community page sets ViewData["CreatePostCommunityId"] so its posts go into that community. *@
+    @await Component.InvokeAsync("CreatePostDialog", new { communityId = ViewData["CreatePostCommunityId"] as int? })
     <script src="~/js/create-post.js" asp-append-version="true" defer></script>
+    <script src="~/js/tag-picker.js" asp-append-version="true" defer></script>
     <partial name="_UserPopout" />
     <script src="~/js/user-popout.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)

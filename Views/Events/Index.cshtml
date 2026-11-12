@@ -25,13 +25,17 @@
             <h1 id="events-heading">@text.Heading</h1>
             <p>@text.Subheading</p>
         </div>
-        @* Status chips. Each link keeps the other filters and changes only "status". *@
-        <nav class="chip-group" aria-label="@text.LabelMyEvents">
-            @foreach (var (value, label) in EventsViewModel.Statuses)
-            {
-                <a asp-action="Index" asp-all-route-data="@Model.RouteValues(status: value)" aria-current="@(Model.Status == value ? "page" : null)">@EventsText.Pick(text.Statuses, value, label)</a>
-            }
-        </nav>
+        <div class="events-head-actions">
+            @* Status chips. Each link keeps the other filters and changes only "status". *@
+            <nav class="chip-group" aria-label="@text.LabelMyEvents">
+                @foreach (var (value, label) in EventsViewModel.Statuses)
+                {
+                    <a asp-action="Index" asp-all-route-data="@Model.RouteValues(status: value)" aria-current="@(Model.Status == value ? "page" : null)">@EventsText.Pick(text.Statuses, value, label)</a>
+                }
+            </nav>
+            @* Opens the create event popup (create-post.js). Signed out, the link goes to log in. *@
+            <a class="create-button" asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="@Url.Action("Index", "Events")" data-open-create="create-event-dialog">Create</a>
+        </div>
     </div>
 
     <div class="events-controls">
@@ -131,6 +135,8 @@
         </ul>
     }
 </section>
+
+@await Component.InvokeAsync("CreateEventDialog")
 
 @section Scripts {
     <script src="~/js/events.js" asp-append-version="true" defer></script>
