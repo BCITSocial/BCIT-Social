@@ -128,15 +128,6 @@ body[data-profile-cover="gradient"] .profile-edit-cover {
     padding: 18px;
 }
 
-/* Friend request form and incoming requests, at the top of the Friends tab. */
-.profile-friends-manage {
-    display: grid;
-    gap: 14px;
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--color-border);
-}
-
 .profile-friends h2,
 .profile-incoming-requests h3 {
     margin: 0;
@@ -1057,31 +1048,4 @@ body[data-profile-cover="gradient"] .profile-edit-cover {
     .profile-button-new {
         align-self: flex-start;
     }
-}
-/* Single-column profile: the right sidebar is gone, so the profile sits in a centred column and the
-   app shell (left nav + profile) is centred on wide screens. Program and campus already show as tags
-   on the profile card; the theme picker lives in the Customize dialog. */
-.profile-layout {
-    grid-template-columns: minmax(0, 1fr);
-    max-width: 760px;
-    margin-inline: auto;
-}
-
-/* The centred app shell is shared by every page; see .app-shell in home.css. */
-
-.profile-card-actions {
-    justify-content: flex-start;
-}
-
-.profile-card-actions > .profile-avatar {
-    margin-right: auto;
-}
-
-.profile-card-actions .profile-customize-button {
-    width: auto;
-    margin-top: 0;
-}
-
-.profile-customizer .profile-themes {
-    margin-bottom: 18px;
 }

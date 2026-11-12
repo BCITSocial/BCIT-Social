@@ -5,7 +5,7 @@ public class ConversationViewModel
 {
     // The Chatbox id. Used in the URL (?c=...) to open the conversation.
     public int Id { get; init; }
-    // The other person's user id. Used for the "View profile" link. Empty for group chats.
+    // The other person's user id. Used for the "View profile" link.
     public string UserId { get; init; } = "";
     // The other person's display name, for example "Maya L.".
     public string Name { get; init; } = "";
@@ -22,22 +22,8 @@ public class ConversationViewModel
     public IReadOnlyList<CommunityLinkViewModel> SharedCommunities { get; init; } = [];
     public IReadOnlyList<SharedMediaViewModel> SharedMedia { get; init; } = [];
     public bool IsMuted { get; init; }
-    // True for a group chat (more than two members). Name is then built from the members' first names.
-    public bool IsGroup { get; init; }
-    // Everyone in the conversation except the signed-in user, sorted by name.
-    public IReadOnlyList<ChatMemberViewModel> Members { get; init; } = [];
 
     public ChatMessageViewModel? LastMessage => Messages.Count > 0 ? Messages[^1] : null;
-
-    public string Initials => DisplayFormat.Initials(Name);
-}
-
-// One member of a conversation, for the group member list.
-public class ChatMemberViewModel
-{
-    public string UserId { get; init; } = "";
-    public string Name { get; init; } = "";
-    public string Program { get; init; } = "";
 
     public string Initials => DisplayFormat.Initials(Name);
 }

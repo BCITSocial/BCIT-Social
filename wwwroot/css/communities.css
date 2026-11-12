@@ -99,74 +99,80 @@
     color: var(--text-primary);
 }
 
-/* Filter Pills & Search Bar */
-.filter-pills {
+/* Search Bar & Filter Dropdowns */
+.community-filters {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
 }
 
-.filter-pill {
+.filter-search {
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.filter-selects {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-select {
+    appearance: none;
     background-color: var(--bg-surface);
+    /* Down arrow, drawn in --text-muted */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%236b7280' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    background-size: 0.65rem;
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-pill);
-    padding: 0.35rem 0.9rem;
+    padding: 0.45rem 2rem 0.45rem 0.95rem;
     font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
-.filter-pill:hover {
+.filter-select:hover {
     background-color: var(--bg-pill-hover);
 }
 
-.filter-pill.active {
-    background-color: var(--brand-blue);
-    color: var(--text-on-brand);
+.filter-select:focus-visible,
+.filter-clear:focus-visible {
+    outline: 2px solid var(--brand-blue);
+    outline-offset: 1px;
+}
+
+/* A dropdown with a choice picked (set by communities.js) */
+.filter-select.is-active {
+    background-color: var(--tag-default-bg);
+    color: var(--brand-blue);
     border-color: var(--brand-blue);
 }
 
-/* Category pills on one row with "Show all" on the right (community-pills.js sets --pills-row-height
-   to one pill's height). Without the script the pills simply wrap. */
-.filter-pills-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.filter-pills-row .filter-pills {
-    flex: 1;
-    min-width: 0;
-    margin-bottom: 0;
-}
-
-.filter-pills-row.is-collapsed .filter-pills {
-    max-height: var(--pills-row-height);
-    overflow: hidden;
-}
-
-.filter-pills-toggle {
-    flex: none;
-    padding: 0.35rem 0.25rem;
-    border: 0;
-    background: transparent;
-    color: var(--brand-blue);
+.filter-clear {
+    background: none;
+    border: none;
+    color: var(--text-muted);
     font-size: 0.85rem;
     font-weight: 600;
-    white-space: nowrap;
+    padding: 0.45rem 0.6rem;
     cursor: pointer;
 }
 
-.filter-pills-toggle:hover {
-    text-decoration: underline;
+.filter-clear:hover {
+    color: var(--brand-blue);
 }
 
-.search-bar-row {
-    margin-bottom: 1.25rem;
+.browse-empty {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 1rem 0 0 0;
 }
 
 .search-input {
@@ -306,6 +312,7 @@
 
 .badge-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.4rem;
     margin-bottom: 0.6rem;
 }
@@ -335,70 +342,6 @@
     font-size: 0.875rem;
     color: var(--text-secondary);
     margin-bottom: 1rem;
-}
-
-/* Card header: picture slot on the left; name and tags on one line, members and campus under it. */
-.community-card-head {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    margin-bottom: 0.75rem;
-}
-
-.community-card-photo {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: 56px;
-    height: 56px;
-    overflow: hidden;
-    border-radius: var(--radius-sm);
-    background-color: var(--avatar-box-bg);
-    color: var(--text-secondary);
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.community-card-photo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.community-card-heading {
-    min-width: 0;
-}
-
-.community-card-title-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem;
-    margin-bottom: 0.25rem;
-}
-
-.community-card-title-row .community-card-title {
-    margin: 0;
-}
-
-.community-card-heading .member-count {
-    margin-bottom: 0;
-}
-
-.community-card > div > .community-desc {
-    margin: 0;
-}
-
-/* Join / Joined sits in the card's top-right corner; the header leaves room for it. */
-.community-card > .card-actions {
-    position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    margin: 0;
-}
-
-.community-card .community-card-head {
-    padding-right: 5.5rem;
 }
 
 /* Card actions row */
@@ -477,9 +420,14 @@
     align-items: center;
 }
 
+/* Title and close button share the top row */
 .modal-top-bar {
-    margin-bottom: 1.25rem;
+    margin-bottom: 0.2rem;
     gap: 0.75rem;
+}
+
+.modal-top-bar .modal-title {
+    margin: 0;
 }
 
 .modal-switcher {
@@ -632,6 +580,34 @@
     background-color: var(--bg-subtle);
 }
 
+a.btn-cancel {
+    text-decoration: none;
+}
+
+/* Live tag preview under form */
+.tag-preview-field {
+    margin-top: 0.5rem;
+}
+
+.tag-preview-label {
+    color: var(--text-muted);
+}
+
+.tag-preview {
+    min-height: 28px;
+}
+
+/* Create/Edit pages: error and footer buttons */
+.form-errors {
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+}
+
+.form-page-actions {
+    margin-top: 1.5rem;
+}
+
+
 /* Standalone Form & Confirm Cards (Edit / Delete) */
 .form-page-container {
     max-width: 580px;
@@ -671,4 +647,27 @@
 
 .btn-danger-confirm:hover {
     background-color: rgb(185, 28, 28);
+}
+
+/* Delete page */
+.modal-title.danger-title {
+    color: rgb(185, 28, 28);
+}
+
+.delete-summary {
+    margin-bottom: 1.5rem;
+}
+
+.delete-summary-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.delete-summary .badge-row {
+    margin-bottom: 0.5rem;
+}
+
+.delete-summary .delete-summary-count {
+    margin: 0;
 }

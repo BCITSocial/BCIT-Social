@@ -15,9 +15,6 @@ public class MessagesController : Controller
 {
     private const int MESSAGE_PAGE_SIZE = 100;
     private const int MESSAGE_MAX_LENGTH = 5000;
-    // A group needs the creator plus at least two others; the cap keeps the member list readable.
-    private const int GROUP_MIN_OTHERS = 2;
-    private const int GROUP_MAX_OTHERS = 24;
     private readonly ApplicationDbContext _db;
 
     public MessagesController(ApplicationDbContext db) => _db = db;
@@ -52,19 +49,11 @@ public class MessagesController : Controller
 
         var conversations = chatboxes.Select(chat =>
         {
-            // A chatbox with more than two members is a group chat (the current schema has no type column yet).
-            var others = chat.ChatboxUsers
-                .Where(member => member.UserId != userId)
-                .Select(member => new ChatMemberViewModel
-                {
-                    UserId = member.UserId,
-                    Name = NameFor(member.UserId, member.User, profiles),
-                    Program = profiles.TryGetValue(member.UserId, out var memberProfile) ? memberProfile.Program ?? "" : "",
-                })
-                .OrderBy(member => member.Name)
-                .ToList();
-            var isGroup = chat.ChatboxUsers.Count > 2;
-            var other = others.FirstOrDefault();
+            var other = chat.ChatboxUsers.FirstOrDefault(member => member.UserId != userId)?.User;
+            var otherId = other?.Id ?? "";
+            profiles.TryGetValue(otherId, out var profile);
+            var displayName = profile?.DisplayName;
+            if (string.IsNullOrWhiteSpace(displayName)) displayName = other?.Email ?? "Alumni member";
 
             var messages = chat.Messages
                 .OrderBy(message => message.CreatedAt)
@@ -75,19 +64,16 @@ public class MessagesController : Controller
                     SentAt = DateTime.SpecifyKind(message.CreatedAt, DateTimeKind.Utc).ToLocalTime(),
                     IsMine = message.SenderId == userId,
                     IsRead = false,
-                    SenderName = message.SenderId == userId ? "You" : NameFor(message.SenderId, message.Sender, profiles),
                 })
                 .ToArray();
 
             return new ConversationViewModel
             {
                 Id = chat.Id,
-                UserId = isGroup ? "" : other?.UserId ?? "",
-                Name = isGroup ? GroupName(others) : other?.Name ?? "Alumni member",
-                Program = isGroup ? $"{others.Count + 1} members" : other?.Program ?? "",
+                UserId = otherId,
+                Name = displayName,
+                Program = profile?.Program ?? "",
                 PhotoUrl = null,
-                IsGroup = isGroup,
-                Members = others,
                 Messages = messages,
             };
         }).OrderByDescending(conversation => conversation.LastMessage?.SentAt ?? DateTime.MinValue).ToList();
@@ -171,87 +157,16 @@ public class MessagesController : Controller
         var recipientExists = await _db.Users.AnyAsync(user => user.Id == recipientId, cancellationToken);
         if (!recipientExists) return NotFound();
 
-        var chatboxId = await FindOrCreateDirectChatAsync(userId, recipientId, cancellationToken);
-        return RedirectToAction(nameof(Index), new { c = chatboxId });
-    }
-
-    // POST /Messages/MessageUser
-    // The quick "Message @name" box on a user's avatar popout (Discord style): opens the direct chat with that
-    // person, creating it if needed, and sends the typed message straight away when there is one.
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> MessageUser(string? recipientId, string? text, CancellationToken cancellationToken)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId is null) return Challenge();
-        if (string.IsNullOrWhiteSpace(recipientId) || recipientId == userId) return BadRequest();
-
-        var recipientExists = await _db.Users.AnyAsync(user => user.Id == recipientId, cancellationToken);
-        if (!recipientExists) return NotFound();
-
-        var body = text?.Trim();
-        if (body is { Length: > MESSAGE_MAX_LENGTH }) return BadRequest();
-
-        var chatboxId = await FindOrCreateDirectChatAsync(userId, recipientId, cancellationToken);
-        if (!string.IsNullOrEmpty(body))
-        {
-            _db.Messages.Add(new Message
-            {
-                ChatboxId = chatboxId,
-                SenderId = userId,
-                Text = body,
-                CreatedAt = DateTime.UtcNow,
-            });
-            await _db.SaveChangesAsync(cancellationToken);
-        }
-
-        return RedirectToAction(nameof(Index), new { c = chatboxId });
-    }
-
-    // POST /Messages/CreateGroup
-    // Creates a group chat with the signed-in user and the chosen people.
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateGroup(List<string>? memberIds, CancellationToken cancellationToken)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId is null) return Challenge();
-
-        var others = (memberIds ?? [])
-            .Where(id => !string.IsNullOrWhiteSpace(id) && id != userId)
-            .Distinct()
-            .ToList();
-        if (others.Count < GROUP_MIN_OTHERS || others.Count > GROUP_MAX_OTHERS)
-        {
-            TempData["MessageError"] = $"A group chat needs {GROUP_MIN_OTHERS} to {GROUP_MAX_OTHERS} other people.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        var existingCount = await _db.Users.CountAsync(user => others.Contains(user.Id), cancellationToken);
-        if (existingCount != others.Count) return NotFound();
-
-        var chatbox = new Chatbox
-        {
-            CreatorId = userId,
-            CreatedAt = DateTime.UtcNow,
-            ChatboxUsers = others.Prepend(userId).Select(id => new ChatboxUser { UserId = id }).ToList(),
-        };
-        _db.Chatboxes.Add(chatbox);
-        await _db.SaveChangesAsync(cancellationToken);
-
-        return RedirectToAction(nameof(Index), new { c = chatbox.Id });
-    }
-
-    // Returns the two-person chat between the users, creating it when there is none, so the inbox has no duplicates.
-    private async Task<int> FindOrCreateDirectChatAsync(string userId, string recipientId, CancellationToken cancellationToken)
-    {
+        // Reuse an existing two-person conversation to avoid duplicate inbox entries.
         var existingId = await _db.Chatboxes
             .Where(chat => chat.ChatboxUsers.Any(member => member.UserId == userId)
                 && chat.ChatboxUsers.Any(member => member.UserId == recipientId)
                 && chat.ChatboxUsers.Count == 2)
             .Select(chat => (int?)chat.Id)
             .FirstOrDefaultAsync(cancellationToken);
-        if (existingId is not null) return existingId.Value;
+
+        if (existingId is not null)
+            return RedirectToAction(nameof(Index), new { c = existingId.Value });
 
         var chatbox = new Chatbox
         {
@@ -265,27 +180,7 @@ public class MessagesController : Controller
         };
         _db.Chatboxes.Add(chatbox);
         await _db.SaveChangesAsync(cancellationToken);
-        return chatbox.Id;
-    }
 
-    // Profile display name, then the account email, then a placeholder.
-    private static string NameFor(string? id, ApplicationUser? user, IReadOnlyDictionary<string, Profile> profiles)
-    {
-        if (id is not null && profiles.TryGetValue(id, out var profile) && !string.IsNullOrWhiteSpace(profile.DisplayName))
-            return profile.DisplayName;
-        return user?.Email ?? "Alumni member";
-    }
-
-    // "Maya L., Sam K. and Jo P." for up to three people, otherwise "Maya L., Sam K. and 3 others".
-    private static string GroupName(IReadOnlyList<ChatMemberViewModel> others)
-    {
-        var first = others.Select(member => member.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? member.Name).ToList();
-        return first.Count switch
-        {
-            0 => "Group chat",
-            1 => first[0],
-            2 or 3 => string.Join(", ", first.Take(first.Count - 1)) + " and " + first[^1],
-            _ => $"{first[0]}, {first[1]} and {first.Count - 2} others",
-        };
+        return RedirectToAction(nameof(Index), new { c = chatbox.Id });
     }
 }

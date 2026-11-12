@@ -1,54 +1,16 @@
 @*
 frontend view for Communities page.
+- Everything comes from CommunityIndexViewModel, which CommunityController builds.
 - author: jaspreet bath
 *@
 
-@model IEnumerable<BCIT_Social.ViewModels.CommunityViewModel>
-@using System.IO
-@using System.Text.Json
-@using System.Security.Claims
-@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
-
+@model BCIT_Social.ViewModels.CommunityIndexViewModel
 @{
     Layout = "_HomeLayout";
-    var jsonPath = System.IO.Path.Combine(Env.WebRootPath, "content", "communities-text.json");
-    using var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
-    var text = jsonDoc.RootElement;
-    var featured = text.GetProperty("featured");
-    var modal = text.GetProperty("createModal");
-    var browseHeadingText = text.GetProperty("browseHeading").GetString();
-    var defaultEmptyDesc = text.GetProperty("defaultDescription").GetString();
-    var defaultCampusText = text.GetProperty("defaultCampus").GetString();
-    var joinedBtnText = text.GetProperty("joinedLabel").GetString();
-    ViewData["Title"] = text.GetProperty("pageTitle").GetString();
-
-    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-    var campusOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    foreach (var c in modal.GetProperty("campusOptions").EnumerateArray())
-    {
-        campusOptions.Add(c.GetString()!);
-    }
-
-    var statusTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    foreach (var s in modal.GetProperty("statusOptions").EnumerateArray())
-    {
-        var sVal = s.GetString();
-        if (!string.IsNullOrWhiteSpace(sVal) && !sVal.Equals("None", StringComparison.OrdinalIgnoreCase))
-        {
-            statusTags.Add(sVal);
-        }
-    }
-
-    var timeTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    foreach (var t in modal.GetProperty("timeOptions").EnumerateArray())
-    {
-        var tVal = t.GetString();
-        if (!string.IsNullOrWhiteSpace(tVal) && !tVal.Equals("None", StringComparison.OrdinalIgnoreCase))
-        {
-            timeTags.Add(tVal);
-        }
-    }
+    var text = Model.Text;
+    var filters = text.Filters;
+    var options = text.Options;
+    ViewData["Title"] = text.PageTitle;
 }
 
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
@@ -57,36 +19,57 @@ frontend view for Communities page.
     @* header *@
     <div class="communities-header">
         <div>
-            <h1 class="communities-title" data-text="page-title">@text.GetProperty("pageTitle").GetString()</h1>
-            <p class="communities-subtitle" data-text="page-subtitle">@text.GetProperty("pageSubtitle").GetString()</p>
+            <h1 class="communities-title">@text.PageTitle</h1>
+            <p class="communities-subtitle">@text.PageSubtitle</p>
         </div>
-        <button type="button" id="open-create-modal" class="btn-create" data-text="create-button">
-            @text.GetProperty("createButton").GetString()
-        </button>
+        <button type="button" id="open-create-modal" class="btn-create">@text.CreateButton</button>
     </div>
 
-    @* category pills: one row, with "Show all" on the right when they don't fit (community-pills.js) *@
-    <div class="filter-pills-row" data-pills-row>
-        <div id="category-pills" class="filter-pills">
-            @{
-                var isFirst = true;
-                foreach (var category in text.GetProperty("categories").EnumerateArray())
-                {
-                    <button type="button" class="filter-pill @(isFirst ? "active" : "")" data-category="@category.GetString()">
-                        @category.GetString()
-                    </button>
-                    isFirst = false;
-                }
-            }
-        </div>
-        <button type="button" class="filter-pills-toggle" data-pills-toggle aria-controls="category-pills" aria-expanded="false" hidden>Show all</button>
-    </div>
+    @* search & filter dropdowns, communities.js hides cards that don't match. *@
+    <form id="community-filters" class="community-filters" method="get" role="search" aria-label="@filters.Label">
+        <label class="filter-search">
+            <span class="visually-hidden">@filters.SearchLabel</span>
+            <input type="search" id="community-search" class="search-input" autocomplete="off"
+                   placeholder="@filters.SearchPlaceholder" />
+        </label>
 
-    @* search bar *@
-    <div class="search-bar-row">
-        <input type="text" id="community-search" class="search-input"
-               placeholder="@text.GetProperty("searchPlaceholder").GetString()" />
-    </div>
+        <div class="filter-selects">
+            <label>
+                <span class="visually-hidden">@filters.TypeLabel</span>
+                <select class="filter-select" data-filter="topics">
+                    <option value="">@filters.AllTypes</option>
+                    @foreach (var option in options.Topics)
+                    {
+                        <option value="@option">@option</option>
+                    }
+                </select>
+            </label>
+
+            <label>
+                <span class="visually-hidden">@filters.CampusLabel</span>
+                <select class="filter-select" data-filter="campus">
+                    <option value="">@filters.AllCampuses</option>
+                    @foreach (var option in options.Campuses)
+                    {
+                        <option value="@option">@option</option>
+                    }
+                </select>
+            </label>
+
+            <label>
+                <span class="visually-hidden">@filters.StatusLabel</span>
+                <select class="filter-select" data-filter="status">
+                    <option value="">@filters.AnyStatus</option>
+                    @foreach (var option in options.Statuses)
+                    {
+                        <option value="@option">@option</option>
+                    }
+                </select>
+            </label>
+
+            <button type="reset" class="filter-clear">@filters.ClearButton</button>
+        </div>
+    </form>
 
     @* main juicy stuff here ;) *@
     <div class="communities-layout">
@@ -94,105 +77,74 @@ frontend view for Communities page.
             @* feature card (might delete later) *@
             <div class="featured-card">
                 <div class="featured-header-row">
-                    <div class="featured-label" data-text="featured-label">@featured.GetProperty("label").GetString()
-                    </div>
-                    <div class="category-badge" data-text="featured-tag">@featured.GetProperty("tag").GetString()</div>
-                    <div class="category-badge status-badge" data-text="featured-status">
-                        @featured.GetProperty("statusTag").GetString()</div>
-                        <div class="category-badge time-badge" data-text="featured-time">
-                            @featured.GetProperty("timeTag").GetString()</div>
-                        </div>
-                        <h2 class="featured-heading" data-text="featured-heading">@featured.GetProperty("heading").GetString()
-                        </h2>
-                        <p class="featured-desc" data-text="featured-desc">@featured.GetProperty("description").GetString()</p>
-                    </div>
-
-                    @* browse heading *@
-                    <h2 id="browse-heading" class="section-heading" data-text="browse-heading"
-                        data-base-text="@browseHeadingText">
-                        @browseHeadingText (@(Model?.Count() ?? 0))
-                    </h2>
-
-                    @* browse grid *@
-                    <div id="browse-grid" class="browse-grid">
-                        @if (Model != null)
-                        {
-                            @foreach (var item in Model)
-                            {
-                                var rawTags = (item.Type ?? "")
-                                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                                    .ToList();
-
-                                @* returns first item *@
-                                var location = rawTags.FirstOrDefault(t => campusOptions.Contains(t)) ?? defaultCampusText;
-
-                                var isJoined = item.IsJoined
-                                               || rawTags.Contains(featured.GetProperty("statusTag").GetString(), StringComparer.OrdinalIgnoreCase);
-
-                                var descProp = item.GetType().GetProperty("Description");
-                                var rawDesc = descProp?.GetValue(item)?.ToString();
-                                var finalDesc = !string.IsNullOrWhiteSpace(rawDesc) ? rawDesc : defaultEmptyDesc;
-
-                                <div class="community-card" data-name="@item.Name?.ToLower()" data-type="@item.Type?.ToLower()">
-                                    <div>
-                                        @* Picture slot (left), then the name with its tags, then members and campus under it. *@
-                                        <div class="community-card-head">
-                                            @* Placeholder until communities have pictures: the first letter of the name. *@
-                                            <div class="community-card-photo" aria-hidden="true">@(string.IsNullOrEmpty(item.Name) ? "?" : item.Name.Substring(0, 1).ToUpperInvariant())</div>
-                                            <div class="community-card-heading">
-                                                <div class="community-card-title-row">
-                                                    <a asp-action="Details" asp-route-id="@item.Id" class="card-clickable-link">
-                                                        <h3 class="community-card-title">@item.Name</h3>
-                                                    </a>
-                                                    @foreach (var rawTag in rawTags)
-                                                    {
-                                                        if (campusOptions.Contains(rawTag)) { continue; }
-
-                                                        var badgeClass = statusTags.Contains(rawTag) ? "status-badge"
-                                                                       : timeTags.Contains(rawTag) ? "time-badge"
-                                                                       : "";
-                                                        <span class="category-badge @badgeClass">@rawTag</span>
-                                                    }
-                                                </div>
-
-                                                @* member count and location *@
-                                                <div class="member-count">
-                                                    <span>@(item.MembersCount) @text.GetProperty("membersLabel").GetString()</span>
-                                                    <span>&bull;</span>
-                                                    <span>@location</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <p class="community-desc" data-text="default-desc">@finalDesc</p>
-                                    </div>
-
-                                    <div class="card-actions">
-                                        @if (isJoined)
-                                        {
-                                            <span class="btn-joined">@joinedBtnText</span>
-                                        }
-                                        else
-                                        {
-                                            <form asp-action="Join" asp-route-id="@item.Id" method="get">
-                                                <button type="submit" class="btn-join" data-text="join-btn">
-                                                    @text.GetProperty("joinButton").GetString()
-                                                </button>
-                                            </form>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        }
-                    </div>
+                    <div class="featured-label">@text.Featured.Label</div>
+                    <div class="category-badge">@text.Featured.Tag</div>
+                    <div class="category-badge status-badge">@text.Featured.StatusTag</div>
+                    <div class="category-badge time-badge">@text.Featured.TimeTag</div>
                 </div>
+                <h2 class="featured-heading">@text.Featured.Heading</h2>
+                <p class="featured-desc">@text.Featured.Description</p>
             </div>
+
+            @* browse heading. communities.js updates the count as you filter. *@
+            <h2 id="browse-heading" class="section-heading" data-base-text="@text.BrowseHeading">
+                @text.BrowseHeading (@Model.Communities.Count)
+            </h2>
+
+            @* browse grid. *@
+            <div id="browse-grid" class="browse-grid">
+                @foreach (var item in Model.Communities)
+                {
+                    <div class="community-card" data-name="@item.Name" data-topics="@item.TopicsAttribute"
+                         data-campus="@item.Location" data-status="@item.Status">
+                        <div>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="card-clickable-link">
+                                <h3 class="community-card-title">@item.Name</h3>
+                            </a>
+
+                            @* badges *@
+                            <div class="badge-row">
+                                @foreach (var badge in item.Badges)
+                                {
+                                    <span class="category-badge @badge.CssClass">@badge.Text</span>
+                                }
+                            </div>
+
+                            @* member count and location *@
+                            <div class="member-count">
+                                <span>@item.MemberCount @text.MembersLabel</span>
+                                <span>&bull;</span>
+                                <span>@item.Location</span>
+                            </div>
+
+                            <p class="community-desc">@item.Description</p>
+                        </div>
+
+                        <div class="card-actions">
+                            @if (item.IsJoined)
+                            {
+                                <span class="btn-joined">@text.JoinedLabel</span>
+                            }
+                            else
+                            {
+                                <form asp-action="Join" asp-route-id="@item.Id" method="get">
+                                    <button type="submit" class="btn-join">@text.JoinButton</button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <p id="browse-empty" class="browse-empty" hidden="@(Model.Communities.Count > 0)">@filters.EmptyMessage</p>
         </div>
+    </div>
+</div>
 
-        @* partial load of pop-up modal *@
-        <partial name="_CreateCommunityModal" model="modal" />
+@* partial load of pop-up modal *@
+<partial name="_CreateCommunityModal" model="Model.CreateForm" />
 
-        @section Scripts {
-            <script src="~/js/communities.js" asp-append-version="true"></script>
-            <script src="~/js/community-pills.js" asp-append-version="true" defer></script>
-        }
+@section Scripts {
+    <script src="~/js/communities.js" asp-append-version="true"></script>
+    <script src="~/js/community-form.js" asp-append-version="true"></script>
+}

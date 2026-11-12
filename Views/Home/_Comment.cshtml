@@ -5,26 +5,10 @@
     var returnUrl = ViewData["ReturnUrl"] as string;
 }
 <li class="comment">
-    @if (!string.IsNullOrEmpty(Model.AuthorId))
-    {
-        <button class="avatar user-trigger" type="button" data-user-popout data-user-id="@Model.AuthorId"
-                data-user-name="@Model.AuthorName" aria-label="Open @Model.AuthorName's profile card">@Model.AuthorInitials</button>
-    }
-    else
-    {
-        <span class="avatar" aria-hidden="true">@Model.AuthorInitials</span>
-    }
+    <span class="avatar" aria-hidden="true">@Model.AuthorInitials</span>
     <div class="comment-body">
         <p class="comment-meta">
-            @if (!string.IsNullOrEmpty(Model.AuthorId))
-            {
-                <button class="comment-author user-trigger user-trigger-text" type="button" data-user-popout
-                        data-user-id="@Model.AuthorId" data-user-name="@Model.AuthorName">@Model.AuthorName</button>
-            }
-            else
-            {
-                <span class="comment-author">@Model.AuthorName</span>
-            }
+            <span class="comment-author">@Model.AuthorName</span>
             @if (Model.IsPostAuthor)
             {
                 <span class="author-badge">Author</span>

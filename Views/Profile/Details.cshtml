@@ -1,5 +1,4 @@
 @model BCIT_Social.Models.Profile
-@using System.Security.Claims
 
 @{
     ViewData["Title"] = "Details";
@@ -47,14 +46,6 @@
         </dd>
     </dl>
 </div>
-@if (User.Identity?.IsAuthenticated == true && Model?.UserId != User.FindFirstValue(ClaimTypes.NameIdentifier))
-{
-    @* Opens (or creates) the direct chat with this person. *@
-    <form asp-controller="Messages" asp-action="MessageUser" method="post" class="mb-3">
-        <input type="hidden" name="recipientId" value="@Model?.UserId" />
-        <button type="submit" class="btn btn-primary">Message</button>
-    </form>
-}
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.UserId">Edit</a> |
     <a asp-action="Index">Back to List</a>

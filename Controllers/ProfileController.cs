@@ -264,20 +264,20 @@ public class ProfileController : Controller
         if (!ModelState.IsValid)
         {
             TempData["FriendRequestError"] = "Enter a valid email address.";
-            return RedirectToAction(nameof(Index), new { section = "friends" });
+            return RedirectToAction(nameof(Index));
         }
 
         var recipient = await _userManager.FindByEmailAsync(viewModel.Email.Trim());
         if (recipient == null || recipient.DateOfDel != null)
         {
             TempData["FriendRequestError"] = "No active account matches that email address.";
-            return RedirectToAction(nameof(Index), new { section = "friends" });
+            return RedirectToAction(nameof(Index));
         }
 
         if (recipient.Id == requesterId)
         {
             TempData["FriendRequestError"] = "You cannot send a friend request to yourself.";
-            return RedirectToAction(nameof(Index), new { section = "friends" });
+            return RedirectToAction(nameof(Index));
         }
 
         var relationshipKey = GetRelationshipKey(requesterId, recipient.Id);
@@ -287,7 +287,7 @@ public class ProfileController : Controller
         if (relationship?.Status == "Accepted")
         {
             TempData["FriendRequestError"] = "You are already friends with this person.";
-            return RedirectToAction(nameof(Index), new { section = "friends" });
+            return RedirectToAction(nameof(Index));
         }
 
         if (relationship?.Status == "Pending")
@@ -295,7 +295,7 @@ public class ProfileController : Controller
             TempData["FriendRequestError"] = relationship.RequesterId == requesterId
                 ? "You have already sent this person a friend request."
                 : "This person has already sent you a friend request. Review it in your incoming requests.";
-            return RedirectToAction(nameof(Index), new { section = "friends" });
+            return RedirectToAction(nameof(Index));
         }
 
         var now = DateTime.UtcNow;
@@ -323,7 +323,7 @@ public class ProfileController : Controller
 
         await _context.SaveChangesAsync();
         TempData["FriendRequestMessage"] = "Friend request sent.";
-        return RedirectToAction(nameof(Index), new { section = "friends" });
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
@@ -361,7 +361,7 @@ public class ProfileController : Controller
         TempData["FriendRequestMessage"] = decision == "accept"
             ? "Friend request accepted."
             : "Friend request denied.";
-        return RedirectToAction(nameof(Index), new { section = "friends" });
+        return RedirectToAction(nameof(Index));
     }
 
     private static string GetRelationshipKey(string firstUserId, string secondUserId)
@@ -382,13 +382,11 @@ public class ProfileController : Controller
                 .Where(profile => profile.UserId == post.AuthorId)
                 .Select(profile => profile.DisplayName)
                 .FirstOrDefault() ?? post.Author.UserName ?? "",
-            Photos = post.Photos.OrderBy(photo => photo.DisplayOrder).ToList(),
             CommunityName = post.Community != null ? post.Community.Name : null,
             CreatedAt = post.CreatedAt,
             Tags = post.PostTags.Select(postTag => postTag.Tag.Name).ToList(),
             CommentCount = _context.Comments.Count(comment => comment.PostId == post.Id),
             IsAuthor = post.AuthorId == userId,
-            AuthorId = post.AuthorId,
             IsSaved = _context.Bookmarks.Any(bookmark => bookmark.UserId == userId && bookmark.PostId == post.Id)
         });
     }

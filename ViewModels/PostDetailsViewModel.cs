@@ -5,8 +5,6 @@ public class CommentViewModel
 {
     public int Id { get; init; }
     public string AuthorName { get; init; } = "";
-    // Author's user id, for the profile link and the avatar popout (quick message). Null when the author was removed.
-    public string? AuthorId { get; init; } = "";
     // True when the comment was written by the post's author; shows an "Author" badge.
     public bool IsPostAuthor { get; init; }
     public string Content { get; init; } = "";
@@ -38,7 +36,7 @@ public class PostDetailsViewModel
     public DateTime CreatedAt { get; set; }
 
     public bool CanEdit { get; set; }
-
+  
     // Data for the post details modal and page: the post plus its comment threads.
     public PostCardViewModel Post { get; init; } = new();
     // Top-level comments, oldest first. Replies are nested inside each comment.

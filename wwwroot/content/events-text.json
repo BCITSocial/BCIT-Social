@@ -31,14 +31,10 @@
       "popular": "Most popular"
     },
 
-    "filterMenuButton": "Filter & sort",
-    "activeFilters": "{0} filters on",
-    "activeFiltersOne": "{0} filter on",
-    "resetFilters": "Reset filters",
-
+    "searchPlaceholder": "Search events...",
     "allCommunities": "All communities",
     "allCampuses": "All campuses",
-    "sortOption": "{0}",
+    "sortOption": "Sort: {0}",
     "apply": "Apply",
 
     "emptyEvents": "No events found.",
@@ -56,6 +52,7 @@
 
     "labelMyEvents": "My events",
     "labelEventsView": "Events view",
+    "labelSearch": "Search events",
     "labelCommunity": "Community",
     "labelCampus": "Campus",
     "labelRange": "Time range",

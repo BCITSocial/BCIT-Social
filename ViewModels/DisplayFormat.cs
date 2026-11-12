@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace BCIT_Social.ViewModels;
 
 // Shared text formatting for names and times shown on cards, comments, and the sidebar.
@@ -20,15 +18,10 @@ public static class DisplayFormat
         if (age.TotalHours < 1) return $"{(int)age.TotalMinutes}m ago";
         if (age.TotalDays < 1) return $"{(int)age.TotalHours}h ago";
         if (age.TotalDays < 7) return $"{(int)age.TotalDays}d ago";
-        // Older posts show the date and the hour, in campus (Vancouver) time, for example "Oct 22, 3:45 PM".
-        var local = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(createdAt, DateTimeKind.Utc), CampusTimeZone);
-        return local.Year == utcNow.Year
-            ? local.ToString("MMM d, h:mm tt", CultureInfo.InvariantCulture)
-            : local.ToString("MMM d, yyyy, h:mm tt", CultureInfo.InvariantCulture);
+        return createdAt.Year == utcNow.Year
+            ? createdAt.ToString("MMM d")
+            : createdAt.ToString("MMM d, yyyy");
     }
-
-    // BCIT's time zone. "America/Vancouver" works on Windows (.NET 6+) and Linux.
-    private static readonly TimeZoneInfo CampusTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Vancouver");
 
     // Compact member count, for example 856 -> "856", 1200 -> "1.2k".
     public static string Count(int value) =>

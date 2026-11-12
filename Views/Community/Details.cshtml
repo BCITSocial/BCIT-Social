@@ -1,194 +1,135 @@
 @model BCIT_Social.ViewModels.CommunityDetailsViewModel
 @*
 - This is the frontend view for Community Details.
+- Everything comes from CommunityDetailsViewModel.
 - author: jaspreet bath
 *@
 
-@using System.IO
-@using System.Security.Claims
-@using System.Text.Json
-@using Microsoft.Build.Framework
-@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
-
 @{
-    // Same shell as the other pages: site header, left nav, centred content.
-    Layout = "_HomeLayout";
-    // Members see this community highlighted under "Your communities" in the left nav instead of "Communities".
-    if (Model?.IsMember == true)
-    {
-        ViewData["ActiveCommunityId"] = Model.Id;
-    }
-    var jsonPath = System.IO.Path.Combine(Env.WebRootPath, "content", "community-details-text.json");
-    var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
-    var text = jsonDoc.RootElement;
-
-    var banner = text.GetProperty("banner");
-    var meta = text.GetProperty("communityMeta");
-    var discussionsSection = text.GetProperty("discussionsSection");
-
-    ViewData["Title"] = Model?.Name ?? "Community Details";
-
-    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-    var rawTags = (Model?.Type ?? "")
-        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        .ToList();
-
-    var mainJsonPath = System.IO.Path.Combine(Env.WebRootPath, "content", "communities-text.json");
-    using var mainJsonDoc = JsonDocument.Parse(File.ReadAllText(mainJsonPath));
-    var mainText = mainJsonDoc.RootElement;
-    var modal = mainText.GetProperty("createModal");
-
-    var campusOptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    foreach (var c in modal.GetProperty("campusOptions").EnumerateArray())
-    {
-        campusOptions.Add(c.GetString()!);
-    }
-
-    var defaultCampus = meta.GetProperty("campus").GetString();
-    var modelLocation = rawTags.FirstOrDefault(t => campusOptions.Contains(t)) ?? defaultCampus;
-
-    var statusTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    foreach (var s in modal.GetProperty("statusOptions").EnumerateArray())
-    {
-        var sVal = s.GetString();
-        if (!string.IsNullOrWhiteSpace(sVal) && !sVal.Equals("None", StringComparison.OrdinalIgnoreCase))
-        {
-            statusTags.Add(sVal);
-        }
-    }
-
-    var timeTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    foreach (var t in modal.GetProperty("timeOptions").EnumerateArray())
-    {
-        var tVal = t.GetString();
-        if (!string.IsNullOrWhiteSpace(tVal) && !tVal.Equals("None", StringComparison.OrdinalIgnoreCase))
-        {
-            timeTags.Add(tVal);
-        }
-    }
-
-    var activeStatus = mainText.GetProperty("featured").GetProperty("statusTag").GetString();
-    var isUserJoined = (Model?.Members != null && !string.IsNullOrEmpty(currentUserId) && Model.Members.Any(m => m.UserId ==
-currentUserId))
-                       || rawTags.Contains(activeStatus, StringComparer.OrdinalIgnoreCase);
-
-
-    var defaultEmptyDesc = mainText.GetProperty("defaultDescription").GetString();
-    var communityDesc = !string.IsNullOrWhiteSpace(Model?.Description) ? Model.Description : defaultEmptyDesc;
+    var text = Model.Text;
+    var meta = text.Meta;
+    var discussions = text.Discussions;
+    ViewData["Title"] = Model.Name;
 }
 
-<!-- Include communities.css for shared modal styling and badges -->
+<!-- Included communities.css for shared modal styling and badges -->
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/community-details.css" asp-append-version="true" />
 
 <div class="details-wrapper">
-    <!-- 1. Hero Banner -->
+    <!-- Hero Banner -->
     <div class="details-hero-banner">
         <div>
-            <div class="banner-pre">@banner.GetProperty("subtitle").GetString()</div>
-            <h1>@banner.GetProperty("title").GetString()</h1>
-            <p>@banner.GetProperty("caption").GetString()</p>
-            <div class="banner-code">@banner.GetProperty("codeBadge").GetString()</div>
+            <div class="banner-pre">@text.Banner.Subtitle</div>
+            <h1>@text.Banner.Title</h1>
+            <p>@text.Banner.Caption</p>
+            <div class="banner-code">@text.Banner.CodeBadge</div>
         </div>
         <div class="banner-solid-accent">BCIT</div>
     </div>
 
-    <!-- 2. Community Header Meta -->
+    <!-- Community Header -->
     <div class="details-meta-row">
         <div class="meta-left">
             <div class="community-icon-box">&lt;/&gt;</div>
             <div>
                 <div class="title-line">
-                    <h2 class="community-main-title">@Model?.Name</h2>
-                    @if (isUserJoined)
+                    <h2 class="community-main-title">@Model.Name</h2>
+                    @if (Model.IsMember)
                     {
-                        <span class="pill-joined"
-                              data-text="joined-label">@meta.GetProperty("joinedLabel").GetString()</span>
+                        <span class="pill-joined">@meta.JoinedLabel</span>
                     }
                     else
                     {
-                        <form asp-action="Join" asp-route-id="@Model?.Id" method="post" style="margin: 0; display: inline;">
-                            <button type="submit" class="btn-create" style="padding: 0.2rem 0.65rem; font-size: 0.75rem;">
-                                @meta.GetProperty("joinButton").GetString()
-                            </button>
+                        <form asp-action="Join" asp-route-id="@Model.Id" method="post" class="inline-join-form">
+                            <button type="submit" class="btn-create btn-join-small">@meta.JoinButton</button>
                         </form>
                     }
                 </div>
                 <div class="meta-sub-row">
-                    @foreach (var rawTag in rawTags)
+                    @foreach (var badge in Model.Badges)
                     {
-                        if (campusOptions.Contains(rawTag)) { continue; }
-
-                        var badgeClass = statusTags.Contains(rawTag) ? "status-badge"
-                                       : timeTags.Contains(rawTag) ? "time-badge"
-                                       : "";
-                        <span class="category-badge @badgeClass">@rawTag</span>
+                        <span class="category-badge @badge.CssClass">@badge.Text</span>
                     }
-                    <span>@meta.GetProperty("privacy").GetString()</span>
+                    <span>@meta.Privacy</span>
                     <span>&bull;</span>
-                    <a asp-action="Members" asp-route-id="@Model?.Id">
-                    <span>@(Model?.Members?.Count ?? 0) @mainText.GetProperty("membersLabel").GetString()</span></a>
+                    <a asp-action="Members" asp-route-id="@Model.Id">
+                        <span>@Model.Members.Count @meta.MembersLabel</span>
+                    </a>
                     <span>&bull;</span>
-                    <span>@modelLocation</span>
+                    <span>@Model.Location</span>
                 </div>
             </div>
         </div>
 
         <div class="meta-right-actions">
-            <!-- Modal trigger button instead of route link -->
-            @if (Model?.IsMember ?? false)
-            {   
-                <a asp-action="Leave" asp-route-id="@Model?.Id" class="btn-settings"> Leave </a> //TODO: REPLACE THIS TEXT
-            
-            <button type="button" id="open-create-modal" class="btn-create">
-                @meta.GetProperty("createButton").GetString()
-            </button>
+            @if (Model.IsMember)
+            {
+                <a asp-action="Leave" asp-route-id="@Model.Id" class="btn-settings">@meta.LeaveButton</a>
+                @* modal trigger button instead of route link *@
+                <button type="button" id="open-create-modal" class="btn-create">@meta.CreateButton</button>
             }
-            @if (Model?.IsMod ?? false)
-            {   
-                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn-settings">
-                    @meta.GetProperty("settingsButton").GetString()
-                </a>
+            @if (Model.IsMod)
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-settings">@meta.SettingsButton</a>
             }
         </div>
     </div>
 
-    <!-- 4. About Card -->
-    <div class="details-card">
-        <h3 class="section-title" style="margin-bottom: 0.45rem;">@text.GetProperty("aboutHeading").GetString()</h3>
-        <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">
-            @communityDesc
-        </p>
+    <!-- Navigation Tabs (the first is active) -->
+    <div class="details-tabs">
+        @for (var i = 0; i < text.NavTabs.Count; i++)
+        {
+            <button type="button" class="tab-link @(i == 0 ? "active" : "")">@text.NavTabs[i]</button>
+        }
     </div>
 
-    <!-- 5. Latest Discussions -->
+    <!-- About Card -->
+    <div class="details-card">
+        <h3 class="section-title about-heading">@text.AboutHeading</h3>
+        <p class="about-text">@Model.About</p>
+    </div>
+
+    <!-- Latest Discussions (placeholder content from the JSON) -->
     <div class="discussions-section-container">
         <div class="section-header-row">
-            <h3 class="section-title">@discussionsSection.GetProperty("title").GetString()</h3>
+            <h3 class="section-title">@discussions.Title</h3>
+            <button type="button" id="toggle-discussions-btn" class="link-action-btn"
+                    data-see-all="@discussions.SeeAllText" data-show-less="@discussions.ShowLessText">
+                @discussions.SeeAllText
+            </button>
         </div>
-        @* The community's real posts, as the same clickable cards as the Home feed. *@
-        @if (Model!.Posts.Count == 0)
-        {
-            <p class="discussions-empty">No posts in this community yet.</p>
-        }
-        else
-        {
-            ViewData["PostReturnUrl"] = Url.Action("Details", "Community", new { id = Model.Id });
-            <div class="feed-list">
-                <partial name="~/Views/Home/_PostCards.cshtml" model="Model.Posts" />
-            </div>
-        }
+        <div id="discussions-list" class="discussions-list">
+            @for (var i = 0; i < discussions.Items.Count; i++)
+            {
+                var discussion = discussions.Items[i];
+                var isHiddenByDefault = i >= discussions.InitiallyShown;
+                <div class="discussion-card @(isHiddenByDefault ? "discussion-extra is-hidden" : "")">
+                    <div class="avatar-initials">@discussion.Initials</div>
+                    <div class="discussion-content">
+                        <div class="discussion-top-row">
+                            <h4 class="discussion-title">@discussion.Title</h4>
+                            <span class="discussion-time">@discussion.Time</span>
+                        </div>
+                        <p>@discussion.Body</p>
+                        <div class="discussion-footer">
+                            <span>@discussion.AuthorMeta</span>
+                            <span>@discussion.RepliesCount</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     </div>
 </div>
 
-<partial name="_PostDialog" />
+<!-- Modular Modal Partial Inclusion -->
+<partial name="_CreateCommunityModal" model="Model.CreateForm" />
 
-    <!-- Modular Modal Partial Inclusion -->
-    <partial name="_CreateCommunityModal" model="modal" />
-
-    @section Scripts {
-        <!-- communities.js drives modal opening, closing, and tag synchronization -->
-        <script src="~/js/communities.js" asp-append-version="true"></script>
-        <script src="~/js/post-details.js" asp-append-version="true" defer></script>
-    }
+@section Scripts {
+    <!-- communities.js opens and closes the modal.
+         community-form.js fills in its tags -->
+    <script src="~/js/communities.js" asp-append-version="true"></script>
+    <script src="~/js/community-form.js" asp-append-version="true"></script>
+    <script src="~/js/community-details.js" asp-append-version="true"></script>
+}

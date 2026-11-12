@@ -13,29 +13,19 @@ Provides the shared page structure, styles, header, navigation, and script secti
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/right-rail.css" asp-append-version="true" />
     <script src="~/js/profile-theme.js" asp-append-version="true" defer></script>
-    <link rel="stylesheet" href="~/css/user-popout.css" asp-append-version="true" />
 </head>
 <body data-profile-user-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value">
-    @* A page shows the right rail by listing card slots, e.g. ViewData["RightRail"] = new[] { RightRailCards.Events, RightRailCards.Links }. *@
-    @{ var rightRail = ViewData["RightRail"] as IReadOnlyList<string>; }
     <a class="skip-link" href="#main-content">Skip to content</a>
     <partial name="_Header" />
-    <div class="app-shell@(rightRail is null ? "" : " has-rail")">
+    <div class="app-shell">
         <partial name="_Navigation" />
         <main id="main-content" tabindex="-1">
             @RenderBody()
         </main>
-        @if (rightRail is not null)
-        {
-            @await Component.InvokeAsync("RightRail", new { cards = rightRail })
-        }
     </div>
     @await Component.InvokeAsync("CreatePostDialog")
     <script src="~/js/create-post.js" asp-append-version="true" defer></script>
-    <partial name="_UserPopout" />
-    <script src="~/js/user-popout.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

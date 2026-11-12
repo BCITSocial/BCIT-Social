@@ -6,36 +6,26 @@ Displays the email and password login form.
 *@
 @{
     ViewData["Title"] = "Log in";
-    Layout = "/Views/Shared/_AuthLayout.cshtml";
+    Layout = "/Views/Shared/_HomeLayout.cshtml";
 }
 <section class="auth-panel" aria-labelledby="login-title">
-    <span class="auth-brand" aria-hidden="true">B</span>
     <h1 id="login-title">Log in</h1>
-    <p class="auth-lead">Welcome back to BCIT Social.</p>
-    <form method="post" asp-route-returnUrl="@Model.ReturnUrl" data-auth-form>
+    <p>Welcome back to BCIT Social.</p>
+    <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
         <div asp-validation-summary="ModelOnly" class="auth-errors" role="alert"></div>
         <div class="auth-field">
             <label asp-for="Input.Email"></label>
-            <input asp-for="Input.Email" autocomplete="username" placeholder="you@example.com" required />
+            <input asp-for="Input.Email" autocomplete="username" required />
             <span asp-validation-for="Input.Email" class="auth-errors"></span>
         </div>
         <div class="auth-field">
             <label asp-for="Input.Password"></label>
-            <div class="auth-password">
-                <input asp-for="Input.Password" autocomplete="current-password" required />
-                <button class="auth-reveal" type="button" aria-controls="Input_Password" aria-pressed="false" hidden data-reveal-password>Show</button>
-            </div>
+            <input asp-for="Input.Password" autocomplete="current-password" required />
             <span asp-validation-for="Input.Password" class="auth-errors"></span>
         </div>
         <label class="auth-checkbox"><input asp-for="Input.RememberMe" /> Remember me</label>
-        <button class="auth-submit" type="submit" data-busy-text="Logging in...">Log in</button>
+        <button class="primary-button" type="submit">Log in</button>
     </form>
-    <div class="auth-links">
-        <p>New to BCIT Social? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Create an account</a></p>
-        <p><a asp-page="./ForgotPassword">Forgot your password?</a></p>
-    </div>
+    <p><a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Create an account</a></p>
+    <p><a asp-page="./ForgotPassword">Forgot your password?</a></p>
 </section>
-
-@section Scripts {
-    <script src="~/js/auth.js" asp-append-version="true" defer></script>
-}

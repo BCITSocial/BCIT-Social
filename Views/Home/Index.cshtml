@@ -8,95 +8,36 @@ Renders the Home banner, share box, feed, and discovery panel.
 @{
     ViewData["Title"] = "Home";
     Layout = "_HomeLayout";
-    var signedIn = User.Identity?.IsAuthenticated == true;
-    var loginUrl = Url.Page("/Account/Login", new { area = "Identity", returnUrl = Url.Action("Index", "Home") });
-    // Chips after "All". To add a filter, add a row here and see ViewModels/FeedFilters.cs.
-    var chips = new[]
-    {
-        (Filter: FeedFilters.COMMUNITIES, Label: "Communities"),
-        (Filter: FeedFilters.FRIENDS, Label: "Friends"),
-    };
-    var emptyMessage = Model.Filter switch
-    {
-        FeedFilters.CAMPUS => $"No posts from {Model.Campus ?? "this campus"} yet.",
-        FeedFilters.COMMUNITIES => "No posts from your communities yet. Join a community to see its posts here.",
-        FeedFilters.FRIENDS => "No posts from your friends yet.",
-        _ => "No posts yet. Be the first to share something.",
-    };
 }
 
 <h1 class="visually-hidden">Home</h1>
 
-<div class="home-page">
-<div class="home-feed-layout">
-<div class="home-main-column">
 @* The banner image and its sizing come from settings.css (--image-home-banner). *@
 <section class="home-banner" role="img" aria-label="Your campus. Your people. Connect, share, and make the most of BCIT."></section>
 
-@if (signedIn)
-{
-    <section class="panel home-section share-box" aria-labelledby="share-heading">
-        <h2 id="share-heading" class="visually-hidden">Create a post</h2>
-        <span class="avatar" aria-hidden="true">@(Model.CurrentUserInitials == "" ? "?" : Model.CurrentUserInitials)</span>
-        <a class="share-prompt" asp-controller="Post" asp-action="Create" data-open-create>What would you like to share?</a>
-        <a class="cta-button" asp-controller="Post" asp-action="Create" data-open-create>+ Create</a>
-        <p class="share-hint">Ask a question, find friends, or share an update.</p>
-    </section>
-}
-else
-{
-    @* Signed-out visitors get a sign-up prompt here instead of the create post box. *@
-    <section class="panel home-section share-box share-box-guest" aria-labelledby="share-heading">
-        <div class="share-guest-text">
-            <h2 id="share-heading">Join the BCIT community</h2>
-            <p>Sign up to post, comment, join communities, and connect with classmates.</p>
-        </div>
-        <div class="share-guest-actions">
-            <a class="header-auth-button header-auth-login" href="@loginUrl">Log in</a>
-            <a class="header-auth-button header-auth-signup" asp-area="Identity" asp-page="/Account/Register" asp-route-returnUrl="@Url.Action("Index", "Home")">Sign up</a>
-        </div>
-    </section>
-}
+<section class="panel home-section share-box" aria-labelledby="share-heading">
+    <h2 id="share-heading" class="visually-hidden">Create a post</h2>
+    <span class="avatar" aria-hidden="true">@(Model.CurrentUserInitials == "" ? "?" : Model.CurrentUserInitials)</span>
+    <a class="share-prompt" asp-controller="Post" asp-action="Create" data-open-create>What would you like to share?</a>
+    <a class="cta-button" asp-controller="Post" asp-action="Create" data-open-create>+ Create</a>
+    <p class="share-hint">Ask a question, find friends, or share an update.</p>
+</section>
 
+<div class="home-feed-layout">
 <section class="panel home-section feed" aria-labelledby="feed-heading">
     <div class="feed-heading">
-        <h2 id="feed-heading" class="@(signedIn ? null : "visually-hidden")">@(signedIn ? "Your feed" : "Posts")</h2>
-        <nav class="feed-filters" aria-label="Filter feed">
-            <a class="feed-filter" asp-controller="Home" asp-action="Index"
-               aria-current="@(Model.Filter == FeedFilters.ALL ? "true" : null)">All</a>
-            <details class="feed-filter-menu">
-                <summary class="feed-filter" aria-current="@(Model.Filter == FeedFilters.CAMPUS ? "true" : null)">
-                    @(Model.Filter == FeedFilters.CAMPUS && Model.Campus is not null ? Model.Campus : "Campus")
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m7 10 5 5 5-5" /></svg>
-                </summary>
-                <div class="feed-filter-options">
-                    @if (Model.Campuses.Count == 0)
-                    {
-                        <p>No campuses yet.</p>
-                    }
-                    @foreach (var campus in Model.Campuses)
-                    {
-                        <a asp-controller="Home" asp-action="Index" asp-route-filter="@FeedFilters.CAMPUS" asp-route-campus="@campus"
-                           aria-current="@(Model.Campus == campus ? "true" : null)">@campus</a>
-                    }
-                </div>
-            </details>
-            @foreach (var chip in chips)
-            {
-                <a class="feed-filter" href="@(signedIn ? Url.Action("Index", "Home", new { filter = chip.Filter }) : loginUrl)"
-                   aria-current="@(Model.Filter == chip.Filter ? "true" : null)">@chip.Label</a>
-            }
-        </nav>
+        <h2 id="feed-heading">Your feed</h2>
+        <span class="feed-tab" aria-current="true">All</span>
     </div>
     @if (Model.Posts.Count == 0)
     {
         <div class="empty-state">
-            <p>@emptyMessage</p>
+            <p>No posts yet. Be the first to share something.</p>
         </div>
     }
     else
     {
-        <div class="feed-list" id="feed-list" data-feed-url="@Url.Action("Feed", "Home", new { filter = Model.Filter == FeedFilters.ALL ? null : Model.Filter, campus = Model.Campus })" data-has-more="@(Model.HasMore ? "true" : "false")">
+        <div class="feed-list" id="feed-list" data-feed-url="@Url.Action("Feed", "Home")" data-has-more="@(Model.HasMore ? "true" : "false")">
             <partial name="_PostCards" model="Model.Posts" />
         </div>
         <div class="feed-status">
@@ -105,30 +46,60 @@ else
         </div>
     }
 </section>
-</div>
 
-<aside class="panel home-section discovery-panel" aria-labelledby="discovery-heading">
-    @if (signedIn)
-    {
-        <h2 id="discovery-heading">Upcoming events</h2>
+<aside class="panel home-section discovery-panel" aria-label="Discover events and communities">
+    <div class="discovery-tabs" role="tablist" aria-label="Discover">
+        <button class="discovery-tab" id="events-tab" type="button" role="tab" aria-selected="true" aria-controls="events-panel">Events</button>
+        <button class="discovery-tab" id="communities-tab" type="button" role="tab" aria-selected="false" aria-controls="communities-panel" tabindex="-1">Communities</button>
+    </div>
+    <section class="discovery-content" id="events-panel" role="tabpanel" aria-labelledby="events-tab">
+        <h2>Upcoming events</h2>
         <p class="discovery-empty">No upcoming events to show.</p>
-    }
-    else
-    {
-        @* Matches the sign-up prompt that replaces the share box for signed-out visitors. *@
-        <div class="discovery-guest">
-            <h2 id="discovery-heading">Find your people</h2>
-            <p>Sign up to RSVP to events and join communities across BCIT.</p>
+        <a class="discovery-link" asp-controller="Events" asp-action="Index">View all events</a>
+    </section>
+    <section class="discovery-content" id="communities-panel" role="tabpanel" aria-labelledby="communities-tab" hidden>
+        <div class="section-heading">
+            <h2>Your communities</h2>
+            <a asp-controller="Community" asp-action="Index">View all</a>
         </div>
-    }
-    <a class="discovery-link" asp-controller="Events" asp-action="Index">View all events</a>
+        @if (Model.YourCommunities.Count > 0)
+        {
+            <ul class="discovery-community-list">
+                @foreach (var community in Model.YourCommunities)
+                {
+                    <li>
+                        <a class="discovery-community" asp-controller="Community" asp-action="Details" asp-route-id="@community.Id">
+                            <span class="community-tile" aria-hidden="true">@community.Initials</span>
+                            <span class="community-card-text">
+                                <strong>@community.Name</strong>
+                                <span>@DisplayFormat.Count(community.MemberCount) @(community.MemberCount == 1 ? "member" : "members") · @community.Type</span>
+                            </span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="discovery-empty">Join a community to see it here.</p>
+        }
+    </section>
 </aside>
 </div>
-</div>
 
-<partial name="_PostDialog" />
+@* Post details open here when a card is clicked. post-details.js fills the body from /Home/Post/{id}. *@
+<dialog class="post-dialog" id="post-dialog" aria-labelledby="post-dialog-title">
+    <div class="post-dialog-header">
+        <h2 id="post-dialog-title">Post</h2>
+        <button class="icon-button" type="button" data-close-dialog aria-label="Close post">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        </button>
+    </div>
+    <div class="post-dialog-body" id="post-dialog-body"></div>
+</dialog>
 
 @section Scripts {
     <script src="~/js/feed.js" asp-append-version="true" defer></script>
     <script src="~/js/post-details.js" asp-append-version="true" defer></script>
+    <script src="~/js/home-discovery.js" asp-append-version="true" defer></script>
 }

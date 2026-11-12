@@ -7,34 +7,59 @@ using Microsoft.AspNetCore.Authorization;
 using BCIT_Social.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using System.Text.Json;
 
 public class CommunityController : Controller
 {
-    // Posts shown on a community page, newest first.
-    private const int COMMUNITYPOSTSSHOWN = 50;
+    // Author: Jay
+    private const string COMMUNITIES_TEXT_FILE = "communities-text.json";
+    private const string DETAILS_TEXT_FILE = "community-details-text.json";
+    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
+    // --------------
 
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    // Author: Jay
+    // env used for loading from wwwroot
+    // logger used for warnings
+    private readonly IWebHostEnvironment _env;
+    private readonly ILogger<CommunityController> _logger;
+    // -------------
 
-    public CommunityController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    public CommunityController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment env, ILogger<CommunityController> logger)
     {
         _context = context;
         _userManager = userManager;
+        // Author: Jay
+        _env = env;
+        _logger = logger;
+        // -------------
     }
 
     // GET: COMMUNITY
+    // Author: Jay
+    // Grabs page text, community cards, and popup form.
+    // If DB down, then shows empty cards.
     public async Task<IActionResult> Index()
     {
+        var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
+        IReadOnlyList<CommunityCardViewModel> cards = [];
         try
         {
-            var communities = IndexViewModelFromCommunity(await _context.Communities.ToListAsync());
-            return View(communities);
+            cards = await IndexCardsAsync(text);
         }
-        catch
+        catch (Exception ex)
         {
             // Fallback on macOS since I can't connect to the DB!
-            return View(new List<Community>());
+            _logger.LogWarning(ex, "Could not load communities; showing an empty list.");
         }
+
+        return View(new CommunityIndexViewModel
+        {
+            Text = text,
+            Communities = cards,
+            CreateForm = BuildCommunityForm(text.CreateForm, text.Options),
+        });
     }
 
     // GET: COMMUNITY/Details/5
@@ -77,9 +102,12 @@ public class CommunityController : Controller
 
 
     // GET: COMMUNITY/Create
+    // Author: Jay
     public IActionResult Create()
     {
-        return View(new CommunityViewModel());
+        // reads from json files.
+        var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
+        return View(BuildCommunityForm(text.CreateForm, text.Options));
     }
 
     // POST: COMMUNITY/Create
@@ -95,11 +123,6 @@ public class CommunityController : Controller
         if (creatorId == null)
         {
             return Challenge();
-        }
-        var communitiesByUser = _context.Communities.Where(c => c.CreatorId == creatorId).ToList();
-        if (communitiesByUser.Count >= 3)
-        {
-            return RedirectToAction(nameof(Index));
         }
 
         var community = new Community
@@ -128,7 +151,10 @@ public class CommunityController : Controller
                 community.Id
             });
         }
-        return View(viewModel);
+        // Show Create page again with what was typed and validation errors.
+        var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
+        return View(BuildCommunityForm(text.CreateForm, text.Options,
+            name: viewModel.Name, description: viewModel.Description, type: viewModel.Type));
     }
 
     // GET: COMMUNITY/Edit/5
@@ -197,7 +223,12 @@ public class CommunityController : Controller
                 community.Id
             });
         }
-        return View(community);
+        // Author: Jay
+        // Show the Edit page again with what was typed and the validation errors.
+        var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
+        return View(BuildCommunityForm(text.EditForm, text.Options, community.Id,
+            viewModel.Name, viewModel.Description, viewModel.Type));
+        // ----------------
     }
 
     /// <summary>
@@ -326,49 +357,7 @@ public class CommunityController : Controller
             return View(community);
         }
         return RedirectToAction(nameof(Index));
-    }
-    /// <summary>
-    /// Author: Tin Trinh
-    /// Last Revised: Nov. 12, 2026
-    /// Description: GET call to leave a community
-    /// Redirects to the Leave page, checks if the user is in this community, otherwise redirects
-    /// Also checks if user is Creator, they cannot leave (as of right now)
-    /// </summary>
-    /// <param name="id">community id</param>
-    // GET: COMMUNITY/Leave/5
-    [Authorize]
-    public async Task<IActionResult> OwnerLeave(int? id)
-    {
-        string? currentUserId = _userManager.GetUserId(User);
-        if (id == null)
-        {
-            return NotFound();
-        }
-        if (currentUserId == null)
-        {
-            return Forbid();
-        }
-        var community = await _context.Communities
-            .FirstOrDefaultAsync(m => m.Id == id);
 
-        if (community == null)
-        {
-            return NotFound();
-        }
-
-        if (community.CreatorId != currentUserId)
-        {
-            return RedirectToAction(nameof(Leave), new
-            {
-                community.Id
-            });
-        }
-
-        if (await MemberExistsAsync(currentUserId, community))
-        {
-            return View(community);
-        }
-        return RedirectToAction(nameof(Index));
     }
 
     /// <summary>
@@ -416,8 +405,6 @@ public class CommunityController : Controller
         }
         return RedirectToAction(nameof(Index));
     }
-
-
 
     /// <summary>
     /// Author: Tin Trinh
@@ -645,7 +632,8 @@ public class CommunityController : Controller
             return Forbid();
         }
 
-        return View(community);
+        // Author: Jay
+        return View(await DeleteViewModelFromCommunity(community));
     }
 
     // POST: COMMUNITY/Delete/5
@@ -669,25 +657,46 @@ public class CommunityController : Controller
     // CREATING VIEW MODELS
     // ---------------------
 
-    private List<CommunityViewModel> IndexViewModelFromCommunity(List<Community> communities)
+    /// Author: Jay
+    /// Description: Creates the cards for the Communities page in one query: 
+    ///     each community's member count, 
+    ///     whether signed-in user has joined with its tags read from Type.
+    private async Task<IReadOnlyList<CommunityCardViewModel>> IndexCardsAsync(CommunitiesText text)
     {
         var currentUserId = _userManager.GetUserId(User);
-        List<CommunityViewModel> communityViewModels = [];
-        foreach (var community in communities)
+        // waits for db query.
+        var communities = await _context.Communities
+            .AsNoTracking()
+            .Select(community => new
+            {
+                community.Id,
+                community.Name,
+                community.Type,
+                community.Description,
+                MemberCount = community.Members.Count,
+                IsJoined = currentUserId != null
+                    && community.Members.Any(member => member.UserId == currentUserId),
+            })
+            .ToListAsync();
+
+        return communities.Select(community =>
         {
-            bool isJoined = MemberExists(currentUserId, community);
-            var viewModel = new CommunityViewModel
+            var tags = CommunityTags.Parse(community.Type, text.Options);
+            return new CommunityCardViewModel
             {
                 Id = community.Id,
                 Name = community.Name,
-                Type = community.Type,
-                Description = community.Description,
-                IsJoined = isJoined,
-                MembersCount = community.Members.Count,
+                Description = string.IsNullOrWhiteSpace(community.Description)
+                    ? text.DefaultDescription
+                    : community.Description,
+                Badges = tags.Badges,
+                Location = tags.Campus ?? text.DefaultCampus,
+                MemberCount = community.MemberCount,
+                IsJoined = community.IsJoined,
+                Topics = tags.Topics,
+                Status = tags.Status,
             };
-            communityViewModels.Add(viewModel);
-        }
-        return communityViewModels;
+        }).ToList();
     }
 
     /// <summary>
@@ -697,16 +706,63 @@ public class CommunityController : Controller
     /// </summary>
     /// <param name="community">a Community</param>
     /// <returns>a view model</returns>
-    private CommunityViewModel EditViewModelFromCommunity(Community community)
+    private CommunityFormViewModel EditViewModelFromCommunity(Community community)
     {
-        var viewModel = new CommunityViewModel
+        // Author: Jay
+        var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
+        return BuildCommunityForm(text.EditForm, text.Options, community.Id,
+            community.Name, community.Description, community.Type);
+    }
+
+
+    /// Author: Jay
+    /// Description: Creates the community form (create pop-up, Create page, Edit page).
+    /// Dropdowns preselected from the saved Type.
+    /// 
+    /// <param name="text">labels for the create or edit form</param>
+    /// <param name="options">dropdown choices</param>
+    /// <param name="id">community id when editing, else null</param>
+    private static CommunityFormViewModel BuildCommunityForm(CommunityFormText text, CommunityOptions options,
+        int? id = null, string? name = null, string? description = null, string? type = null)
+    {
+        var tags = CommunityTags.Parse(type, options);
+        return new CommunityFormViewModel
         {
-            Name = community.Name,
-            Type = community.Type,
-            // author: Jaspreet Bath
-            Description = community.Description
+            Text = text,
+            Options = options,
+            Id = id,
+            Name = name ?? "",
+            Description = description ?? "",
+            Category = tags.Category ?? "",
+            Tag = tags.Tag ?? "",
+            Status = tags.Status ?? "",
+            Time = tags.Time ?? "",
+            Campus = tags.Campus ?? "",
+
+            Type = string.IsNullOrWhiteSpace(type) ? options.Categories.FirstOrDefault() ?? "" : type,
         };
-        return viewModel;
+    }
+
+
+    /// Author: Jay
+    /// Description: Creates a view model for the Delete community page.
+    /// 
+    /// <param name="community">A Community</param>
+    /// <returns>view model</returns>
+    private async Task<CommunityDeleteViewModel> DeleteViewModelFromCommunity(Community community)
+    {
+        var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
+        var tags = CommunityTags.Parse(community.Type, text.Options);
+        return new CommunityDeleteViewModel
+        {
+            Text = text.DeletePage,
+            Id = community.Id,
+            Name = community.Name,
+            Badges = tags.Badges,
+            Location = tags.Campus ?? text.DefaultCampus,
+            MemberCount = await _context.CommunityMembers.CountAsync(member => member.CommunityId == community.Id),
+            MembersLabel = text.MembersLabel,
+        };
     }
 
     /// <summary>
@@ -734,6 +790,11 @@ public class CommunityController : Controller
             isMod = communityMember?.IsModerator ?? false;
         }
 
+        // Author: Jay
+        var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
+        var detailsText = LoadText<CommunityDetailsText>(DETAILS_TEXT_FILE);
+        var tags = CommunityTags.Parse(community.Type, text.Options);
+        // -------------
 
         var viewModel = new CommunityDetailsViewModel
         {
@@ -745,14 +806,15 @@ public class CommunityController : Controller
             Members = members,
             IsMod = isMod,
             IsMember = isMember,
-            Posts = await _context.ProjectCards(
-                    _context.Posts
-                        .Where(post => post.CommunityId == community.Id && post.DateOfDel == null)
-                        .OrderByDescending(post => post.CreatedAt)
-                        .ThenByDescending(post => post.Id)
-                        .Take(COMMUNITYPOSTSSHOWN),
-                    currentUserId)
-                .ToListAsync(),
+            // Author: Jay
+            Text = detailsText,
+            About = string.IsNullOrWhiteSpace(community.Description)
+                ? text.DefaultDescription
+                : community.Description,
+            Badges = tags.Badges,
+            Location = tags.Campus ?? detailsText.Meta.Campus,
+            CreateForm = BuildCommunityForm(text.CreateForm, text.Options),
+            // -------------
         };
         return viewModel;
     }
@@ -819,6 +881,35 @@ public class CommunityController : Controller
     // -------
     // HELPERS
     // -------
+
+
+    /// Author: Jay
+    /// Description: Reads page text from a JSON file from wwwroot/content
+    /// Missing, empty or broken file gives the default texts in text class.
+    /// 
+    /// <param name="fileName">file name inside wwwroot/content</param>
+    /// <returns>the page text</returns>
+    private T LoadText<T>(string fileName) where T : new()
+    {
+        var path = Path.Combine(_env.WebRootPath, "content", fileName);
+        if (!System.IO.File.Exists(path))
+        {
+            return new T();
+        }
+
+        try
+        {
+            var json = System.IO.File.ReadAllText(path);
+            return string.IsNullOrWhiteSpace(json)
+                ? new T()
+                : JsonSerializer.Deserialize<T>(json, _jsonOptions) ?? new T();
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Could not read {Path}; using the default text.", path);
+            return new T();
+        }
+    }
 
 
     private bool CommunityExists(int? id)

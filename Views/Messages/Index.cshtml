@@ -20,10 +20,6 @@
             {
                 <img src="@person.PhotoUrl" alt="" />
             }
-            else if (person.IsGroup)
-            {
-                <svg class="msg-group-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8.5" r="3" /><path d="M3.5 19a5.5 5.5 0 0 1 11 0" /><circle cx="16.5" cy="9.5" r="2.5" /><path d="M15.5 14.2a4.5 4.5 0 0 1 5 4.8" /></svg>
-            }
             else
             {
                 <span aria-hidden="true">@person.Initials</span>
@@ -36,38 +32,21 @@
     }
 }
 
-@{
-    // Initials bubble for one sender in a group chat.
-    void SenderAvatar(string initials)
-    {
-        <span class="msg-avatar is-small"><span aria-hidden="true">@initials</span></span>
-    }
-}
-
 <div class="messages-page@(Model.IsActiveChosen ? " is-chat-open" : null)@(showDetails ? " is-details-open" : null)" data-messages>
-    @* @author Asher: the recipient picker submits to the existing conversation-creation action.
-       Pick one person to open a direct chat, or two or more to create a group chat (Discord style).
-       messages.js switches the form between StartConversation and CreateGroup. *@
-    <dialog class="msg-new-dialog" data-new-message-dialog aria-labelledby="new-message-heading"
-            data-heading-dm="Start a conversation" data-heading-group="New group chat"
-            data-hint-dm="Pick one person to message, or several to start a group chat."
-            data-hint-group="Pick at least 2 people to add to the group.">
+    @* @author Asher: the recipient picker submits to the existing conversation-creation action. *@
+    <dialog class="msg-new-dialog" data-new-message-dialog aria-labelledby="new-message-heading">
         <form method="dialog" class="msg-new-dialog-close">
             <button class="icon-button" aria-label="Close">×</button>
         </form>
-        <h2 id="new-message-heading" data-new-message-heading>Start a conversation</h2>
-        <p class="msg-new-dialog-hint" data-new-message-hint>Pick one person to message, or several to start a group chat.</p>
-        <ul class="msg-recipient-chips" aria-label="Selected people" data-recipient-chips></ul>
+        <h2 id="new-message-heading">Start a conversation</h2>
         <label class="msg-search">
             <span class="visually-hidden">Search alumni by name</span>
             <input type="search" minlength="2" placeholder="Search alumni by name" autocomplete="off" data-recipient-search />
         </label>
         <p class="msg-recipient-status" aria-live="polite" data-recipient-status>Enter at least 2 characters.</p>
         <ul class="msg-recipient-results" data-recipient-results></ul>
-        <form method="post" asp-action="StartConversation" data-start-conversation
-              data-dm-action="@Url.Action("StartConversation")" data-group-action="@Url.Action("CreateGroup")">
+        <form method="post" asp-action="StartConversation" data-start-conversation>
             <input type="hidden" name="recipientId" />
-            <div hidden data-member-inputs></div>
             <button class="msg-primary-button" type="submit" disabled data-start-conversation-button>Open conversation</button>
         </form>
     </dialog>
@@ -75,16 +54,10 @@
     <section class="msg-panel msg-list-panel" aria-labelledby="messages-heading">
         <div class="msg-list-head">
             <h1 id="messages-heading">Messages</h1>
-            <div class="msg-list-actions">
-                <button class="msg-secondary-button" type="button" data-new-message="group" data-find-users-url="@Url.Action("FindUsers", "Messages")">
-                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8.5" r="3" /><path d="M3.5 19a5.5 5.5 0 0 1 11 0M18 8v6M15 11h6" /></svg>
-                    New group
-                </button>
-                <button class="msg-primary-button" type="button" data-new-message="dm" data-find-users-url="@Url.Action("FindUsers", "Messages")">
-                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" /></svg>
-                    New message
-                </button>
-            </div>
+            <button class="msg-primary-button" type="button" data-new-message data-find-users-url="@Url.Action("FindUsers", "Messages")">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" /></svg>
+                New message
+            </button>
         </div>
         <label class="msg-search">
             <span class="visually-hidden">Search messages</span>
@@ -92,10 +65,6 @@
             <input type="search" placeholder="Search messages" data-message-search />
         </label>
         <p class="visually-hidden" aria-live="polite" data-message-search-status></p>
-        @if (TempData["MessageError"] is string messageError)
-        {
-            <p class="msg-error" role="alert">@messageError</p>
-        }
         <nav class="msg-filters" aria-label="Filter conversations">
             @foreach (var (value, label) in MessagesViewModel.filters)
             {
@@ -126,7 +95,7 @@
                                     }
                                 </span>
                                 <span class="msg-conversation-bottom">
-                                    <span class="msg-preview">@(last is null ? "No messages yet" : (last.IsMine ? "You: " : conversation.IsGroup ? last.SenderName.Split(' ')[0] + ": " : "") + last.Text)</span>
+                                    <span class="msg-preview">@(last is null ? "No messages yet" : (last.IsMine ? "You: " : "") + last.Text)</span>
                                     @if (conversation.IsUnread)
                                     {
                                         <span class="msg-unread-dot"><span class="visually-hidden">Unread</span></span>
@@ -211,30 +180,15 @@
                     @foreach (var day in active.Messages.GroupBy(message => message.SentAt.Date))
                     {
                         <li class="msg-day" data-day="@day.Key.ToString("yyyy-MM-dd")"><span>@MessagesViewModel.DayLabel(day.Key)</span></li>
-                        string? previousSender = null;
                         @foreach (var message in day)
                         {
-                            // In a group, name the sender above the first bubble of each run of their messages.
-                            var showSender = active.IsGroup && !message.IsMine && message.SenderName != previousSender;
-                            previousSender = message.SenderName;
                             <li class="msg-row @(message.IsMine ? "is-mine" : "is-theirs")" data-message-id="@message.Id">
                                 @if (!message.IsMine)
                                 {
-                                    if (active.IsGroup)
-                                    {
-                                        SenderAvatar(message.SenderInitials);
-                                    }
-                                    else
-                                    {
-                                        Avatar(active, "is-small");
-                                    }
+                                    Avatar(active, "is-small");
                                 }
                                 <div class="msg-bubble-group">
-                                    @if (showSender)
-                                    {
-                                        <span class="msg-sender" aria-hidden="true">@message.SenderName</span>
-                                    }
-                                    <p class="msg-bubble"><span class="visually-hidden">@(message.IsMine ? "You" : active.IsGroup ? message.SenderName : active.Name): </span>@message.Text</p>
+                                    <p class="msg-bubble"><span class="visually-hidden">@(message.IsMine ? "You" : active.Name): </span>@message.Text</p>
                                     <span class="msg-meta">
                                         <time datetime="@message.SentAt.ToString("s")">@message.SentAt.ToString("h:mm tt")</time>
                                         @if (message.IsMine && message.IsRead)
@@ -313,36 +267,8 @@
                 {
                     <p class="msg-details-status"><span class="msg-status-dot" aria-hidden="true"></span>Active now</p>
                 }
-                @if (!active.IsGroup)
-                {
-                    <a class="msg-outline-button" asp-controller="Profile" asp-action="Details" asp-route-userid="@active.UserId">View profile</a>
-                }
+                <a class="msg-outline-button" asp-controller="Profile" asp-action="Details" asp-route-userid="@active.UserId">View profile</a>
             </section>
-
-            @if (active.IsGroup)
-            {
-                <section class="msg-panel msg-details-card" aria-labelledby="group-members-heading">
-                    <h2 id="group-members-heading">Members (@(active.Members.Count + 1))</h2>
-                    <ul class="msg-details-list msg-member-list">
-                        <li class="msg-member"><span class="msg-avatar is-small"><span aria-hidden="true">You</span></span><span class="msg-member-text"><strong>You</strong></span></li>
-                        @foreach (var member in active.Members)
-                        {
-                            <li>
-                                <a class="msg-member" asp-controller="Profile" asp-action="Details" asp-route-userid="@member.UserId">
-                                    <span class="msg-avatar is-small"><span aria-hidden="true">@member.Initials</span></span>
-                                    <span class="msg-member-text">
-                                        <strong>@member.Name</strong>
-                                        @if (member.Program.Length > 0)
-                                        {
-                                            <span>@member.Program</span>
-                                        }
-                                    </span>
-                                </a>
-                            </li>
-                        }
-                    </ul>
-                </section>
-            }
 
             <section class="msg-panel msg-details-card" aria-labelledby="shared-communities-heading">
                 <div class="msg-details-head">
