@@ -58,7 +58,7 @@ conventions:
   - Repository configuration (.github/workflows, CODEOWNERS, branch protection, other repo-level config) is owned by DevOps and is committed directly to main on purpose; this is expected, not a skipped review.
   - Feature work goes on feature/* branches and reaches the team branches (Frontend, Backend, Database) through a PR.
   - Backend: 1 peer review before merging into Backend; review requests go in #code-review with the PR number or link.
-  - Dev -> main merges are done by the PM / DevOps at the end of each coding stage.
+  - dev -> main merges are done by the PM / DevOps at the end of each coding stage.
 
 # Roster from "V2 Project Proposal 2026" section 4.1.
 members:

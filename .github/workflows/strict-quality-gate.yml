@@ -1,13 +1,11 @@
-name: Strict Quality Scan For Dev/Main Branches
+name: Strict Quality Scan For dev/Main Branches
 
 on:
   push:
     branches:
-      - Dev
       - dev
   pull_request:
     branches:
-      - Dev
       - dev
       - main
   workflow_dispatch:
@@ -17,7 +15,7 @@ permissions:
 
 concurrency:
   group: strict-gate-${{ github.workflow }}-${{ github.ref }}
-  # Cancel superseded PR runs; never cancel runs for pushes to Dev
+  # Cancel superseded PR runs; never cancel runs for pushes to dev
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
