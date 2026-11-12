@@ -33,17 +33,34 @@ Renders the Home banner, share box, feed, and discovery panel.
 @* The banner image and its sizing come from settings.css (--image-home-banner). *@
 <section class="home-banner" role="img" aria-label="Your campus. Your people. Connect, share, and make the most of BCIT."></section>
 
-<section class="panel home-section share-box" aria-labelledby="share-heading">
-    <h2 id="share-heading" class="visually-hidden">Create a post</h2>
-    <span class="avatar" aria-hidden="true">@(Model.CurrentUserInitials == "" ? "?" : Model.CurrentUserInitials)</span>
-    <a class="share-prompt" asp-controller="Post" asp-action="Create" data-open-create>What would you like to share?</a>
-    <a class="cta-button" asp-controller="Post" asp-action="Create" data-open-create>+ Create</a>
-    <p class="share-hint">Ask a question, find friends, or share an update.</p>
-</section>
+@if (signedIn)
+{
+    <section class="panel home-section share-box" aria-labelledby="share-heading">
+        <h2 id="share-heading" class="visually-hidden">Create a post</h2>
+        <span class="avatar" aria-hidden="true">@(Model.CurrentUserInitials == "" ? "?" : Model.CurrentUserInitials)</span>
+        <a class="share-prompt" asp-controller="Post" asp-action="Create" data-open-create>What would you like to share?</a>
+        <a class="cta-button" asp-controller="Post" asp-action="Create" data-open-create>+ Create</a>
+        <p class="share-hint">Ask a question, find friends, or share an update.</p>
+    </section>
+}
+else
+{
+    @* Signed-out visitors get a sign-up prompt here instead of the create post box. *@
+    <section class="panel home-section share-box share-box-guest" aria-labelledby="share-heading">
+        <div class="share-guest-text">
+            <h2 id="share-heading">Join the BCIT community</h2>
+            <p>Sign up to post, comment, join communities, and connect with classmates.</p>
+        </div>
+        <div class="share-guest-actions">
+            <a class="header-auth-button header-auth-login" href="@loginUrl">Log in</a>
+            <a class="header-auth-button header-auth-signup" asp-area="Identity" asp-page="/Account/Register" asp-route-returnUrl="@Url.Action("Index", "Home")">Sign up</a>
+        </div>
+    </section>
+}
 
 <section class="panel home-section feed" aria-labelledby="feed-heading">
     <div class="feed-heading">
-        <h2 id="feed-heading">Your feed</h2>
+        <h2 id="feed-heading" class="@(signedIn ? null : "visually-hidden")">@(signedIn ? "Your feed" : "Posts")</h2>
         <nav class="feed-filters" aria-label="Filter feed">
             <a class="feed-filter" asp-controller="Home" asp-action="Index"
                aria-current="@(Model.Filter == FeedFilters.ALL ? "true" : null)">All</a>
@@ -96,8 +113,19 @@ Renders the Home banner, share box, feed, and discovery panel.
         <button class="discovery-tab" id="communities-tab" type="button" role="tab" aria-selected="false" aria-controls="communities-panel" tabindex="-1">Communities</button>
     </div>
     <section class="discovery-content" id="events-panel" role="tabpanel" aria-labelledby="events-tab">
-        <h2>Upcoming events</h2>
-        <p class="discovery-empty">No upcoming events to show.</p>
+        @if (signedIn)
+        {
+            <h2>Upcoming events</h2>
+            <p class="discovery-empty">No upcoming events to show.</p>
+        }
+        else
+        {
+            @* Matches the sign-up prompt that replaces the share box for signed-out visitors. *@
+            <div class="discovery-guest">
+                <h2>Find your people</h2>
+                <p>Sign up to RSVP to events and join communities across BCIT.</p>
+            </div>
+        }
         <a class="discovery-link" asp-controller="Events" asp-action="Index">View all events</a>
     </section>
     <section class="discovery-content" id="communities-panel" role="tabpanel" aria-labelledby="communities-tab" hidden>
@@ -124,7 +152,7 @@ Renders the Home banner, share box, feed, and discovery panel.
         }
         else
         {
-            <p class="discovery-empty">Join a community to see it here.</p>
+            <p class="discovery-empty">@(signedIn ? "Join a community to see it here." : "Log in to see the communities you've joined.")</p>
         }
     </section>
 </aside>

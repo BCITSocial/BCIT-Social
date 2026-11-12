@@ -109,6 +109,13 @@ a.primary-button { display: inline-flex; align-items: center; min-height: 44px; 
 .share-prompt { display: flex; align-items: center; min-height: 36px; padding: 6px 14px; border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-muted); font-size: 0.875rem; text-decoration: none; }
 .share-prompt:hover { border-color: var(--color-accent); }
 .share-hint { grid-column: 2 / -1; margin: 0; font-size: 0.8125rem; }
+.share-box-guest { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; }
+.share-guest-text h2 { margin: 0 0 2px; font-size: 1rem; }
+.share-guest-text p { margin: 0; font-size: 0.8125rem; }
+.share-guest-actions { display: flex; gap: 8px; }
+.discovery-guest { margin-bottom: 12px; }
+.discovery-guest h2 { margin: 0 0 2px; font-size: 1rem; }
+.discovery-guest p { margin: 0; font-size: 0.8125rem; }
 
 /* Home sits in a centred column like the profile page: the shell (left nav + page) is capped and centred. */
 /* The shell is shifted right so the feed column's centre (215px nav + 16px padding + half the
