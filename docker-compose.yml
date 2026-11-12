@@ -4,7 +4,7 @@ services:
     container_name: bcit-social-db
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "BCITSocialDev123!"
+      MSSQL_SA_PASSWORD: "${SA_PASSWORD}"
     ports:
       - "14330:1433"
     volumes:
