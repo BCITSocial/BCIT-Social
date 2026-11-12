@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using BCIT_Social.Data;
 using BCIT_Social.Models;
 using BCIT_Social.Hubs;
+using BCIT_Social.Services;
 using Azure.Storage.Blobs;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +29,7 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddSignalR();
+builder.Services.AddScoped<UploadService>();
 
 var app = builder.Build();
 

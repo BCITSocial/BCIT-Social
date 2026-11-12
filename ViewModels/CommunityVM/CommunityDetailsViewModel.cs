@@ -1,6 +1,4 @@
-using System;
 using BCIT_Social.Models;
-using Humanizer;
 
 namespace BCIT_Social.ViewModels;
 

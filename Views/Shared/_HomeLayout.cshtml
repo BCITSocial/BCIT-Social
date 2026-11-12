@@ -13,8 +13,9 @@ Provides the shared page structure, styles, header, navigation, and script secti
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+    <script src="~/js/profile-theme.js" asp-append-version="true" defer></script>
 </head>
-<body>
+<body data-profile-user-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value">
     <a class="skip-link" href="#main-content">Skip to content</a>
     <partial name="_Header" />
     <div class="app-shell">

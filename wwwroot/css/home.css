@@ -21,10 +21,18 @@ p { color: var(--color-muted); }
 .site-header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px) minmax(0, 1fr); align-items: center; gap: 24px; padding: 10px 24px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .brand { display: inline-flex; align-items: center; gap: 12px; justify-self: start; color: var(--color-text); text-decoration: none; font-size: var(--font-size-brand); font-weight: var(--font-weight-bold); white-space: nowrap; }
 .brand-badge { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 7px; background: var(--color-accent); color: var(--color-surface); font-size: 1.125rem; }
+.brand-logo { background: transparent; }
+.brand-badge img { display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: contain; }
 .header-search { position: relative; width: 100%; }
 .header-search input { width: 100%; padding: 8px 14px 8px 40px; border: 1px solid var(--color-border); background: var(--color-input); }
 .header-search-icon { position: absolute; top: 50%; left: 14px; width: 18px; height: 18px; translate: 0 -50%; fill: none; stroke: var(--color-muted); stroke-width: 2; stroke-linecap: round; pointer-events: none; }
 .header-actions { display: flex; align-items: center; justify-self: end; gap: 12px; }
+.header-auth-actions { gap: 8px; }
+.header-auth-button { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 999px; font-size: 0.875rem; font-weight: var(--font-weight-bold); text-decoration: none; white-space: nowrap; }
+.header-auth-login { background: var(--color-surface); color: var(--color-text); }
+.header-auth-login:hover { background: var(--color-input); color: var(--color-text); }
+.header-auth-signup { border-color: #245be8; background: #245be8; color: #fff; }
+.header-auth-signup:hover { border-color: #1d4ed8; background: #1d4ed8; color: #fff; }
 .header-icon svg { width: 22px; height: 22px; stroke-width: 1.7; stroke-linejoin: round; }
 .profile-button { display: grid; place-items: center; height: 44px; padding: 0; border: 0; border-radius: 50%; background: var(--color-input); color: var(--color-muted); cursor: pointer; }
 .profile-button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
@@ -157,12 +165,33 @@ a.primary-button { display: inline-flex; align-items: center; min-height: 44px; 
 .post-page { max-width: 880px; margin: 0 auto; padding: 0; }
 .back-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.875rem; }
 .post-details-author { display: flex; align-items: center; gap: 16px; }
-.post-details-name { color: var(--color-text); font-size: 1.125rem; font-weight: var(--font-weight-bold); }
+.post-details-name {
+    color: var(--color-text);
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    text-decoration: none;
+}
+.post-details-name:hover {
+    text-decoration: underline;
+}
+.post-author {
+    color: var(--color-text);
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    text-decoration: none;
+}
+.post-author:hover {
+    text-decoration: underline;
+}
+.post-avatar {
+    text-decoration: none;
+}
 .post-details-meta { font-size: 0.875rem; }
 .post-details-title { margin: 16px 0 12px; font-size: 1.625rem; line-height: var(--line-height-heading); }
 .post-details-content { display: grid; gap: 12px; font-size: 0.9375rem; }
 .post-details-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 16px; padding: 8px 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
 .post-details-actions form { margin: 0; }
+.avatar {text-decoration: none;}
 .share-action { margin-left: auto; }
 .share-status { color: var(--color-muted); font-size: 0.8125rem; }
 .share-status:empty { display: none; }
@@ -180,7 +209,10 @@ a.primary-button { display: inline-flex; align-items: center; min-height: 44px; 
 .comment { display: flex; gap: 16px; }
 .comment-body { flex: 1; min-width: 0; }
 .comment-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; font-size: 0.75rem; }
-.comment-author { color: var(--color-text); font-size: 1rem; font-weight: var(--font-weight-bold); }
+.comment-author { color: var(--color-text); font-size: 1rem; font-weight: var(--font-weight-bold); text-decoration: none;}
+.comment-author:hover {
+    text-decoration: underline;
+}
 .author-badge { padding: 1px 12px; border-radius: 999px; background: var(--color-tag-surface); color: var(--color-tag-text); font-size: 0.6875rem; }
 .comment-content { margin-top: 4px; font-size: 0.875rem; }
 .reply-toggle, .replies { margin-top: 4px; }
