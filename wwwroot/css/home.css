@@ -21,10 +21,18 @@ p { color: var(--color-muted); }
 .site-header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px) minmax(0, 1fr); align-items: center; gap: 24px; padding: 10px 24px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .brand { display: inline-flex; align-items: center; gap: 12px; justify-self: start; color: var(--color-text); text-decoration: none; font-size: var(--font-size-brand); font-weight: var(--font-weight-bold); white-space: nowrap; }
 .brand-badge { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 7px; background: var(--color-accent); color: var(--color-surface); font-size: 1.125rem; }
+.brand-logo { background: transparent; }
+.brand-badge img { display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: contain; }
 .header-search { position: relative; width: 100%; }
 .header-search input { width: 100%; padding: 8px 14px 8px 40px; border: 1px solid var(--color-border); background: var(--color-input); }
 .header-search-icon { position: absolute; top: 50%; left: 14px; width: 18px; height: 18px; translate: 0 -50%; fill: none; stroke: var(--color-muted); stroke-width: 2; stroke-linecap: round; pointer-events: none; }
 .header-actions { display: flex; align-items: center; justify-self: end; gap: 12px; }
+.header-auth-actions { gap: 8px; }
+.header-auth-button { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 999px; font-size: 0.875rem; font-weight: var(--font-weight-bold); text-decoration: none; white-space: nowrap; }
+.header-auth-login { background: var(--color-surface); color: var(--color-text); }
+.header-auth-login:hover { background: var(--color-input); color: var(--color-text); }
+.header-auth-signup { border-color: #245be8; background: #245be8; color: #fff; }
+.header-auth-signup:hover { border-color: #1d4ed8; background: #1d4ed8; color: #fff; }
 .header-icon svg { width: 22px; height: 22px; stroke-width: 1.7; stroke-linejoin: round; }
 .profile-button { display: grid; place-items: center; height: 44px; padding: 0; border: 0; border-radius: 50%; background: var(--color-input); color: var(--color-muted); cursor: pointer; }
 .profile-button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }

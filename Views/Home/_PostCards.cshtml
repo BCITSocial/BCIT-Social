@@ -3,6 +3,7 @@
 @{
     var now = DateTime.UtcNow;
     var signedIn = User.Identity?.IsAuthenticated == true;
+    var returnUrl = ViewData["PostReturnUrl"] as string ?? "/";
 }
 @foreach (var post in Model)
 {
@@ -37,7 +38,7 @@
                 </a>
                 @if (signedIn)
                 {
-                    <form class="post-save" method="post" asp-controller="Bookmarks" asp-action="@(post.IsSaved ? "Remove" : "Save")" asp-route-postId="@post.Id" asp-route-returnUrl="/">
+                    <form class="post-save" method="post" asp-controller="Bookmarks" asp-action="@(post.IsSaved ? "Remove" : "Save")" asp-route-postId="@post.Id" asp-route-returnUrl="@returnUrl">
                         <button class="post-action" type="submit" aria-pressed="@(post.IsSaved ? "true" : "false")">
                             <svg class="post-icon @(post.IsSaved ? "is-filled" : "")" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h12v18l-6-4.5L6 21Z" /></svg>
                             @(post.IsSaved ? "Saved" : "Save")

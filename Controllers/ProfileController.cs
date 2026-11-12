@@ -28,24 +28,107 @@ public class ProfileController : Controller
     // GET: PROFILES
     public async Task<IActionResult> Index()
     {
-        return View(await _context.Profiles.ToListAsync());
+        var userId = _userManager.GetUserId(User);
+        if (userId == null)
+        {
+            return Challenge();
+        }
+
+        var profile = await _context.Profiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.UserId == userId);
+
+        if (profile == null)
+        {
+            return View(new ProfilePageViewModel());
+        }
+
+        return View(await BuildProfilePageViewModel(profile, userId));
+    }
+
+    private async Task<ProfilePageViewModel> BuildProfilePageViewModel(Profile profile, string? viewerId)
+    {
+        var profileUserId = profile.UserId;
+        var posts = await ProjectProfileCards(
+                _context.Posts
+                    .Where(post => post.AuthorId == profileUserId && post.DateOfDel == null)
+                    .OrderByDescending(post => post.CreatedAt)
+                    .ThenByDescending(post => post.Id),
+                viewerId)
+            .ToListAsync();
+
+        var isOwnProfile = viewerId == profileUserId;
+        var bookmarkedPosts = isOwnProfile
+            ? await ProjectProfileCards(
+                    _context.Bookmarks
+                        .Where(bookmark => bookmark.UserId == profileUserId && bookmark.Post.DateOfDel == null)
+                        .OrderByDescending(bookmark => bookmark.SavedAt)
+                        .ThenByDescending(bookmark => bookmark.PostId)
+                        .Select(bookmark => bookmark.Post),
+                    viewerId)
+                .ToListAsync()
+            : [];
+
+        var communities = await _context.CommunityMembers
+            .AsNoTracking()
+            .Where(member => member.UserId == profileUserId)
+            .OrderBy(member => member.Community.Name)
+            .Select(member => new CommunityLinkViewModel
+            {
+                Id = member.CommunityId,
+                Name = member.Community.Name,
+                Type = member.Community.Type,
+                MemberCount = member.Community.Members.Count()
+            })
+            .ToListAsync();
+
+        return new ProfilePageViewModel
+        {
+            Profile = profile,
+            IsOwnProfile = isOwnProfile,
+            Posts = posts,
+            Bookmarks = bookmarkedPosts,
+            Communities = communities
+        };
+    }
+
+    private IQueryable<PostCardViewModel> ProjectProfileCards(IQueryable<Post> posts, string? userId)
+    {
+        return posts.AsNoTracking().Select(post => new PostCardViewModel
+        {
+            Id = post.Id,
+            Title = post.Title,
+            Content = post.Content,
+            AuthorName = _context.Profiles
+                .Where(profile => profile.UserId == post.AuthorId)
+                .Select(profile => profile.DisplayName)
+                .FirstOrDefault() ?? post.Author.UserName ?? "",
+            CommunityName = post.Community != null ? post.Community.Name : null,
+            CreatedAt = post.CreatedAt,
+            Tags = post.PostTags.Select(postTag => postTag.Tag.Name).ToList(),
+            CommentCount = _context.Comments.Count(comment => comment.PostId == post.Id),
+            IsAuthor = post.AuthorId == userId,
+            IsSaved = _context.Bookmarks.Any(bookmark => bookmark.UserId == userId && bookmark.PostId == post.Id)
+        });
     }
 
     // GET: PROFILES/Details/5
-    public async Task<IActionResult> Details(string? id)
+    public async Task<IActionResult> Details(string? id, string? userid)
     {
-        Console.WriteLine("user", id);
-        if (id == null)
+        var requestedUserId = userid ?? id;
+        if (requestedUserId == null)
         {
             return NotFound();
         }
         var profile = await _context.Profiles
-            .FirstOrDefaultAsync(m => m.UserId == id);
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.UserId == requestedUserId);
         if (profile == null)
         {
             return NotFound();
         }
-        return View(profile);
+        var viewerId = _userManager.GetUserId(User);
+        return View("Index", await BuildProfilePageViewModel(profile, viewerId));
     }
 
     // GET: PROFILES/Create
