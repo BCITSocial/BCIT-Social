@@ -66,7 +66,7 @@ public class UploadService
         string purpose,
         CancellationToken cancellationToken = default)
     {
-        ValidateFile(file, purpose);
+        ValidateFile(file!, purpose);
 
         var originalFileName = Path.GetFileName(file!.FileName);
         var extension = Path.GetExtension(originalFileName).ToLowerInvariant();
