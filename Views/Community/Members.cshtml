@@ -39,7 +39,8 @@
                             @if (Model.IsCreator && member.UserId != Model.CreatorId)
                             {
                                 <td><a asp-action="Kick" asp-route-id="@member.User.Id">Kick</a>
-                                    <a asp-action="Details" asp-route-id="@member.User.Id">Edit Mod</a>
+                                    <a asp-action="EditStatus" asp-route-id="@member.CommunityId"
+                                       asp-route-userid="@member.User.Id">Edit Member</a>
                                 </td>
                             }
                         </tr>
@@ -67,16 +68,25 @@
                 foreach (var member in Model.Members)
                 {
                     <tr>
-                        <td><a asp-controller="Profile" asp-action="Details"
-                                   asp-route-id="@member.User.Id">@member.User.UserName</a>
+                        <td>
+                            <a asp-controller="Profile" asp-action="Details" asp-route-id="@member.User.Id">
+                                @if (member.IsModerator)
+                                {
+                                    <span>! </span>
+                                }
+                                @member.User.UserName
+                            </a>
                         </td>
                         <td>@member.JoinedAt.Date.ToLongDateString()</td>
-                        @if (Model.IsMod
-                        && member.UserId != Model.CreatorId
-                        && !Model.Moderators.Contains(member))
+                        @if (Model.IsCreator && member.UserId != member.Community.CreatorId
+                        || Model.IsMod && !member.IsModerator)
                         {
                             <td><a asp-action="Kick" asp-route-id="@member.CommunityId" asp-route-userid="@member.User.Id">Kick</a>
-                                <a asp-action="Details" asp-route-id="@member.User.Id">Edit Mod</a>
+                                @if (Model.IsCreator && member.UserId != member.Community.CreatorId)
+                                {
+                                    <a asp-action="EditStatus" asp-route-id="@member.CommunityId"
+                                       asp-route-userid="@member.User.Id">Edit Member</a>
+                                }
                             </td>
                         }
                     </tr>

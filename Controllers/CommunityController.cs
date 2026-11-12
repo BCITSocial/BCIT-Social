@@ -72,13 +72,13 @@ public class CommunityController : Controller
     }
 
 
-    // GET: COMMUNITYS/Create
+    // GET: COMMUNITY/Create
     public IActionResult Create()
     {
         return View(new CommunityViewModel());
     }
 
-    // POST: COMMUNITYS/Create
+    // POST: COMMUNITY/Create
     // To protect from overposting attacks, enable the specific properties you want to bind to.
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
@@ -122,7 +122,7 @@ public class CommunityController : Controller
         return View(viewModel);
     }
 
-    // GET: COMMUNITYS/Edit/5
+    // GET: COMMUNITY/Edit/5
     [Authorize]
     public async Task<IActionResult> Edit(int? id)
     {
@@ -142,7 +142,7 @@ public class CommunityController : Controller
         return View(EditViewModelFromCommunity(community));
     }
 
-    // POST: COMMUNITYS/Edit/5
+    // POST: COMMUNITY/Edit/5
     // To protect from overposting attacks, enable the specific properties you want to bind to.
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
@@ -198,7 +198,7 @@ public class CommunityController : Controller
     /// Redirects to the Join page, checks if the user has not joined this community, otherwise redirects
     /// </summary>
     /// <param name="id">community id</param>
-    // GET: COMMUNITYS/Join/5
+    // GET: COMMUNITY/Join/5
     [Authorize]
     public async Task<IActionResult> Join(int? id)
     {
@@ -234,7 +234,7 @@ public class CommunityController : Controller
     /// </summary>
     /// <param name="id">community id</param>
     /// <returns></returns>
-    // POST: COMMUNITYS/Join/5
+    // POST: COMMUNITY/Join/5
     [HttpPost, ActionName("Join")]
     [ValidateAntiForgeryToken]
     [Authorize]
@@ -286,7 +286,7 @@ public class CommunityController : Controller
     /// Also checks if user is Creator, they cannot leave (as of right now)
     /// </summary>
     /// <param name="id">community id</param>
-    // GET: COMMUNITYS/Leave/5
+    // GET: COMMUNITY/Leave/5
     [Authorize]
     public async Task<IActionResult> Leave(int? id)
     {
@@ -329,7 +329,7 @@ public class CommunityController : Controller
     /// </summary>
     /// <param name="id">community id</param>
     /// <returns></returns>
-    // POST: COMMUNITYS/Leave/5
+    // POST: COMMUNITY/Leave/5
     [HttpPost, ActionName("Leave")]
     [ValidateAntiForgeryToken]
     [Authorize]
@@ -375,31 +375,41 @@ public class CommunityController : Controller
     /// </summary>
     /// <param name="id">community id</param>
     /// <param name="userid">user id</param>
-    // GET: COMMUNITYS/Kick/5/abc
+    // GET: COMMUNITY/Kick/5/abc
     [Authorize]
     [Route("Community/Kick/{id}/{userid}")]
     public async Task<IActionResult> Kick(int? id, string? userid)
     {
-        var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
+        Console.WriteLine("\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n");
+        var communityMember = await _context.CommunityMembers.Include(m => m.User).Where(m => m.UserId == userid && m.CommunityId == id).FirstAsync();
+
         string? currentUserId = _userManager.GetUserId(User);
         var currentCommunityUser = await _context.CommunityMembers.FindAsync(currentUserId, id);
+        var community = await _context.Communities.FirstOrDefaultAsync(m => m.Id == id);
 
-        if (id == null || userid == null || communityMember == null)
+        if (id == null || userid == null || communityMember == null || community == null)
             return NotFound();
         if (currentUserId == null || currentCommunityUser == null)
             return Forbid();
 
-        var community = await _context.Communities
-        .FirstOrDefaultAsync(m => m.Id == id);
-        if (community == null)
-            return NotFound();
-
-        // user has to be a mod
+        // takes back to community page if they aren't a member
+        if (currentCommunityUser == null)
+        {
+            return RedirectToAction(nameof(Details), new
+            {
+                community.Id
+            });
+        }
+        // user has to be a mod or redirects to members page
         if (!currentCommunityUser.IsModerator)
         {
-            return Forbid();
+            return RedirectToAction(nameof(Members), new
+            {
+                community.Id
+            });
         }
-        // if the community member is a mod, only the creator can edit
+        // if the community member is a mod, only the creator can kick
+        // BTW these checks are only for precaution, they should not have access via frondend links, only if they type it out
         if (communityMember.IsModerator && currentUserId != community?.CreatorId)
         {
             return RedirectToAction(nameof(Details), new
@@ -410,7 +420,9 @@ public class CommunityController : Controller
 
         if (await MemberExistsAsync(userid, community))
         {
-            return View(communityMember);
+            Console.WriteLine("\n\nBBBBBBBBBBBBBBB\n\n");
+            var viewModel = await MemberDetailViewModelFromCommunity(communityMember);
+            return View(viewModel);
         }
         return RedirectToAction(nameof(Members), new
         {
@@ -428,12 +440,104 @@ public class CommunityController : Controller
     /// <param name="id">community id</param>
     /// <param name="userid">user id</param>
     /// <returns></returns>
-    // POST: COMMUNITYS/Kick/5/abc
+    // POST: COMMUNITY/Kick/5/abc
     [HttpPost, ActionName("Kick")]
     [Route("Community/Kick/{id}/{userid}")]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> KickConfirmed(int? id, string? userid)
+    public async Task<IActionResult> KickConfirmed(int? id, string? userid, CommunityMemberDetailsViewModel viewModel)
+    {
+        Console.WriteLine("\n\nCCCCCCCC\n\n");
+        var community = await _context.Communities.FindAsync(id);
+        var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
+        string? currentUserId = _userManager.GetUserId(User);
+        if (community == null || communityMember == null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Challenge();
+        }
+        // checks if community member is even in the community
+        if (communityMember.CommunityId != id)
+        {
+            Console.WriteLine("\n\nEEEEE\n\n");
+            return RedirectToAction(nameof(Index));
+        }
+        if (ModelState.IsValid)
+        {
+            Console.WriteLine("\n\nDDDDDDDD\n\n");
+            community.Members.Remove(communityMember);
+            _context.Remove(communityMember);
+            _context.Update(community);
+
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction(nameof(Members), new
+        {
+            community.Id
+        });
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Nov. 11, 2026
+    /// Description: GET call to edit the moderator status of a member from a community
+    /// Redirects to the EditStatus page, checks if the user is in this community and if current user has rights to edit mod status, otherwise redirects/forbids
+    /// </summary>
+    /// <param name="id">community id</param>
+    /// <param name="userid">user id</param>
+    // GET: COMMUNITY/EditStatus/5/abc
+    [Authorize]
+    [Route("Community/EditStatus/{id}/{userid}")]
+    public async Task<IActionResult> EditStatus(int? id, string? userid)
+    {
+        var communityMember = await _context.CommunityMembers.Include(m => m.User).Where(m => m.UserId == userid && m.CommunityId == id).FirstAsync();
+        string? currentUserId = _userManager.GetUserId(User);
+        var currentCommunityUser = await _context.CommunityMembers.FindAsync(currentUserId, id);
+        var community = await _context.Communities.FirstOrDefaultAsync(m => m.Id == id);
+
+        if (id == null || userid == null || communityMember == null || community == null)
+            return NotFound();
+        if (currentUserId == null || currentCommunityUser == null)
+            return Forbid();
+
+        // user has to be the creator
+        if (!CommunityAccessChecker(true, community))
+        {
+            return RedirectToAction(nameof(Members), new
+            {
+                community.Id
+            });
+        }
+
+        if (await MemberExistsAsync(userid, community))
+        {
+            return View(await MemberDetailViewModelFromCommunity(communityMember));
+        }
+        return RedirectToAction(nameof(Members), new
+        {
+            community.Id
+        });
+
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Nov. 11, 2026
+    /// Description: POST call to edit the moderator status of a member from a community
+    /// Changes a moderator status of a community member
+    /// </summary>
+    /// <param name="id">community id</param>
+    /// <param name="userid">user id</param>
+    /// <returns></returns>
+    // POST: COMMUNITY/EditStatus/5/abc
+    [HttpPost, ActionName("EditStatus")]
+    [Route("Community/EditStatus/{id}/{userid}")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> EditStatusConfirm(int? id, string? userid, CommunityMemberDetailsViewModel viewModel)
     {
         var community = await _context.Communities.FindAsync(id);
         var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
@@ -454,10 +558,10 @@ public class CommunityController : Controller
 
         if (ModelState.IsValid)
         {
-            community.Members.Remove(communityMember);
-            _context.Remove(communityMember);
-            _context.Update(community);
-
+            Console.WriteLine(222222222);
+            Console.WriteLine(viewModel.IsModerator);
+            communityMember.IsModerator = viewModel.IsModerator;
+            _context.Update(communityMember);
             await _context.SaveChangesAsync();
         }
         return RedirectToAction(nameof(Members), new
@@ -466,7 +570,8 @@ public class CommunityController : Controller
         });
     }
 
-    // GET: COMMUNITYS/Delete/5
+
+    // GET: COMMUNITY/Delete/5
     [Authorize]
     public async Task<IActionResult> Delete(int? id)
     {
@@ -489,7 +594,7 @@ public class CommunityController : Controller
         return View(community);
     }
 
-    // POST: COMMUNITYS/Delete/5
+    // POST: COMMUNITY/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     [Authorize]
@@ -621,6 +726,31 @@ public class CommunityController : Controller
             Members = members,
             IsMod = isMod,
             IsCreator = isCreator
+        };
+        return viewModel;
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Nov. 11, 2026
+    /// Description: Creates a view model for a Member.
+    /// </summary>
+    /// <param name="communityMember">a Community Member</param>
+    /// <returns>a view model</returns>
+    private async Task<CommunityMemberDetailsViewModel> MemberDetailViewModelFromCommunity(CommunityMember communityMember)
+    {
+        Console.WriteLine("\n\n!!!!!!!!!!!!!!!!!!!!!!!!");
+        // TODO: replace Username with displayname when db is updated
+        var profile = await _context.Profiles.FindAsync(communityMember.UserId);
+        string displayname = profile?.DisplayName ?? communityMember.User.UserName ?? "No Name Found";
+
+        var viewModel = new CommunityMemberDetailsViewModel
+        {
+            Id = communityMember.UserId,
+            DisplayName = displayname,
+            IsModerator = communityMember.IsModerator,
+            CommunityName = communityMember.Community.Name,
+            CommunityId = communityMember.CommunityId
         };
         return viewModel;
     }
