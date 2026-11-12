@@ -6,6 +6,10 @@ public class EventsViewModel
     public const string Discover = "discover";
     public const string Calendar = "calendar";
 
+    // The time range and sort used when the URL does not pick one.
+    public const string DefaultRange = "month";
+    public const string DefaultSort = "soonest";
+
     // Option lists for the page. Value is what goes in the URL, Label is what the user sees.
     public static readonly IReadOnlyList<(string Value, string Label)> Views =
     [
@@ -67,8 +71,8 @@ public class EventsViewModel
         Query = string.IsNullOrWhiteSpace(query.Q) ? null : query.Q.Trim();
         Community = string.IsNullOrWhiteSpace(query.Community) ? null : query.Community;
         Campus = Campuses.FirstOrDefault(c => c == query.Campus);
-        Range = Pick(Ranges, query.Range, "month");
-        Sort = Pick(Sorts, query.Sort, "soonest");
+        Range = Pick(Ranges, query.Range, DefaultRange);
+        Sort = Pick(Sorts, query.Sort, DefaultSort);
         Status = Pick(Statuses, query.Status, "all");
         View = Pick(Views, query.View, Discover);
     }
@@ -87,6 +91,17 @@ public class EventsViewModel
             ["status"] = status ?? Status,
             ["view"] = view ?? View,
         };
+        return values.Where(v => !string.IsNullOrEmpty(v.Value)).ToDictionary(v => v.Key, v => v.Value!);
+    }
+
+    // How many filter menu settings differ from the defaults. Shown as a number on the menu button.
+    public int ActiveFilterCount =>
+        (Community is null ? 0 : 1) + (Campus is null ? 0 : 1) + (Range == DefaultRange ? 0 : 1) + (Sort == DefaultSort ? 0 : 1);
+
+    // Link parameters for "Reset filters": keeps the search, the status chip and the tab, drops the menu settings.
+    public Dictionary<string, string> ResetRouteValues()
+    {
+        var values = new Dictionary<string, string?> { ["q"] = Query, ["status"] = Status, ["view"] = View };
         return values.Where(v => !string.IsNullOrEmpty(v.Value)).ToDictionary(v => v.Key, v => v.Value!);
     }
 
