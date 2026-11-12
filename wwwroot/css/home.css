@@ -512,3 +512,28 @@ body:has(.create-dialog[open]) { overflow: hidden; }
 .post-details-share-actions .share-action { margin-left: 0; }
 .bookmark-action { min-height: 40px; color: var(--color-accent); text-decoration: none; }
 .bookmark-action.is-saved .post-icon { fill: currentColor; }
+
+/* Feed card (Views/Home/_PostCards.cshtml). Uses .feed-card so the older .post-card rules above don't apply.
+   Top row: avatar, name, community, time and tags on one line. The whole card opens the post. */
+.post-card.feed-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 14px 16px 4px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); cursor: pointer; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.post-card.feed-card:hover { border-color: var(--color-muted); box-shadow: 0 4px 14px rgb(16 29 67 / 8%); }
+.feed-card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; font-size: 0.8125rem; }
+.feed-card .post-avatar { width: 32px; height: 32px; margin-right: 4px; font-size: 0.75rem; }
+.feed-card .post-author { font-size: 0.9375rem; }
+.feed-card-meta { color: var(--color-muted); white-space: nowrap; }
+.feed-card .post-tags { margin: 0 0 0 4px; gap: 6px; }
+.feed-card .post-tags li { padding: 2px 10px; }
+.feed-card-main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+.feed-card.has-photo .feed-card-main { grid-template-columns: minmax(0, 1fr) 140px; }
+.feed-card .post-title { margin: 0 0 4px; font-size: 1.375rem; font-weight: var(--font-weight-bold); line-height: 1.25; }
+.feed-card .post-title a { color: var(--color-text); text-decoration: none; }
+.feed-card .post-title a:hover { text-decoration: none; }
+.feed-card .post-content { display: -webkit-box; overflow: hidden; margin: 0; color: var(--color-muted); font-size: 0.9375rem; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; }
+.feed-card-photo { position: relative; overflow: hidden; aspect-ratio: 4 / 3; border-radius: 8px; background: var(--color-input); }
+.feed-card-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.feed-card-photo-count { position: absolute; right: 6px; bottom: 6px; padding: 2px 8px; border-radius: 999px; background: rgb(0 0 0 / 65%); color: #fff; font-size: 0.75rem; font-weight: var(--font-weight-bold); }
+.feed-card .post-actions { margin-top: 0; }
+@media (max-width: 640px) {
+    .feed-card.has-photo .feed-card-main { grid-template-columns: minmax(0, 1fr) 96px; }
+    .feed-card .post-title { font-size: 1.125rem; }
+}

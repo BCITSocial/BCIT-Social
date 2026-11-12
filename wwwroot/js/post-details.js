@@ -65,6 +65,16 @@
         });
     }
 
+    // A click anywhere on a feed card opens the post, unless it lands on something with its own click
+    // (author name, Save, Edit, Delete...) or the reader is selecting text. Goes through the title link,
+    // so the modal opens on Home and the page opens elsewhere.
+    document.addEventListener("click", (event) => {
+        const card = event.target.closest("[data-card-link]");
+        if (!card || event.target.closest("a, button, form, input, textarea, select, summary, label")) return;
+        if (window.getSelection()?.toString()) return;
+        card.querySelector("[data-card-target]")?.click();
+    });
+
     // Share uses the device share sheet when available, otherwise copies the link.
     document.addEventListener("click", async (event) => {
         const button = event.target.closest("[data-share-url]");
