@@ -122,7 +122,8 @@ currentUserId))
                     }
                     <span>@meta.GetProperty("privacy").GetString()</span>
                     <span>&bull;</span>
-                    <span>@(Model?.Members?.Count ?? 0) @mainText.GetProperty("membersLabel").GetString()</span>
+                    <a asp-action="Members" asp-route-id="@Model?.Id">
+                    <span>@(Model?.Members?.Count ?? 0) @mainText.GetProperty("membersLabel").GetString()</span></a>
                     <span>&bull;</span>
                     <span>@modelLocation</span>
                 </div>

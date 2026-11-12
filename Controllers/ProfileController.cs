@@ -32,14 +32,15 @@ public class ProfileController : Controller
     }
 
     // GET: PROFILES/Details/5
-    public async Task<IActionResult> Details(string? userid)
+    public async Task<IActionResult> Details(string? id)
     {
-        if (userid == null)
+        Console.WriteLine("user", id);
+        if (id == null)
         {
             return NotFound();
         }
         var profile = await _context.Profiles
-            .FirstOrDefaultAsync(m => m.UserId == userid);
+            .FirstOrDefaultAsync(m => m.UserId == id);
         if (profile == null)
         {
             return NotFound();
