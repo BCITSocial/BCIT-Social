@@ -323,7 +323,49 @@ public class CommunityController : Controller
             return View(community);
         }
         return RedirectToAction(nameof(Index));
+    }
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Nov. 12, 2026
+    /// Description: GET call to leave a community
+    /// Redirects to the Leave page, checks if the user is in this community, otherwise redirects
+    /// Also checks if user is Creator, they cannot leave (as of right now)
+    /// </summary>
+    /// <param name="id">community id</param>
+    // GET: COMMUNITY/Leave/5
+    [Authorize]
+    public async Task<IActionResult> OwnerLeave(int? id)
+    {
+        string? currentUserId = _userManager.GetUserId(User);
+        if (id == null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Forbid();
+        }
+        var community = await _context.Communities
+            .FirstOrDefaultAsync(m => m.Id == id);
 
+        if (community == null)
+        {
+            return NotFound();
+        }
+
+        if (community.CreatorId != currentUserId)
+        {
+            return RedirectToAction(nameof(Leave), new
+            {
+                community.Id
+            });
+        }
+
+        if (await MemberExistsAsync(currentUserId, community))
+        {
+            return View(community);
+        }
+        return RedirectToAction(nameof(Index));
     }
 
     /// <summary>
@@ -371,6 +413,8 @@ public class CommunityController : Controller
         }
         return RedirectToAction(nameof(Index));
     }
+
+
 
     /// <summary>
     /// Author: Tin Trinh
