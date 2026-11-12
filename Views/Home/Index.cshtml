@@ -8,10 +8,28 @@ Renders the Home banner, share box, feed, and discovery panel.
 @{
     ViewData["Title"] = "Home";
     Layout = "_HomeLayout";
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var loginUrl = Url.Page("/Account/Login", new { area = "Identity", returnUrl = Url.Action("Index", "Home") });
+    // Chips after "All". To add a filter, add a row here and see ViewModels/FeedFilters.cs.
+    var chips = new[]
+    {
+        (Filter: FeedFilters.COMMUNITIES, Label: "Communities"),
+        (Filter: FeedFilters.FRIENDS, Label: "Friends"),
+    };
+    var emptyMessage = Model.Filter switch
+    {
+        FeedFilters.CAMPUS => $"No posts from {Model.Campus ?? "this campus"} yet.",
+        FeedFilters.COMMUNITIES => "No posts from your communities yet. Join a community to see its posts here.",
+        FeedFilters.FRIENDS => "No posts from your friends yet.",
+        _ => "No posts yet. Be the first to share something.",
+    };
 }
 
 <h1 class="visually-hidden">Home</h1>
 
+<div class="home-page">
+<div class="home-feed-layout">
+<div class="home-main-column">
 @* The banner image and its sizing come from settings.css (--image-home-banner). *@
 <section class="home-banner" role="img" aria-label="Your campus. Your people. Connect, share, and make the most of BCIT."></section>
 
@@ -23,21 +41,45 @@ Renders the Home banner, share box, feed, and discovery panel.
     <p class="share-hint">Ask a question, find friends, or share an update.</p>
 </section>
 
-<div class="home-feed-layout">
 <section class="panel home-section feed" aria-labelledby="feed-heading">
     <div class="feed-heading">
         <h2 id="feed-heading">Your feed</h2>
-        <span class="feed-tab" aria-current="true">All</span>
+        <nav class="feed-filters" aria-label="Filter feed">
+            <a class="feed-filter" asp-controller="Home" asp-action="Index"
+               aria-current="@(Model.Filter == FeedFilters.ALL ? "true" : null)">All</a>
+            <details class="feed-filter-menu">
+                <summary class="feed-filter" aria-current="@(Model.Filter == FeedFilters.CAMPUS ? "true" : null)">
+                    @(Model.Filter == FeedFilters.CAMPUS && Model.Campus is not null ? Model.Campus : "Campus")
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m7 10 5 5 5-5" /></svg>
+                </summary>
+                <div class="feed-filter-options">
+                    @if (Model.Campuses.Count == 0)
+                    {
+                        <p>No campuses yet.</p>
+                    }
+                    @foreach (var campus in Model.Campuses)
+                    {
+                        <a asp-controller="Home" asp-action="Index" asp-route-filter="@FeedFilters.CAMPUS" asp-route-campus="@campus"
+                           aria-current="@(Model.Campus == campus ? "true" : null)">@campus</a>
+                    }
+                </div>
+            </details>
+            @foreach (var chip in chips)
+            {
+                <a class="feed-filter" href="@(signedIn ? Url.Action("Index", "Home", new { filter = chip.Filter }) : loginUrl)"
+                   aria-current="@(Model.Filter == chip.Filter ? "true" : null)">@chip.Label</a>
+            }
+        </nav>
     </div>
     @if (Model.Posts.Count == 0)
     {
         <div class="empty-state">
-            <p>No posts yet. Be the first to share something.</p>
+            <p>@emptyMessage</p>
         </div>
     }
     else
     {
-        <div class="feed-list" id="feed-list" data-feed-url="@Url.Action("Feed", "Home")" data-has-more="@(Model.HasMore ? "true" : "false")">
+        <div class="feed-list" id="feed-list" data-feed-url="@Url.Action("Feed", "Home", new { filter = Model.Filter == FeedFilters.ALL ? null : Model.Filter, campus = Model.Campus })" data-has-more="@(Model.HasMore ? "true" : "false")">
             <partial name="_PostCards" model="Model.Posts" />
         </div>
         <div class="feed-status">
@@ -46,6 +88,7 @@ Renders the Home banner, share box, feed, and discovery panel.
         </div>
     }
 </section>
+</div>
 
 <aside class="panel home-section discovery-panel" aria-label="Discover events and communities">
     <div class="discovery-tabs" role="tablist" aria-label="Discover">
@@ -85,6 +128,7 @@ Renders the Home banner, share box, feed, and discovery panel.
         }
     </section>
 </aside>
+</div>
 </div>
 
 @* Post details open here when a card is clicked. post-details.js fills the body from /Home/Post/{id}. *@

@@ -103,15 +103,25 @@ a.primary-button { display: inline-flex; align-items: center; min-height: 44px; 
 .community-card-text strong { font-size: 0.9375rem; }
 .community-card-text span { color: var(--color-muted); font-size: 0.75rem; }
 .community-chevron { flex: none; width: 18px; height: 18px; fill: none; stroke: var(--color-muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.share-box { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 20px; row-gap: 8px; }
-.share-prompt { display: flex; align-items: center; min-height: 48px; padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-muted); font-size: 1rem; text-decoration: none; }
+.share-box { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 12px; row-gap: 4px; padding-block: 10px; }
+.share-box .avatar { width: 32px; height: 32px; font-size: 0.75rem; }
+.share-box .cta-button { min-height: 36px; padding-block: 6px; }
+.share-prompt { display: flex; align-items: center; min-height: 36px; padding: 6px 14px; border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-muted); font-size: 0.875rem; text-decoration: none; }
 .share-prompt:hover { border-color: var(--color-accent); }
-.share-hint { grid-column: 2 / -1; font-size: 0.875rem; }
+.share-hint { grid-column: 2 / -1; margin: 0; font-size: 0.8125rem; }
+
+/* Home sits in a centred column like the profile page: the shell (left nav + page) is capped and centred. */
+/* The shell is shifted right so the feed column's centre (215px nav + 16px padding + half the
+   ~660px column = 561px from the shell's left edge) sits under the header search bar. On narrower
+   screens it slides back so it never overflows the window. */
+.app-shell:has(.home-page) { width: 100%; max-width: 1240px; margin-inline: max(0px, min(50% - 561px, 100% - 1240px)) auto; }
+@media (min-width: 1241px) { .app-shell:has(.home-page) { border-left: 1px solid var(--color-border); } }
 
 /* @author Asher. Feed layout and the Events/Communities discovery panel. */
 .home-feed-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 320px); align-items: start; gap: 12px; }
 .home-feed-layout > .home-section { min-width: 0; }
-.discovery-panel { position: sticky; top: 12px; }
+.home-main-column { min-width: 0; }
+.discovery-panel { position: sticky; top: 12px; margin-top: 0; }
 .discovery-tabs { display: flex; gap: 20px; margin: 0 -4px 16px; border-bottom: 1px solid var(--color-border); }
 .discovery-tab { min-height: 40px; padding: 6px 4px; border: 0; border-bottom: 2px solid var(--color-transparent); border-radius: 0; background: var(--color-transparent); color: var(--color-muted); font-size: 0.875rem; cursor: pointer; }
 .discovery-tab[aria-selected="true"] { border-bottom-color: var(--color-accent); color: var(--color-accent); font-weight: var(--font-weight-bold); }
@@ -127,8 +137,22 @@ a.primary-button { display: inline-flex; align-items: center; min-height: 44px; 
 .discovery-community .community-card-text { gap: 2px; }
 .discovery-community .community-card-text strong { font-size: 0.875rem; }
 .discovery-community .community-card-text span { font-size: 0.75rem; }
-.feed-heading { display: flex; align-items: center; gap: 28px; margin-bottom: 12px; }
-.feed-tab { padding: 6px 12px; border-bottom: 2px solid var(--color-accent); color: var(--color-accent); font-size: 0.875rem; }
+.feed-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin-bottom: 12px; }
+
+/* Feed filter chips beside the heading. The row wraps, so more chips fit without layout changes. */
+.feed-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.feed-filter { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 4px 14px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-surface); color: var(--color-text); font-size: 0.875rem; text-decoration: none; white-space: nowrap; cursor: pointer; list-style: none; }
+.feed-filter::-webkit-details-marker { display: none; }
+.feed-filter:hover { background: var(--color-input); color: var(--color-text); }
+.feed-filter[aria-current="true"] { border-color: var(--color-accent); background: var(--color-selected); color: var(--color-accent); font-weight: var(--font-weight-bold); }
+.feed-filter svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.feed-filter-menu { position: relative; }
+.feed-filter-menu[open] .feed-filter svg { rotate: 180deg; }
+.feed-filter-options { position: absolute; z-index: 10; top: calc(100% + 6px); left: 0; display: grid; min-width: 180px; padding: 6px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); box-shadow: 0 16px 40px rgb(16 29 67 / 18%); }
+.feed-filter-options a { padding: 8px 12px; border-radius: 8px; color: var(--color-text); font-size: 0.875rem; text-decoration: none; }
+.feed-filter-options a:hover { background: var(--color-input); }
+.feed-filter-options a[aria-current="true"] { color: var(--color-accent); font-weight: var(--font-weight-bold); }
+.feed-filter-options p { margin: 0; padding: 8px 12px; font-size: 0.875rem; }
 .feed-list { display: grid; gap: 10px; }
 .post-card { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; padding: 16px 20px 8px 12px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); }
 .post-avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--color-avatar); color: var(--color-avatar-text); font-size: 0.875rem; font-weight: var(--font-weight-bold); }

@@ -24,15 +24,30 @@ public class HomeController : Controller
         _userManager = userManager;
     }
 
-    public async Task<IActionResult> Index()
+    // /Home?filter=friends or /Home?filter=campus&campus=Burnaby narrows the feed. See FeedFilters.
+    public async Task<IActionResult> Index(string? filter, string? campus)
     {
         var userId = _userManager.GetUserId(User);
-        var (posts, hasMore) = await LoadFeedAsync(null, null, FIRSTPAGESIZE);
+        filter = FeedFilters.Normalize(filter);
+        if (filter == FeedFilters.CAMPUS && string.IsNullOrWhiteSpace(campus))
+        {
+            campus = await CurrentUserCampusAsync(userId);
+        }
+
+        var (posts, hasMore) = await LoadFeedAsync(null, null, FIRSTPAGESIZE, filter, campus);
 
         return View(new HomeViewModel
         {
             Posts = posts,
             HasMore = hasMore,
+            Filter = filter,
+            Campus = filter == FeedFilters.CAMPUS ? campus : null,
+            Campuses = await _context.Profiles
+                .Where(profile => profile.Campus != "")
+                .Select(profile => profile.Campus)
+                .Distinct()
+                .OrderBy(name => name)
+                .ToListAsync(),
             YourCommunities = userId is null
                 ? []
                 : await _context.YourCommunitiesAsync(userId, YOURCOMMUNITIESSHOWN),
@@ -43,9 +58,10 @@ public class HomeController : Controller
     // Returns the next cards older than the given post, for infinite scroll.
     // beforeTicks and beforeId come from the last card already on the page.
     [HttpGet]
-    public async Task<IActionResult> Feed(long beforeTicks, int beforeId)
+    public async Task<IActionResult> Feed(long beforeTicks, int beforeId, string? filter, string? campus)
     {
-        var (posts, hasMore) = await LoadFeedAsync(new DateTime(beforeTicks), beforeId, NEXTPAGESIZE);
+        var (posts, hasMore) = await LoadFeedAsync(
+            new DateTime(beforeTicks), beforeId, NEXTPAGESIZE, FeedFilters.Normalize(filter), campus);
         Response.Headers["X-Feed-Has-More"] = hasMore ? "true" : "false";
         return PartialView("_PostCards", posts);
     }
@@ -91,9 +107,29 @@ public class HomeController : Controller
     // Paging continues from the last card's (CreatedAt, Id), so new posts don't shift or repeat cards.
     // TODO: limit to posts in the Home community once the DB team adds it.
     private async Task<(IReadOnlyList<PostCardViewModel> Posts, bool HasMore)> LoadFeedAsync(
-        DateTime? beforeCreatedAt, int? beforeId, int take)
+        DateTime? beforeCreatedAt, int? beforeId, int take, string filter, string? campus)
     {
         var query = _context.Posts.Where(post => post.DateOfDel == null);
+        var userId = _userManager.GetUserId(User);
+
+        // Communities and Friends need a signed-in user; signed out they match nothing.
+        switch (filter)
+        {
+            case FeedFilters.CAMPUS:
+                query = query.Where(post => _context.Profiles
+                    .Any(profile => profile.UserId == post.AuthorId && profile.Campus == campus));
+                break;
+            case FeedFilters.COMMUNITIES:
+                query = query.Where(post => post.CommunityId != null && _context.CommunityMembers
+                    .Any(member => member.UserId == userId && member.CommunityId == post.CommunityId));
+                break;
+            case FeedFilters.FRIENDS:
+                query = query.Where(post => _context.FriendRelationships
+                    .Any(friendship => friendship.Status == "Accepted"
+                        && ((friendship.RequesterId == userId && friendship.RecipientId == post.AuthorId)
+                            || (friendship.RecipientId == userId && friendship.RequesterId == post.AuthorId))));
+                break;
+        }
 
         if (beforeCreatedAt is { } before && beforeId is { } id)
         {
@@ -105,7 +141,7 @@ public class HomeController : Controller
             .OrderByDescending(post => post.CreatedAt)
             .ThenByDescending(post => post.Id)
             .Take(take + 1);
-        var posts = await ProjectCards(ordered, _userManager.GetUserId(User)).ToListAsync();
+        var posts = await ProjectCards(ordered, userId).ToListAsync();
 
         var hasMore = posts.Count > take;
         return (posts.Take(take).ToList(), hasMore);
@@ -176,6 +212,16 @@ public class HomeController : Controller
         }
 
         return topLevel;
+    }
+
+    private async Task<string?> CurrentUserCampusAsync(string? userId)
+    {
+        return userId is null
+            ? null
+            : await _context.Profiles
+                .Where(profile => profile.UserId == userId)
+                .Select(profile => profile.Campus)
+                .FirstOrDefaultAsync();
     }
 
     private async Task<string> CurrentUserInitialsAsync(string? userId)
