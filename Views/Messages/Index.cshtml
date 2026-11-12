@@ -66,7 +66,7 @@
         </label>
         <p class="visually-hidden" aria-live="polite" data-message-search-status></p>
         <nav class="msg-filters" aria-label="Filter conversations">
-            @foreach (var (value, label) in MessagesViewModel.Filters)
+            @foreach (var (value, label) in MessagesViewModel.filters)
             {
                 <a asp-action="Index" asp-route-filter="@(value == "all" ? null : value)" aria-current="@(Model.Filter == value ? "page" : null)">@label</a>
             }

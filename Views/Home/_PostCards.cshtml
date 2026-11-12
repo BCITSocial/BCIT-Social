@@ -3,14 +3,17 @@
 @{
     var now = DateTime.UtcNow;
     var signedIn = User.Identity?.IsAuthenticated == true;
+    var returnUrl = ViewData["PostReturnUrl"] as string ?? "/";
 }
-@foreach (var post in Model)
+@foreach (BCIT_Social.ViewModels.PostCardViewModel post in Model)
 {
     <article class="post-card" data-post-id="@post.Id" data-created-ticks="@post.CreatedAt.Ticks" aria-labelledby="post-title-@post.Id">
-        <div class="post-avatar" aria-hidden="true">@post.AuthorInitials</div>
+        <a class="post-avatar" aria-hidden="true" asp-controller="Profile" asp-action="Details"
+         asp-route-userId="@post.AuthorId">@post.AuthorInitials</a>
         <div class="post-body">
             <p class="post-meta">
-                <span class="post-author">@post.AuthorName</span>
+                <a class="post-author" asp-controller="Profile" asp-action="Details"
+                    asp-route-userId="@post.AuthorId">@post.AuthorName</a>
                 @if (post.CommunityName is not null)
                 {
                     <span>· @post.CommunityName</span>
@@ -30,14 +33,23 @@
                 <a asp-controller="Home" asp-action="Post" asp-route-id="@post.Id" data-open-post>@post.Title</a>
             </h3>
             <p class="post-content">@post.Content</p>
+            <div>
+                @foreach (PostPhoto photo in post.Photos.OrderBy(photo => photo.DisplayOrder))
+                {
+                    <img src="@Url.Action("Photo", "Post", new { id = photo.Id })"
+                            alt="@photo.OriginalFileName"
+                            style="max-width: 100px; height: auto;" />
+                }
+            </div>  
             <div class="post-actions">
                 <a class="post-action" asp-controller="Home" asp-action="Post" asp-route-id="@post.Id" data-open-post>
                     <svg class="post-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg>
                     @post.CommentCount<span class="visually-hidden"> @(post.CommentCount == 1 ? "comment" : "comments")</span>
                 </a>
+              
                 @if (signedIn)
                 {
-                    <form class="post-save" method="post" asp-controller="Bookmarks" asp-action="@(post.IsSaved ? "Remove" : "Save")" asp-route-postId="@post.Id" asp-route-returnUrl="/">
+                    <form class="post-save" method="post" asp-controller="Bookmarks" asp-action="@(post.IsSaved ? "Remove" : "Save")" asp-route-postId="@post.Id" asp-route-returnUrl="@returnUrl">
                         <button class="post-action" type="submit" aria-pressed="@(post.IsSaved ? "true" : "false")">
                             <svg class="post-icon @(post.IsSaved ? "is-filled" : "")" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h12v18l-6-4.5L6 21Z" /></svg>
                             @(post.IsSaved ? "Saved" : "Save")
