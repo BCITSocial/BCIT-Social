@@ -152,6 +152,7 @@ public class HomeController : Controller
                         .Where(profile => profile.UserId == comment.AuthorId)
                         .Select(profile => profile.DisplayName)
                         .FirstOrDefault() ?? (comment.Author != null ? comment.Author.UserName : null) ?? "",
+                    AuthorId = comment.AuthorId,
                     IsPostAuthor = comment.AuthorId == postAuthorId,
                     Content = comment.Content,
                     CreatedAt = comment.CreatedAt,
