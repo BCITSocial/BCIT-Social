@@ -35,6 +35,7 @@
     "membersLabel": "members",
     "joinButton": "Join",
     "joinedLabel": "Joined",
+    "leaveButton": "Leave",
     "editLabel": "Edit",
     "deleteLabel": "Delete",
     "createModal": {

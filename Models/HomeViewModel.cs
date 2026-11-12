@@ -5,6 +5,7 @@ using BCIT_Social.ViewModels;
 
 namespace BCIT_Social.Models;
 
+// Provides the data displayed on the home page.
 public class HomeViewModel
 {
     // The first page of the feed, newest first.
