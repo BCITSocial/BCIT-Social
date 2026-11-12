@@ -58,6 +58,16 @@ public class ProfileController : Controller
             .ToListAsync();
 
         var isOwnProfile = viewerId == profileUserId;
+        var friendRelationshipStatus = !string.IsNullOrEmpty(viewerId) && !isOwnProfile
+            ? await _context.FriendRelationships
+                .AsNoTracking()
+                .Where(friendship =>
+                    friendship.RelationshipKey == GetRelationshipKey(viewerId, profileUserId))
+                .Select(friendship => friendship.Status == "Pending"
+                    ? friendship.RequesterId == viewerId ? "PendingSent" : "PendingReceived"
+                    : friendship.Status)
+                .FirstOrDefaultAsync()
+            : null;
         var bookmarkedPosts = isOwnProfile
             ? await ProjectProfileCards(
                     _context.Bookmarks
@@ -82,14 +92,283 @@ public class ProfileController : Controller
             })
             .ToListAsync();
 
+        var friends = isOwnProfile
+            ? await _context.FriendRelationships
+                .AsNoTracking()
+                .Where(friendship =>
+                    friendship.Status == "Accepted"
+                    && (friendship.RequesterId == profileUserId || friendship.RecipientId == profileUserId)
+                    && (friendship.RequesterId == profileUserId
+                        ? friendship.Recipient.DateOfDel == null
+                        : friendship.Requester.DateOfDel == null))
+                .Select(friendship => new FriendListItemViewModel
+                {
+                    RelationshipId = friendship.Id,
+                    UserId = friendship.RequesterId == profileUserId
+                        ? friendship.RecipientId
+                        : friendship.RequesterId,
+                    DisplayName = friendship.RequesterId == profileUserId
+                        ? _context.Profiles
+                            .Where(friendProfile => friendProfile.UserId == friendship.RecipientId)
+                            .Select(friendProfile => friendProfile.DisplayName)
+                            .FirstOrDefault() ?? friendship.Recipient.UserName ?? "BCIT member"
+                        : _context.Profiles
+                            .Where(friendProfile => friendProfile.UserId == friendship.RequesterId)
+                            .Select(friendProfile => friendProfile.DisplayName)
+                            .FirstOrDefault() ?? friendship.Requester.UserName ?? "BCIT member"
+                })
+                .OrderBy(friend => friend.DisplayName)
+                .ToListAsync()
+            : [];
+
+        var incomingFriendRequests = viewerId == profileUserId
+            ? await _context.FriendRelationships
+                .AsNoTracking()
+                .Where(request => request.RecipientId == profileUserId && request.Status == "Pending")
+                .OrderBy(request => request.CreatedAt)
+                .Select(request => new IncomingFriendRequestViewModel
+                {
+                    Id = request.Id,
+                    RequesterDisplayName = _context.Profiles
+                        .Where(requesterProfile => requesterProfile.UserId == request.RequesterId)
+                        .Select(requesterProfile => requesterProfile.DisplayName)
+                        .FirstOrDefault() ?? request.Requester.UserName ?? "BCIT member",
+                    CreatedAt = request.CreatedAt
+                })
+                .ToListAsync()
+            : [];
+
         return new ProfilePageViewModel
         {
             Profile = profile,
             IsOwnProfile = isOwnProfile,
             Posts = posts,
             Bookmarks = bookmarkedPosts,
-            Communities = communities
+            Communities = communities,
+            Friends = friends,
+            IncomingFriendRequests = incomingFriendRequests,
+            FriendCount = friends.Count,
+            CanSendFriendRequest = !string.IsNullOrEmpty(viewerId) && !isOwnProfile,
+            FriendRelationshipStatus = friendRelationshipStatus
         };
+    }
+
+    public IActionResult Friends()
+    {
+        return RedirectToAction(nameof(Index), new { section = "friends" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddFriend(string userId)
+    {
+        var requesterId = _userManager.GetUserId(User);
+        if (requesterId == null)
+        {
+            return Challenge();
+        }
+
+        var recipient = await _userManager.FindByIdAsync(userId);
+        if (recipient == null || recipient.DateOfDel != null || recipient.Id == requesterId)
+        {
+            return NotFound();
+        }
+
+        var relationshipKey = GetRelationshipKey(requesterId, recipient.Id);
+        var relationship = await _context.FriendRelationships
+            .FirstOrDefaultAsync(friendship => friendship.RelationshipKey == relationshipKey);
+
+        if (relationship?.Status == "Accepted")
+        {
+            TempData["FriendRequestMessage"] = "You are already friends with this person.";
+        }
+        else if (relationship?.Status == "Pending")
+        {
+            TempData["FriendRequestMessage"] = relationship.RequesterId == requesterId
+                ? "Your friend request is pending."
+                : "This person has already sent you a request. Review it in your incoming requests.";
+        }
+        else
+        {
+            var now = DateTime.UtcNow;
+            if (relationship == null)
+            {
+                relationship = new FriendRelationship
+                {
+                    RelationshipKey = relationshipKey,
+                    RequesterId = requesterId,
+                    RecipientId = recipient.Id,
+                    Status = "Pending",
+                    CreatedAt = now
+                };
+                _context.FriendRelationships.Add(relationship);
+            }
+            else
+            {
+                relationship.RequesterId = requesterId;
+                relationship.RecipientId = recipient.Id;
+                relationship.Status = "Pending";
+                relationship.CreatedAt = now;
+                relationship.UpdatedAt = now;
+                relationship.DeactivatedAt = null;
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["FriendRequestMessage"] = "Friend request sent.";
+        }
+
+        return RedirectToAction(nameof(Details), new { userid = recipient.Id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveFriend(int relationshipId)
+    {
+        var userId = _userManager.GetUserId(User);
+        if (userId == null)
+        {
+            return Challenge();
+        }
+
+        var friendship = await _context.FriendRelationships
+            .FirstOrDefaultAsync(relationship =>
+                relationship.Id == relationshipId
+                && relationship.Status == "Accepted"
+                && (relationship.RequesterId == userId || relationship.RecipientId == userId));
+
+        if (friendship == null)
+        {
+            return NotFound();
+        }
+
+        var now = DateTime.UtcNow;
+        friendship.Status = "Removed";
+        friendship.UpdatedAt = now;
+        friendship.DeactivatedAt = now;
+        await _context.SaveChangesAsync();
+
+        TempData["FriendListMessage"] = "Friend removed.";
+        return RedirectToAction(nameof(Index), new { section = "friends" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SendFriendRequest(SendFriendRequestViewModel viewModel)
+    {
+        var requesterId = _userManager.GetUserId(User);
+        if (requesterId == null)
+        {
+            return Challenge();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            TempData["FriendRequestError"] = "Enter a valid email address.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var recipient = await _userManager.FindByEmailAsync(viewModel.Email.Trim());
+        if (recipient == null || recipient.DateOfDel != null)
+        {
+            TempData["FriendRequestError"] = "No active account matches that email address.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (recipient.Id == requesterId)
+        {
+            TempData["FriendRequestError"] = "You cannot send a friend request to yourself.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var relationshipKey = GetRelationshipKey(requesterId, recipient.Id);
+        var relationship = await _context.FriendRelationships
+            .FirstOrDefaultAsync(friendship => friendship.RelationshipKey == relationshipKey);
+
+        if (relationship?.Status == "Accepted")
+        {
+            TempData["FriendRequestError"] = "You are already friends with this person.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (relationship?.Status == "Pending")
+        {
+            TempData["FriendRequestError"] = relationship.RequesterId == requesterId
+                ? "You have already sent this person a friend request."
+                : "This person has already sent you a friend request. Review it in your incoming requests.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var now = DateTime.UtcNow;
+        if (relationship == null)
+        {
+            relationship = new FriendRelationship
+            {
+                RelationshipKey = relationshipKey,
+                RequesterId = requesterId,
+                RecipientId = recipient.Id,
+                Status = "Pending",
+                CreatedAt = now
+            };
+            _context.FriendRelationships.Add(relationship);
+        }
+        else
+        {
+            relationship.RequesterId = requesterId;
+            relationship.RecipientId = recipient.Id;
+            relationship.Status = "Pending";
+            relationship.CreatedAt = now;
+            relationship.UpdatedAt = now;
+            relationship.DeactivatedAt = null;
+        }
+
+        await _context.SaveChangesAsync();
+        TempData["FriendRequestMessage"] = "Friend request sent.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RespondToFriendRequest(int requestId, string decision)
+    {
+        var recipientId = _userManager.GetUserId(User);
+        if (recipientId == null)
+        {
+            return Challenge();
+        }
+
+        if (decision is not ("accept" or "deny"))
+        {
+            return BadRequest();
+        }
+
+        var request = await _context.FriendRelationships
+            .FirstOrDefaultAsync(friendship =>
+                friendship.Id == requestId
+                && friendship.RecipientId == recipientId
+                && friendship.Status == "Pending");
+
+        if (request == null)
+        {
+            return NotFound();
+        }
+
+        var now = DateTime.UtcNow;
+        request.Status = decision == "accept" ? "Accepted" : "Denied";
+        request.UpdatedAt = now;
+        request.DeactivatedAt = decision == "deny" ? now : null;
+
+        await _context.SaveChangesAsync();
+        TempData["FriendRequestMessage"] = decision == "accept"
+            ? "Friend request accepted."
+            : "Friend request denied.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    private static string GetRelationshipKey(string firstUserId, string secondUserId)
+    {
+        return string.CompareOrdinal(firstUserId, secondUserId) < 0
+            ? $"{firstUserId}:{secondUserId}"
+            : $"{secondUserId}:{firstUserId}";
     }
 
     private IQueryable<PostCardViewModel> ProjectProfileCards(IQueryable<Post> posts, string? userId)

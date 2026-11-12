@@ -122,6 +122,122 @@ body[data-profile-cover="gradient"] .profile-edit-cover {
     filter: brightness(0.95);
 }
 
+.profile-friends {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+}
+
+.profile-friends h2,
+.profile-incoming-requests h3 {
+    margin: 0;
+}
+
+.profile-incoming-requests h3 {
+    font-size: 0.9375rem;
+}
+
+.profile-friend-form {
+    display: grid;
+    gap: 8px;
+}
+
+.profile-friend-form label {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
+}
+
+.profile-friend-form input {
+    width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-input);
+    color: var(--color-text);
+    font: inherit;
+}
+
+.profile-friend-form .profile-button {
+    justify-self: start;
+}
+
+.profile-friend-status {
+    margin: 0;
+    color: var(--color-accent);
+    font-size: 0.875rem;
+}
+
+.profile-friend-error {
+    color: var(--color-danger, #b42318);
+}
+
+.profile-incoming-requests {
+    display: grid;
+    gap: 10px;
+}
+
+.profile-friend-request-list {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.profile-friend-request {
+    display: grid;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+}
+
+.profile-friend-request-name {
+    overflow-wrap: anywhere;
+    font-weight: var(--font-weight-bold);
+}
+
+.profile-friend-request-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.profile-friend-request-actions form {
+    margin: 0;
+}
+
+.profile-friend-list {
+    padding-block: 4px;
+}
+
+.profile-friend-list-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+.profile-friend-profile-link {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-friend-list-item form {
+    flex: none;
+    margin: 0;
+}
+
+.profile-card-actions form {
+    margin: 0;
+}
+
+.profile-friend-inline-status {
+    color: var(--color-muted);
+    font-size: 0.8125rem;
+    text-align: right;
+}
+
 .profile-name {
     margin: 10px 0 7px;
     font-size: 1.375rem;
