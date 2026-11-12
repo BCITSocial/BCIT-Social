@@ -113,16 +113,16 @@ public class ProfileController : Controller
     }
 
     // GET: PROFILES/Details/5
-    public async Task<IActionResult> Details(string? id)
+    public async Task<IActionResult> Details(string? id, string? userid)
     {
-        Console.WriteLine("user", id);
-        if (id == null)
+        var requestedUserId = userid ?? id;
+        if (requestedUserId == null)
         {
             return NotFound();
         }
         var profile = await _context.Profiles
             .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.UserId == userid);
+            .FirstOrDefaultAsync(m => m.UserId == requestedUserId);
         if (profile == null)
         {
             return NotFound();

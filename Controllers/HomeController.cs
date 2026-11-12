@@ -150,7 +150,7 @@ public class HomeController : Controller
                     AuthorName = _context.Profiles
                         .Where(profile => profile.UserId == comment.AuthorId)
                         .Select(profile => profile.DisplayName)
-                        .FirstOrDefault() ?? comment.Author.UserName ?? "",
+                        .FirstOrDefault() ?? (comment.Author != null ? comment.Author.UserName : null) ?? "",
                     IsPostAuthor = comment.AuthorId == postAuthorId,
                     Content = comment.Content,
                     CreatedAt = comment.CreatedAt,
