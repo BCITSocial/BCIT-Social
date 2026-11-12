@@ -128,6 +128,7 @@ public class HomeController : Controller
             Tags = post.PostTags.Select(postTag => postTag.Tag.Name).ToList(),
             CommentCount = _context.Comments.Count(comment => comment.PostId == post.Id),
             IsAuthor = userId != null && post.AuthorId == userId,
+            AuthorId = post.AuthorId,
             IsSaved = userId != null && _context.Bookmarks
                 .Any(bookmark => bookmark.UserId == userId && bookmark.PostId == post.Id),
         });
@@ -151,6 +152,7 @@ public class HomeController : Controller
                         .Where(profile => profile.UserId == comment.AuthorId)
                         .Select(profile => profile.DisplayName)
                         .FirstOrDefault() ?? (comment.Author != null ? comment.Author.UserName : null) ?? "",
+                    AuthorId = comment.AuthorId,
                     IsPostAuthor = comment.AuthorId == postAuthorId,
                     Content = comment.Content,
                     CreatedAt = comment.CreatedAt,

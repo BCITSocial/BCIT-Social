@@ -19,6 +19,9 @@ public class PostCardViewModel
     // True when the signed-in user authored the post.
     public bool IsAuthor { get; init; }
 
+    // Id of the user who created the post
+    public string AuthorId { get; init; } = "";
+
     public string AuthorInitials => DisplayFormat.Initials(AuthorName);
 
     public string TimeAgo(DateTime utcNow) => DisplayFormat.TimeAgo(CreatedAt, utcNow);
