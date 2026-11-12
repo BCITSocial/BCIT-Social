@@ -54,6 +54,8 @@ public class EventsViewModel
     public string Status { get; }
     public string View { get; }
 
+    // All wording on the page, from events-text.json. Stays the same when Backend takes over Events.
+    public EventsText Text { get; set; } = new();
     // Options for the Community dropdown. Backend fills this in.
     public IReadOnlyList<string> Communities { get; set; } = [];
     // The cards to show. Backend fills this in.

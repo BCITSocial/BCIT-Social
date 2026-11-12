@@ -1,52 +1,69 @@
 @model BCIT_Social.Models.Profile
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Profile";
+    Layout = "_HomeLayout";
 }
 
-<h1>Edit</h1>
+<div class="profile-edit-page">
+    <header class="profile-edit-heading">
+        <div>
+            <h1>Edit profile</h1>
+            <p>Update how you introduce yourself to the BCIT community.</p>
+        </div>
+        <a class="profile-button profile-button-outline" asp-action="Index">Cancel</a>
+    </header>
 
-<h4>Profile</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="UserId" />
-            <div class="form-group">
-                <label asp-for="DisplayName" class="control-label"></label>
-                <input asp-for="DisplayName" class="form-control" />
-                <span asp-validation-for="DisplayName" class="text-danger"></span>
+    <section class="profile-edit-card" aria-labelledby="profile-edit-details-heading">
+        <div class="profile-edit-cover" aria-hidden="true"></div>
+        <div class="profile-edit-content">
+            <div class="profile-edit-section-heading">
+                <div class="profile-avatar" aria-hidden="true">
+                    @(string.IsNullOrWhiteSpace(Model.DisplayName) ? "B" : Model.DisplayName[..1].ToUpperInvariant())
+                </div>
+                <div>
+                    <h2 id="profile-edit-details-heading">Profile information</h2>
+                    <p>Your profile helps other students get to know you.</p>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Bio" class="control-label"></label>
-                <input asp-for="Bio" class="form-control" />
-                <span asp-validation-for="Bio" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Program" class="control-label"></label>
-                <input asp-for="Program" class="form-control" />
-                <span asp-validation-for="Program" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Campus" class="control-label"></label>
-                <input asp-for="Campus" class="form-control" />
-                <span asp-validation-for="Campus" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="User" class="control-label"></label>
-                <input asp-for="User" class="form-control" />
-                <span asp-validation-for="User" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+            <form asp-action="Edit" asp-route-userid="@Model.UserId" method="post" class="profile-edit-form">
+                <div asp-validation-summary="ModelOnly" class="profile-edit-validation" role="alert"></div>
+                <input type="hidden" asp-for="UserId" />
+
+                <div class="profile-edit-field">
+                    <label asp-for="DisplayName"></label>
+                    <input asp-for="DisplayName" autocomplete="name" />
+                    <span asp-validation-for="DisplayName"></span>
+                </div>
+
+                <div class="profile-edit-field">
+                    <label asp-for="Bio">About me</label>
+                    <textarea asp-for="Bio" rows="4" placeholder="Share a little about yourself..."></textarea>
+                    <span asp-validation-for="Bio"></span>
+                </div>
+
+                <div class="profile-edit-fields-row">
+                    <div class="profile-edit-field">
+                        <label asp-for="Program"></label>
+                        <input asp-for="Program" autocomplete="organization-title" />
+                        <span asp-validation-for="Program"></span>
+                    </div>
+
+                    <div class="profile-edit-field">
+                        <label asp-for="Campus"></label>
+                        <input asp-for="Campus" />
+                        <span asp-validation-for="Campus"></span>
+                    </div>
+                </div>
+
+                <div class="profile-edit-actions">
+                    <a class="profile-button profile-button-outline" asp-action="Index">Cancel</a>
+                    <button class="profile-button profile-button-primary" type="submit">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </section>
 </div>
 
 @section Scripts {

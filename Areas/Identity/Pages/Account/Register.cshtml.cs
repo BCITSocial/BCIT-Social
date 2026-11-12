@@ -3,6 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
+using BCIT_Social.Data;
 using BCIT_Social.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -10,12 +11,13 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
 
 namespace BCIT_Social.Areas.Identity.Pages.Account;
 
 [AllowAnonymous]
 public class RegisterModel(UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager, IEmailSender emailSender) : PageModel
+    SignInManager<ApplicationUser> signInManager, IEmailSender emailSender, ApplicationDbContext context) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -50,6 +52,14 @@ public class RegisterModel(UserManager<ApplicationUser> userManager,
         ReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl! : "/";
     }
 
+    /// <summary>
+    /// Author: Andre Di Lascio, Joshua Trepanier
+    /// Last Revised: Oct 21, 2026
+    /// Description: Creates a new user account and profile, then sends an email confirmation link to the user.
+    /// Also creates a new profile for the user in the database.
+    /// </summary>
+    /// <param name="returnUrl"></param>
+    /// <returns></returns>
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
         OnGet(returnUrl);
@@ -63,7 +73,16 @@ public class RegisterModel(UserManager<ApplicationUser> userManager,
                 ModelState.AddModelError(string.Empty, error.Description);
             return Page();
         }
-
+        var profile = new Profile
+        {
+            UserId = user.Id,
+            DisplayName = user.UserName,
+            Bio = "",
+            Program = "",
+            Campus = "",
+        };
+        context.Profiles.Add(profile);
+        await context.SaveChangesAsync();
         var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         var callbackUrl = Url.Page("/Account/ConfirmEmail", pageHandler: null,

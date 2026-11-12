@@ -1,0 +1,331 @@
+/* wwwroot/css/community-details.css */
+:root {
+    --details-bg-page: hsla(45, 25%, 95%, 1);
+    --details-bg-surface: rgb(255, 255, 255);
+    --details-border: hsla(214, 20%, 88%, 1);
+    --banner-bg: rgb(15, 23, 42);
+
+    --text-main: rgb(17, 24, 39);
+    --text-muted: rgb(107, 114, 128);
+    --text-secondary: rgb(75, 85, 99);
+    --text-white: rgb(255, 255, 255);
+
+    --brand-blue: rgb(37, 99, 235);
+    --accent-yellow: rgb(250, 204, 21);
+    --accent-yellow-hover: rgb(234, 179, 8);
+
+    --tag-blue-bg: hsla(217, 91%, 60%, 0.12);
+    --tag-blue-text: rgb(37, 99, 235);
+
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-pill: 9999px;
+
+    /* Tag & Status Badge Tokens */
+    --tag-default-bg: hsla(217, 91%, 60%, 0.18);
+    --tag-default-text: rgb(29, 78, 216);
+    --tag-status-bg: hsla(124, 74%, 55%, 0.205);
+    --tag-status-text: rgb(68, 146, 56);
+    --tag-time-bg: hsla(38, 92%, 50%, 0.2);
+    --tag-time-text: rgb(180, 83, 9);
+    --radius-sm: 6px;
+}
+
+.details-wrapper {
+    background-color: var(--details-bg-page);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* 1. Hero Banner */
+.details-hero-banner {
+    background-color: var(--banner-bg);
+    border-radius: var(--radius-lg);
+    padding: 2rem 2.25rem;
+    color: var(--text-white);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.details-hero-banner h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 0.35rem 0;
+    white-space: pre-line;
+}
+
+.details-hero-banner p {
+    font-size: 0.9rem;
+    color: hsla(0, 0%, 100%, 0.75);
+    margin: 0;
+}
+
+.banner-pre,
+.banner-code {
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: hsla(160, 84%, 39%, 0.9);
+}
+
+.banner-solid-accent {
+    width: 140px;
+    height: 70px;
+    background-color: hsla(217, 91%, 60%, 0.25);
+    border: 1px solid hsla(217, 91%, 60%, 0.5);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--text-white);
+    letter-spacing: 0.08em;
+}
+
+/* 2. Community Meta Header */
+.details-meta-row,
+.meta-left,
+.title-line,
+.meta-sub-row,
+.meta-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.details-meta-row {
+    justify-content: space-between;
+}
+
+.community-icon-box {
+    width: 56px;
+    height: 56px;
+    background-color: var(--brand-blue);
+    color: var(--text-white);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+    font-size: 1.25rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.community-main-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.pill-joined {
+    background-color: var(--tag-status-bg);
+    color: var(--tag-status-text);
+    border: 1px solid hsla(124, 74%, 55%, 0.4);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+}
+
+.meta-sub-row {
+    font-size: 0.825rem;
+    color: var(--text-muted);
+}
+
+.btn-settings {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.95rem;
+    border-radius: var(--radius-md);
+    background-color: var(--details-bg-surface);
+    border: 1px solid var(--details-border);
+    color: var(--text-main);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-settings:hover {
+    background-color: var(--details-bg-subtle);
+    border-color: var(--brand-blue);
+    color: var(--brand-blue);
+}
+
+
+/* Category, Status & Time Badges */
+.category-badge {
+    background-color: var(--tag-default-bg);
+    color: var(--tag-default-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+
+.category-badge.status-badge {
+    background-color: var(--tag-status-bg);
+    color: var(--tag-status-text);
+}
+
+.category-badge.time-badge {
+    background-color: var(--tag-time-bg);
+    color: var(--tag-time-text);
+}
+
+.category-badge:empty {
+    display: none;
+}
+
+
+/* Yellow Button */
+.btn-create {
+    background-color: var(--accent-yellow);
+    color: var(--text-main);
+    font-weight: 700;
+    padding: 0.5rem 1.1rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    transition: background-color 0.15s ease;
+}
+
+.btn-create:hover {
+    background-color: var(--accent-yellow-hover);
+    color: var(--text-main);
+}
+
+/* Badges */
+.badge-blue {
+    background: var(--tag-blue-bg);
+    color: var(--tag-blue-text);
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-blue:empty {
+    display: none;
+}
+
+/* 3. Navigation Tabs (Single Tab) */
+.details-tabs {
+    display: flex;
+    gap: 1.5rem;
+    border-bottom: 1px solid var(--details-border);
+}
+
+.tab-link {
+    background: none;
+    border: none;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--brand-blue);
+    cursor: default;
+    border-bottom: 2px solid var(--brand-blue);
+}
+
+/* 4. Discussions Layout */
+.discussions-section-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.section-header-row,
+.discussion-top-row,
+.discussion-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header-row {
+    margin-bottom: 0.75rem;
+}
+
+.section-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* In-place expand button */
+.link-action-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--brand-blue);
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+}
+
+.link-action-btn:hover {
+    text-decoration: underline;
+    opacity: 0.85;
+}
+
+.discussions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.discussion-card {
+    background-color: var(--details-bg-surface);
+    border: 1px solid var(--details-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    display: flex;
+    gap: 0.85rem;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.discussion-card.discussion-extra.is-hidden {
+    display: none;
+}
+
+.avatar-initials {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-pill);
+    background-color: var(--tag-blue-bg);
+    color: var(--brand-blue);
+    font-weight: 700;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.discussion-content {
+    width: 100%;
+}
+
+.discussion-content p {
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+    margin: 0.25rem 0 0.4rem 0;
+}
+
+.discussion-footer {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}

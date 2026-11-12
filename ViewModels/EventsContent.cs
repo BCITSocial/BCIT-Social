@@ -1,7 +1,8 @@
 namespace BCIT_Social.ViewModels;
 
-// The shape of wwwroot/content/events-text.json. One entry in "events" makes one card.
+// The whole wwwroot/content/events-text.json file: the page text and the event cards.
 public class EventsContent
 {
+    public EventsText Text { get; init; } = new();
     public IReadOnlyList<EventCardViewModel> Events { get; init; } = [];
 }

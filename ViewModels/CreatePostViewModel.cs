@@ -11,11 +11,11 @@ namespace BCIT_Social.ViewModels;
 /// </summary>
 public class CreatePostViewModel
 {
-	//[Required]
-	//[StringLength(150)]
-	//public string Title { get; set; } = null!;
+	[Required]
+	[StringLength(150)]
+	public string Title { get; set; } = null!;
 
-	[Display(Name = "Post Type")]
+    [Display(Name = "Post Type")]
 	[Range(1, int.MaxValue, ErrorMessage = "Please select a post type.")]
 	public int TagId { get; set; }
 
@@ -24,5 +24,6 @@ public class CreatePostViewModel
 	[Required]
 	public string Content { get; set; } = null!;
 	
-	public List<IFormFile> Photos { get; set; } = new();
+	[Display(Name = "Photos")]
+	public List<IFormFile> Photos { get; set; } = null!;
 }

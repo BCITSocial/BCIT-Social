@@ -1,46 +1,51 @@
 /* wwwroot/css/communities.css */
 :root {
-    /* backgrounds */
-    --bg-page: rgba(208, 194, 153, 0.503);
+    /* Backgrounds */
+    --bg-page: rgb(255, 255, 255);
     --bg-surface: rgb(255, 255, 255);
     --bg-subtle: hsla(210, 20%, 96%, 1);
     --bg-pill-hover: hsla(215, 16%, 90%, 1);
 
-    /* text colors */
+    /* Card Hover Tokens (Adjust hover shade here) */
+    --card-hover-bg: hsla(45, 25%, 97%, 1);
+    --card-hover-shadow: 0 4px 14px hsla(0, 0%, 0%, 0.08);
+
+    /* Text Colors */
     --text-primary: rgb(17, 24, 39);
     --text-secondary: rgb(75, 85, 99);
     --text-muted: rgb(107, 114, 128);
     --text-on-brand: rgb(255, 255, 255);
 
-    /* Brand */
+    /* Brand & Buttons */
     --brand-blue: rgb(37, 99, 235);
     --brand-blue-hover: rgb(29, 78, 216);
     --accent-yellow: rgb(250, 204, 21);
     --accent-yellow-hover: rgb(234, 179, 8);
 
-    /* category/status tags */
+    /* Tags */
     --tag-default-bg: hsla(217, 91%, 60%, 0.18);
     --tag-default-text: rgb(29, 78, 216);
-
-    /* status tag */
     --tag-status-bg: hsla(124, 74%, 55%, 0.205);
     --tag-status-text: rgb(68, 146, 56);
-
-    /* time tag */
     --tag-time-bg: hsla(38, 92%, 50%, 0.2);
     --tag-time-text: rgb(180, 83, 9);
 
-    /* borders & shadows */
+    /* Layout & Borders */
     --border-color: hsla(214, 20%, 88%, 1);
     --shadow-card: 0 1px 3px hsla(0, 0%, 0%, 0.06);
-
-    /* layouts */
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 14px;
     --radius-pill: 9999px;
+
+    /* Modal */
+    --modal-overlay-bg: hsla(222, 47%, 11%, 0.55);
+    --cover-box-bg: hsla(214, 32%, 96%, 0.65);
+    --cover-border-dashed: hsla(214, 25%, 82%, 1);
+    --avatar-box-bg: hsla(214, 28%, 90%, 1);
 }
 
+/* Page Container */
 .communities-wrapper {
     background-color: var(--bg-page);
     padding: 1.75rem;
@@ -48,10 +53,21 @@
     color: var(--text-primary);
 }
 
+/* Common Flex Utilities */
+.communities-header,
+.card-actions,
+.featured-header-row {
+    display: flex;
+    align-items: center;
+}
+
+.communities-header,
+.card-actions {
+    justify-content: space-between;
+}
+
 /* Header */
 .communities-header {
-    display: flex;
-    justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 1.25rem;
 }
@@ -60,7 +76,6 @@
     font-size: 1.75rem;
     font-weight: 700;
     margin: 0;
-    color: var(--text-primary);
 }
 
 .communities-subtitle {
@@ -76,7 +91,6 @@
     padding: 0.5rem 1.1rem;
     border-radius: var(--radius-md);
     text-decoration: none;
-    border: none;
     transition: background-color 0.15s ease;
 }
 
@@ -85,7 +99,7 @@
     color: var(--text-primary);
 }
 
-/* Category Pills & Search */
+/* Filter Pills & Search Bar */
 .filter-pills {
     display: flex;
     flex-wrap: wrap;
@@ -134,14 +148,6 @@
     border-color: transparent;
 }
 
-/* Main Layout */
-.communities-layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    align-items: start;
-}
-
 /* Featured Banner */
 .featured-card {
     background-color: var(--bg-surface);
@@ -153,35 +159,9 @@
 }
 
 .featured-header-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
     gap: 0.5rem;
     margin-bottom: 0.45rem;
-}
-
-.category-badge {
-    background-color: var(--tag-default-bg);
-    color: var(--tag-default-text);
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.2rem 0.55rem;
-    border-radius: var(--radius-sm);
-}
-
-.status-badge {
-    background-color: var(--tag-status-bg);
-    color: var(--tag-status-text);
-}
-
-.time-badge {
-    background-color: var(--tag-time-bg);
-    color: var(--tag-time-text);
-}
-
-/* auto hides the badge box if JSON text is left blank */
-.category-badge:empty {
-    display: none;
+    flex-wrap: wrap;
 }
 
 .featured-label {
@@ -202,18 +182,41 @@
 .featured-desc {
     font-size: 0.9rem;
     color: var(--text-secondary);
-    margin-bottom: 0;
+    margin: 0;
 }
 
-/* Section Headings */
+/* Badge colors */
+.category-badge {
+    background-color: var(--tag-default-bg);
+    color: var(--tag-default-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+
+.status-badge {
+    background-color: var(--tag-status-bg);
+    color: var(--tag-status-text);
+}
+
+.time-badge {
+    background-color: var(--tag-time-bg);
+    color: var(--tag-time-text);
+}
+
+.category-badge:empty {
+    display: none;
+}
+
+/* Browse Grid */
 .section-heading {
     font-size: 1rem;
     font-weight: 700;
     margin-bottom: 0.85rem;
-    color: var(--text-primary);
 }
 
-/* Browse Grid */
 .browse-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -226,22 +229,43 @@
     }
 }
 
+/* Cards & Hover Effect */
 .community-card {
+    position: relative;
     background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    padding: 1.25rem;
+    padding: 1.5rem 1.5rem 1.5rem 1.5rem;
     box-shadow: var(--shadow-card);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+/* Tweak hover appearance via --card-hover-bg and --card-hover-shadow in :root */
+.community-card:hover {
+    background-color: var(--card-hover-bg);
+    box-shadow: var(--card-hover-shadow);
+}
+
+.card-clickable-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.card-clickable-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
 }
 
 .community-card-title {
     font-size: 1.05rem;
     font-weight: 700;
     margin: 0 0 0.5rem 0;
-    color: var(--text-primary);
 }
 
 .badge-row {
@@ -254,6 +278,21 @@
     font-size: 0.8rem;
     color: var(--text-muted);
     margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.btn-joined {
+    background-color: var(--tag-status-bg);
+    color: var(--tag-status-text);
+    border: 1px solid hsla(124, 74%, 55%, 0.4);
+    border-radius: var(--radius-sm);
+    padding: 0.45rem 1.1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
 }
 
 .community-desc {
@@ -262,11 +301,14 @@
     margin-bottom: 1rem;
 }
 
+/* Card actions row */
 .card-actions {
+    position: relative;
+    z-index: 2;
+    margin-top: 1.5rem;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-top: auto;
+    justify-content: space-between;
 }
 
 .btn-join {
@@ -274,10 +316,13 @@
     color: var(--text-primary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
-    padding: 0.35rem 0.9rem;
+    padding: 0.45rem 1.1rem;
     font-size: 0.85rem;
     font-weight: 600;
     text-decoration: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
     transition: background-color 0.15s ease;
 }
 
@@ -295,4 +340,235 @@
 
 .admin-links a:hover {
     color: var(--brand-blue);
+}
+
+
+/* --- Create Community Modal Styles --- */
+.modal-backdrop-custom {
+    position: fixed;
+    inset: 0;
+    background-color: var(--modal-overlay-bg);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    padding: 1rem;
+}
+
+.modal-backdrop-custom.open {
+    display: flex;
+}
+
+.modal-card {
+    background-color: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 540px;
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: 1.5rem 1.75rem;
+    box-shadow: 0 20px 40px hsla(0, 0%, 0%, 0.2);
+}
+
+.modal-top-bar,
+.modal-footer-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-top-bar {
+    margin-bottom: 1.25rem;
+    gap: 0.75rem;
+}
+
+.modal-switcher {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.2rem;
+    flex-grow: 1;
+    background-color: var(--bg-surface);
+}
+
+.switcher-tab {
+    background: none;
+    border: none;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.switcher-tab.active {
+    background-color: var(--tag-default-bg);
+    color: var(--brand-blue);
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0 0.25rem;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0.2rem 0;
+}
+
+.modal-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin: 0 0 1.1rem 0;
+}
+
+/* Dashed Cover & Avatar Box */
+.cover-upload-box {
+    position: relative;
+    background-color: var(--cover-box-bg);
+    border: 1.5px dashed var(--cover-border-dashed);
+    border-radius: var(--radius-md);
+    height: 135px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 1.1rem;
+    cursor: pointer;
+}
+
+.cover-text-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.cover-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.cover-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.avatar-upload-box {
+    position: absolute;
+    bottom: 12px;
+    left: 14px;
+    width: 58px;
+    height: 58px;
+    background-color: var(--avatar-box-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+}
+
+/* Modal Form Controls */
+.modal-field {
+    margin-bottom: 0.95rem;
+}
+
+.modal-label {
+    display: block;
+    font-size: 0.825rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+
+.modal-input {
+    width: 100%;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.55rem 0.85rem;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.modal-input:focus {
+    outline: 2px solid var(--brand-blue);
+    border-color: transparent;
+}
+
+.modal-row-2col {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+}
+
+.modal-helper-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0.5rem 0 1.25rem 0;
+}
+
+.btn-cancel {
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.5rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-cancel:hover {
+    background-color: var(--bg-subtle);
+}
+
+/* Standalone Form & Confirm Cards (Edit / Delete) */
+.form-page-container {
+    max-width: 580px;
+    margin: 1.5rem auto;
+}
+
+.danger-card {
+    border-color: hsla(0, 84%, 60%, 0.3);
+}
+
+.danger-box {
+    background-color: hsla(0, 84%, 60%, 0.08);
+    border: 1px solid hsla(0, 84%, 60%, 0.25);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.danger-box p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: rgb(185, 28, 28);
+    font-weight: 500;
+}
+
+.btn-danger-confirm {
+    background-color: rgb(220, 38, 38);
+    color: var(--text-white);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.btn-danger-confirm:hover {
+    background-color: rgb(185, 28, 28);
 }

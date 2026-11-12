@@ -1,8 +1,19 @@
 // author: Andre Di Lascio
 // Defines the presentation model for the Home feed and sidebar content.
 
+using BCIT_Social.ViewModels;
+
 namespace BCIT_Social.Models;
 
+// Provides the data displayed on the home page.
 public class HomeViewModel
 {
+    // The first page of the feed, newest first.
+    public IReadOnlyList<PostCardViewModel> Posts { get; init; } = [];
+    // True when older posts exist past the last card.
+    public bool HasMore { get; init; }
+    // Up to three communities the signed-in user has joined. Empty when signed out.
+    public IReadOnlyList<CommunityLinkViewModel> YourCommunities { get; init; } = [];
+    // Initials for the signed-in user's avatar in the share box. Empty when signed out.
+    public string CurrentUserInitials { get; init; } = "";
 }

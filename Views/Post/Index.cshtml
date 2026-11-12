@@ -26,7 +26,7 @@
             </th>
             <th>
                 Post Type
-            </th> 
+            </th>
             <th>
                 @Html.DisplayNameFor(model => model.Content)
             </th>
@@ -40,38 +40,39 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.AuthorId)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Author)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.CommunityId)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Community)
-            </td>
-            <td>
-                @item.PostTags.FirstOrDefault()?.Tag.Name
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Content)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.CreatedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.DateOfDel)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(model => item.AuthorId)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => item.Author)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => item.CommunityId)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => item.Community)
+                </td>
+                <td>
+                    @item.PostTags.FirstOrDefault()?.Tag.Name
+                </td>
+                <td>
+                    @Html.DisplayFor(model => item.Content)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => item.CreatedAt)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => item.DateOfDel)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

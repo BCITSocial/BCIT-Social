@@ -1,34 +1,64 @@
+@*
+- frontend view for Deleting a Community
+- author: jaspreet bath
+*@
+
 @model BCIT_Social.Models.Community
+@using System.IO
+@using System.Text.Json
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 
 @{
-    ViewData["Title"] = "Delete";
+    Layout = "_HomeLayout";
+    var jsonPath = System.IO.Path.Combine(Env.WebRootPath, "content", "communities-text.json");
+    using var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
+    var text = jsonDoc.RootElement;
+    var del = text.GetProperty("deletePage");
+
+    ViewData["Title"] = del.GetProperty("title").GetString();
 }
 
-<h1>Delete</h1>
+<link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>BCIT_Social.Models.Community</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Type)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Type)
-        </dd>
-    </dl>
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
-</div>
+<div class="communities-wrapper">
+    <div class="form-page-container">
+        <div class="modal-card danger-card">
+            <h1 class="modal-title" style="color: rgb(185, 28, 28);">@del.GetProperty("title").GetString()</h1>
+            <p class="modal-subtitle">@del.GetProperty("subtitle").GetString()</p>
+
+            <div class="danger-box">
+                <p>Are you sure you want to permanently remove <strong>@Model?.Name</strong>? All associations and
+                    memberships will be lost.</p>
+                </div>
+
+                <div class="details-card" style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 0.5rem 0;">@Model?.Name</h3>
+                    <div class="badge-row" style="flex-wrap: wrap; margin-bottom: 0.5rem;">
+                        @if (!string.IsNullOrWhiteSpace(Model?.Type))
+                        {
+                            @foreach (var rawTag in Model.Type.Split(',', StringSplitOptions.RemoveEmptyEntries |
+                        StringSplitOptions.TrimEntries))
+                            {
+                                <span class="category-badge">@rawTag</span>
+                            }
+                        }
+                    </div>
+                    <div class="member-count" style="margin: 0;">
+                        @(Model?.Members?.Count ?? 0) @text.GetProperty("membersLabel").GetString()
+                    </div>
+                </div>
+
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="modal-footer-actions">
+                        <a asp-action="Index" class="btn-cancel" style="text-decoration: none;">
+                            @del.GetProperty("cancelButton").GetString()
+                        </a>
+                        <button type="submit" class="btn-danger-confirm">
+                            @del.GetProperty("confirmButton").GetString()
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>

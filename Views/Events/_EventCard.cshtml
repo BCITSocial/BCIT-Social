@@ -1,9 +1,11 @@
 @using System.Globalization
 @using BCIT_Social.ViewModels
 @model EventCardViewModel
-@* One event card, built from one entry in wwwroot/content/events-text.json. A row is left out when its value is empty. *@
+@* One event card, built from one entry in wwwroot/content/events-text.json. A row is left out when its value is empty.
+   Badge and button wording comes from EventsText, which Index.cshtml passes down in ViewData. *@
 @{
     var culture = CultureInfo.InvariantCulture;
+    var text = ViewData[nameof(EventsText)] as EventsText ?? new EventsText();
 
     // Same-day events read "5:30 – 7:00 PM" (the first AM/PM is dropped when both match).
     // Multi-day events show the full date and time for both ends.
@@ -29,12 +31,13 @@
     var where = string.Join(" · ", new[] { Model.Location, Model.Campus }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
     // Text of the badge in the top-right corner of the cover. Null means no badge.
-    var status = Model.IsCancelled ? "Cancelled" : Model.Rsvp switch
+    // The CSS class comes from the state (status-going, ...); only the visible label comes from the text.
+    var (statusClass, status) = Model.IsCancelled ? ("cancelled", text.BadgeCancelled) : Model.Rsvp switch
     {
-        RsvpStatus.Going => "Going",
-        RsvpStatus.Interested => "Interested",
-        RsvpStatus.Hosting => "Hosting",
-        _ => null,
+        RsvpStatus.Going => ("going", text.BadgeGoing),
+        RsvpStatus.Interested => ("interested", text.BadgeInterested),
+        RsvpStatus.Hosting => ("hosting", text.BadgeHosting),
+        _ => ((string?)null, (string?)null),
     };
     var interested = Model.Rsvp == RsvpStatus.Interested;
     var going = Model.Rsvp == RsvpStatus.Going;
@@ -54,7 +57,7 @@
         }
         @if (status is not null)
         {
-            <span class="event-status status-@status.ToLowerInvariant()">@status</span>
+            <span class="event-status status-@statusClass">@status</span>
         }
     </div>
     @* Top to bottom: title, host, time, location, description, attendees, buttons. *@
@@ -63,15 +66,15 @@
         <dl class="event-meta">
             @if (Model.HostName.Length > 0)
             {
-                <div class="event-host"><dt class="visually-hidden">Host</dt><dd><partial name="_Icon" model='"people"' /><span>@Model.HostName</span></dd></div>
+                <div class="event-host"><dt class="visually-hidden">@text.LabelHost</dt><dd><partial name="_Icon" model='"people"' /><span>@Model.HostName</span></dd></div>
             }
             @if (time.Length > 0)
             {
-                <div class="event-time"><dt class="visually-hidden">Time</dt><dd><partial name="_Icon" model='"clock"' /><span>@time</span></dd></div>
+                <div class="event-time"><dt class="visually-hidden">@text.LabelTime</dt><dd><partial name="_Icon" model='"clock"' /><span>@time</span></dd></div>
             }
             @if (where.Length > 0)
             {
-                <div class="event-where"><dt class="visually-hidden">Location</dt><dd><partial name="_Icon" model='"pin"' /><span>@where</span></dd></div>
+                <div class="event-where"><dt class="visually-hidden">@text.LabelLocation</dt><dd><partial name="_Icon" model='"pin"' /><span>@where</span></dd></div>
             }
         </dl>
         @if (Model.Description.Length > 0)
@@ -97,7 +100,7 @@
                     </span>
                     @if (Model.GoingCount > 0)
                     {
-                        <span class="going-count">@Model.GoingCount going</span>
+                        <span class="going-count">@EventsText.Format(text.GoingCount, Model.GoingCount)</span>
                     }
                 </div>
             }
@@ -105,13 +108,13 @@
             <div class="event-actions">
                 @if (Model.Rsvp == RsvpStatus.Hosting)
                 {
-                    <button class="action-button" type="button" disabled><partial name="_Icon" model='"external"' />View event</button>
-                    <button class="action-button action-hosting" type="button" disabled>Manage event</button>
+                    <button class="action-button" type="button" disabled><partial name="_Icon" model='"external"' />@text.ButtonViewEvent</button>
+                    <button class="action-button action-hosting" type="button" disabled>@text.ButtonManageEvent</button>
                 }
                 else
                 {
-                    <button class="action-button action-interested@(interested ? " is-selected" : "")" type="button" aria-pressed="@(interested ? "true" : "false")" disabled><partial name="_Icon" model='"star"' />Interested</button>
-                    <button class="action-button action-going@(going ? " is-selected" : "")" type="button" aria-pressed="@(going ? "true" : "false")" disabled><partial name="_Icon" model='"check"' />Going</button>
+                    <button class="action-button action-interested@(interested ? " is-selected" : "")" type="button" aria-pressed="@(interested ? "true" : "false")" disabled><partial name="_Icon" model='"star"' />@text.ButtonInterested</button>
+                    <button class="action-button action-going@(going ? " is-selected" : "")" type="button" aria-pressed="@(going ? "true" : "false")" disabled><partial name="_Icon" model='"check"' />@text.ButtonGoing</button>
                 }
             </div>
         </div>

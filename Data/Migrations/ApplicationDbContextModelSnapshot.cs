@@ -37,6 +37,9 @@ namespace BCIT_Social.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DateOfDel")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -116,18 +119,56 @@ namespace BCIT_Social.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ChatType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("CreatorId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CreatorId");
 
                     b.ToTable("Chatboxes");
+                });
+
+            modelBuilder.Entity("BCIT_Social.Models.ChatboxMembershipHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChatboxId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LeftAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatboxId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ChatboxMembershipHistory");
                 });
 
             modelBuilder.Entity("BCIT_Social.Models.ChatboxUser", b =>
@@ -137,6 +178,9 @@ namespace BCIT_Social.Data.Migrations
 
                     b.Property<int>("ChatboxId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
 
                     b.HasKey("UserId", "ChatboxId");
 
@@ -154,7 +198,6 @@ namespace BCIT_Social.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AuthorId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Content")
@@ -208,6 +251,12 @@ namespace BCIT_Social.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<DateTime?>("DateOfDel")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -235,8 +284,10 @@ namespace BCIT_Social.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("CreatorId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("DateOfDel")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("EventDate")
                         .HasColumnType("datetime2");
@@ -291,7 +342,6 @@ namespace BCIT_Social.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SenderId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("SentAt")
@@ -304,6 +354,51 @@ namespace BCIT_Social.Data.Migrations
                     b.HasIndex("SenderId");
 
                     b.ToTable("CommunityMessages");
+                });
+
+            modelBuilder.Entity("BCIT_Social.Models.FriendRelationship", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeactivatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RecipientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RelationshipKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RequesterId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipientId");
+
+                    b.HasIndex("RelationshipKey")
+                        .IsUnique();
+
+                    b.HasIndex("RequesterId");
+
+                    b.ToTable("FriendRelationships");
                 });
 
             modelBuilder.Entity("BCIT_Social.Models.Message", b =>
@@ -321,7 +416,6 @@ namespace BCIT_Social.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SenderId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Text")
@@ -335,6 +429,24 @@ namespace BCIT_Social.Data.Migrations
                     b.HasIndex("SenderId");
 
                     b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("BCIT_Social.Models.MessageReadReceipt", b =>
+                {
+                    b.Property<int>("MessageId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("MessageId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("MessageReadReceipts");
                 });
 
             modelBuilder.Entity("BCIT_Social.Models.Post", b =>
@@ -651,10 +763,27 @@ namespace BCIT_Social.Data.Migrations
                     b.HasOne("BCIT_Social.Models.ApplicationUser", "Creator")
                         .WithMany()
                         .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Creator");
+                });
+
+            modelBuilder.Entity("BCIT_Social.Models.ChatboxMembershipHistory", b =>
+                {
+                    b.HasOne("BCIT_Social.Models.Chatbox", "Chatbox")
+                        .WithMany("MembershipHistory")
+                        .HasForeignKey("ChatboxId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BCIT_Social.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Chatbox");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BCIT_Social.Models.ChatboxUser", b =>
@@ -681,8 +810,7 @@ namespace BCIT_Social.Data.Migrations
                     b.HasOne("BCIT_Social.Models.ApplicationUser", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("BCIT_Social.Models.Comments", "ParentComment")
                         .WithMany("Replies")
@@ -723,8 +851,7 @@ namespace BCIT_Social.Data.Migrations
                     b.HasOne("BCIT_Social.Models.ApplicationUser", "Creator")
                         .WithMany()
                         .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Community");
 
@@ -761,12 +888,30 @@ namespace BCIT_Social.Data.Migrations
                     b.HasOne("BCIT_Social.Models.ApplicationUser", "Sender")
                         .WithMany()
                         .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Community");
 
                     b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("BCIT_Social.Models.FriendRelationship", b =>
+                {
+                    b.HasOne("BCIT_Social.Models.ApplicationUser", "Recipient")
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BCIT_Social.Models.ApplicationUser", "Requester")
+                        .WithMany()
+                        .HasForeignKey("RequesterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Recipient");
+
+                    b.Navigation("Requester");
                 });
 
             modelBuilder.Entity("BCIT_Social.Models.Message", b =>
@@ -780,12 +925,30 @@ namespace BCIT_Social.Data.Migrations
                     b.HasOne("BCIT_Social.Models.ApplicationUser", "Sender")
                         .WithMany()
                         .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Chatbox");
 
                     b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("BCIT_Social.Models.MessageReadReceipt", b =>
+                {
+                    b.HasOne("BCIT_Social.Models.Message", "Message")
+                        .WithMany("ReadReceipts")
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BCIT_Social.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Message");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BCIT_Social.Models.Post", b =>
@@ -820,7 +983,7 @@ namespace BCIT_Social.Data.Migrations
             modelBuilder.Entity("BCIT_Social.Models.PostTags", b =>
                 {
                     b.HasOne("BCIT_Social.Models.Post", "Post")
-                        .WithMany()
+                        .WithMany("PostTags")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -902,6 +1065,8 @@ namespace BCIT_Social.Data.Migrations
                 {
                     b.Navigation("ChatboxUsers");
 
+                    b.Navigation("MembershipHistory");
+
                     b.Navigation("Messages");
                 });
 
@@ -915,9 +1080,16 @@ namespace BCIT_Social.Data.Migrations
                     b.Navigation("Members");
                 });
 
+            modelBuilder.Entity("BCIT_Social.Models.Message", b =>
+                {
+                    b.Navigation("ReadReceipts");
+                });
+
             modelBuilder.Entity("BCIT_Social.Models.Post", b =>
                 {
                     b.Navigation("Photos");
+
+                    b.Navigation("PostTags");
                 });
 #pragma warning restore 612, 618
         }
