@@ -2,6 +2,10 @@
 author: Andre Di Lascio
 Styles the account forms (log in, sign up) and the create-profile form.
 */
+/* Log in and sign up (_AuthLayout): the form sits in the middle of the window. */
+.auth-page { display: grid; place-items: center; min-height: 100dvh; padding: 24px 16px; }
+.auth-page .auth-panel { width: 100%; margin: 0; }
+
 .auth-panel { max-width: 440px; margin: 40px auto; padding: 32px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); box-shadow: 0 8px 24px rgb(23 32 51 / 6%); }
 .auth-panel.is-wide { max-width: 560px; }
 .auth-brand { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 16px; border-radius: 10px; background: var(--color-accent); color: var(--color-surface); font-size: 1.375rem; font-weight: var(--font-weight-bold); }
