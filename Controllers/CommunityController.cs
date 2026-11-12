@@ -93,6 +93,11 @@ public class CommunityController : Controller
         {
             return Challenge();
         }
+        var communitiesByUser = _context.Communities.Where(c => c.CreatorId == creatorId).ToList();
+        if (communitiesByUser.Count >= 3)
+        {
+            return RedirectToAction(nameof(Index));
+        }
 
         var community = new Community
         {
