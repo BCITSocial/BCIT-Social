@@ -1,4 +1,3 @@
-using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 //library for image resolution and format checking
@@ -48,12 +47,10 @@ public class UploadService
         ArgumentNullException.ThrowIfNull(configuration);
         ValidateAzureConfiguration(configuration);
 
-        var accountName = configuration["AzureBlobStorage:AccountName"]!;
-        _containerName = configuration["AzureBlobStorage:ContainerName"]!;
+        var connectionString = configuration["AzureStorage:ConnectionString"]!;
+        _containerName = configuration["AzureStorage:ContainerName"]!;
 
-        _blobServiceClient = new BlobServiceClient(
-            new Uri($"https://{accountName}.blob.core.windows.net"),
-            new DefaultAzureCredential());
+        _blobServiceClient = new BlobServiceClient(connectionString);
     }
 
     /// <summary>
@@ -138,6 +135,28 @@ public class UploadService
             file.Length);
     }
 
+    // Delete: uploaded blob
+    /// <summary>
+    /// Description: Deletes an uploaded image from Blob Storage.
+    /// Author: Justin Chik
+    /// </summary>
+    /// <param name="storageKey">The key of the blob to delete.</param>
+    /// <param name="cancellationToken">A token that can cancel the delete operation.</param>
+    /// <returns>A task representing the asynchronous delete operation.</returns>
+    public async Task DeleteAsync(string storageKey, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(storageKey))
+        {
+            return;
+        }
+
+        var blob = _blobServiceClient
+            .GetBlobContainerClient(_containerName)
+            .GetBlobClient(storageKey);
+
+        await blob.DeleteIfExistsAsync(cancellationToken: cancellationToken);
+    }
+
     /**
     * Gets the maximum file size in bytes for a given purpose.
     * @param purpose The purpose of the upload (e.g., "profilepicture", "community image", "post image").
@@ -191,16 +210,16 @@ public class UploadService
             throw new ArgumentNullException(nameof(configuration));
         }
 
-        if (string.IsNullOrWhiteSpace(configuration["AzureBlobStorage:AccountName"]))
+        if (string.IsNullOrWhiteSpace(configuration["AzureStorage:ConnectionString"]))
         {
             throw new InvalidOperationException(
-                "AzureBlobStorage:AccountName is not configured.");
+                "AzureStorage:ConnectionString is not configured.");
         }
 
-        if (string.IsNullOrWhiteSpace(configuration["AzureBlobStorage:ContainerName"]))
+        if (string.IsNullOrWhiteSpace(configuration["AzureStorage:ContainerName"]))
         {
             throw new InvalidOperationException(
-                "AzureBlobStorage:ContainerName is not configured.");
+                "AzureStorage:ContainerName is not configured.");
         }
     }
 

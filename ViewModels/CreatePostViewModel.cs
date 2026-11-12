@@ -23,4 +23,6 @@ public class CreatePostViewModel
 
 	[Required]
 	public string Content { get; set; } = null!;
+	
+	public List<IFormFile> Photos { get; set; } = new();
 }
