@@ -128,6 +128,7 @@ public class HomeController : Controller
             Tags = post.PostTags.Select(postTag => postTag.Tag.Name).ToList(),
             CommentCount = _context.Comments.Count(comment => comment.PostId == post.Id),
             IsAuthor = userId != null && post.AuthorId == userId,
+            AuthorId = post.AuthorId,
             IsSaved = userId != null && _context.Bookmarks
                 .Any(bookmark => bookmark.UserId == userId && bookmark.PostId == post.Id),
         });

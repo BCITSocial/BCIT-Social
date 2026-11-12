@@ -165,12 +165,22 @@ a.primary-button { display: inline-flex; align-items: center; min-height: 44px; 
 .post-page { max-width: 880px; margin: 0 auto; padding: 0; }
 .back-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.875rem; }
 .post-details-author { display: flex; align-items: center; gap: 16px; }
-.post-details-name { color: var(--color-text); font-size: 1.125rem; font-weight: var(--font-weight-bold); }
+.post-details-name {
+    color: var(--color-text);
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    text-decoration: none;
+}
+
+.post-details-name:hover {
+    text-decoration: underline;
+}
 .post-details-meta { font-size: 0.875rem; }
 .post-details-title { margin: 16px 0 12px; font-size: 1.625rem; line-height: var(--line-height-heading); }
 .post-details-content { display: grid; gap: 12px; font-size: 0.9375rem; }
 .post-details-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 16px; padding: 8px 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
 .post-details-actions form { margin: 0; }
+.avatar {text-decoration: none;}
 .share-action { margin-left: auto; }
 .share-status { color: var(--color-muted); font-size: 0.8125rem; }
 .share-status:empty { display: none; }
