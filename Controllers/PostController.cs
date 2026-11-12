@@ -35,10 +35,34 @@ public class PostController : Controller
         var posts = await _context.Posts
             .Include(post => post.PostTags)
             .ThenInclude(postTag => postTag.Tag)
+            .Include(post => post.Photos)
             .Where(post => post.DateOfDel == null)
             .ToListAsync();
 
         return View(posts);
+    }
+
+    // GET: POSTS/Photo/5
+    /// <summary>
+    /// Description: Streams a post photo from Blob Storage for display.
+    /// Author: Justin Chik
+    /// </summary>
+    /// <param name="id">The ID of the post photo.</param>
+    /// <param name="cancellationToken">A token that can cancel the download operation.</param>
+    /// <returns>The photo file, or a not found result if the photo record does not exist.</returns>
+    [HttpGet]
+    public async Task<IActionResult> Photo(int id, CancellationToken cancellationToken)
+    {
+        var photo = await _context.PostPhotos
+            .FirstOrDefaultAsync(photo => photo.Id == id, cancellationToken);
+
+        if (photo == null)
+        {
+            return NotFound();
+        }
+
+        var image = await _uploadService.DownloadAsync(photo.StorageKey, cancellationToken);
+        return File(image.Content, photo.ContentType);
     }
 
     // GET: POSTS/Details/5

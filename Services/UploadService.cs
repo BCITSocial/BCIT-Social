@@ -157,6 +157,25 @@ public class UploadService
         await blob.DeleteIfExistsAsync(cancellationToken: cancellationToken);
     }
 
+    /// <summary>
+    /// Description: Downloads an image from Blob Storage.
+    /// Author: Justin Chik
+    /// </summary>
+    /// <param name="storageKey">The key of the blob to download.</param>
+    /// <param name="cancellationToken">A token that can cancel the download operation.</param>
+    /// <returns>The downloaded image content and properties.</returns>
+    public async Task<BlobDownloadStreamingResult> DownloadAsync(
+        string storageKey,
+        CancellationToken cancellationToken = default)
+    {
+        var blob = _blobServiceClient
+            .GetBlobContainerClient(_containerName)
+            .GetBlobClient(storageKey);
+
+        var response = await blob.DownloadStreamingAsync(cancellationToken: cancellationToken);
+        return response.Value;
+    }
+
     /**
     * Gets the maximum file size in bytes for a given purpose.
     * @param purpose The purpose of the upload (e.g., "profilepicture", "community image", "post image").
