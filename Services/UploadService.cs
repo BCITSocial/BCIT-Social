@@ -1,6 +1,7 @@
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+//library for image resolution and format checking
 using SixLabors.ImageSharp;
 
 namespace BCIT_Social.Services;
@@ -61,7 +62,6 @@ public class UploadService
     /// </summary>
     /// <param name="file">The uploaded file.</param>
     /// <param name="purpose">The purpose of the upload (e.g., "profilepicture", "community image", "post image").</param>
-    /// <param name="options">Minimum dimensions required for the image.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>Metadata for the stored file.</returns>
     public async Task<UploadedFile> UploadAsync(
@@ -99,9 +99,11 @@ public class UploadService
         }
 
         var detectedFormat = imageInfo.Metadata.DecodedImageFormat;
+        var detectedExtensions = detectedFormat?.FileExtensions
+            .Select(formatExtension => formatExtension.ToLowerInvariant());
         if (detectedFormat is null ||
-            !detectedFormat.FileExtensions.Contains(
-                extension.TrimStart('.'), StringComparer.OrdinalIgnoreCase))
+            detectedExtensions is null ||
+            !detectedExtensions.Contains(extension.TrimStart('.')))
         {
             throw new ArgumentException("The file extension does not match the image content.", nameof(file));
         }
@@ -140,7 +142,7 @@ public class UploadService
     * Gets the maximum file size in bytes for a given purpose.
     * @param purpose The purpose of the upload (e.g., "profilepicture", "community image", "post image").
     * @return The maximum file size in bytes.
-    * @throws NotImplementedException if the purpose is not recognized.
+    * @throws ArgumentException if the purpose is not recognized.
     */
     private int GetMaxSizeBytes(String purpose)
     {
@@ -233,18 +235,19 @@ public class UploadService
     */
     private static bool IsValidFormat(IFormFile file, String purpose)
     {
-        String fileFormat = Path.GetExtension(Path.GetFileName(file.FileName));
-        if (purpose.Equals("post", StringComparison.OrdinalIgnoreCase))
+        String fileFormat = Path.GetExtension(Path.GetFileName(file.FileName)).ToLowerInvariant();
+        String normalizedPurpose = purpose.ToLowerInvariant();
+        if (normalizedPurpose == "post")
         {
-            return _postValidFormats.Contains(fileFormat, StringComparer.OrdinalIgnoreCase);
+            return _postValidFormats.Contains(fileFormat);
         }
-        else if (purpose.Equals("community", StringComparison.OrdinalIgnoreCase))
+        else if (normalizedPurpose == "community")
         {
-            return _communityValidFormats.Contains(fileFormat, StringComparer.OrdinalIgnoreCase);
+            return _communityValidFormats.Contains(fileFormat);
         }
-        else if (purpose.Equals("profile", StringComparison.OrdinalIgnoreCase))
+        else if (normalizedPurpose == "profile")
         {
-            return _profileValidFormats.Contains(fileFormat, StringComparer.OrdinalIgnoreCase);
+            return _profileValidFormats.Contains(fileFormat);
         }
         else
         {
