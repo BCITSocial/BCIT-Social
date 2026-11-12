@@ -5,10 +5,9 @@ public class CommentViewModel
 {
     public int Id { get; init; }
     public string AuthorName { get; init; } = "";
-    // True when the comment was written by the post's author; shows an "Author" badge.
-
-    // Id of the user who created the post
+    // Author's user id, for the profile link and the avatar popout (quick message). Null when the author was removed.
     public string? AuthorId { get; init; } = "";
+    // True when the comment was written by the post's author; shows an "Author" badge.
     public bool IsPostAuthor { get; init; }
     public string Content { get; init; } = "";
     // Stored in UTC.

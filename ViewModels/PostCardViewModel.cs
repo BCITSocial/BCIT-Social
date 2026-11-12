@@ -22,7 +22,7 @@ public class PostCardViewModel
     // True when the signed-in user authored the post.
     public bool IsAuthor { get; init; }
 
-    // Id of the user who created the post
+    // Author's user id, for the profile link and the avatar popout (quick message). Empty when unknown.
     public string AuthorId { get; init; } = "";
 
     public string AuthorInitials => DisplayFormat.Initials(AuthorName);
