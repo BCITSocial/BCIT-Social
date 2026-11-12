@@ -10,6 +10,7 @@ namespace BCIT_Social.ViewModels;
 public class ProfilePageViewModel
 {
     public Profile? Profile { get; init; }
+    public bool IsOwnProfile { get; init; }
     public IReadOnlyList<PostCardViewModel> Posts { get; init; } = [];
     public IReadOnlyList<PostCardViewModel> Bookmarks { get; init; } = [];
     public IReadOnlyList<CommunityLinkViewModel> Communities { get; init; } = [];

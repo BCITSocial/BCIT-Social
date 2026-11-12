@@ -43,26 +43,35 @@ public class ProfileController : Controller
             return View(new ProfilePageViewModel());
         }
 
+        return View(await BuildProfilePageViewModel(profile, userId));
+    }
+
+    private async Task<ProfilePageViewModel> BuildProfilePageViewModel(Profile profile, string? viewerId)
+    {
+        var profileUserId = profile.UserId;
         var posts = await ProjectProfileCards(
                 _context.Posts
-                    .Where(post => post.AuthorId == userId && post.DateOfDel == null)
+                    .Where(post => post.AuthorId == profileUserId && post.DateOfDel == null)
                     .OrderByDescending(post => post.CreatedAt)
                     .ThenByDescending(post => post.Id),
-                userId)
+                viewerId)
             .ToListAsync();
 
-        var bookmarkedPosts = await ProjectProfileCards(
-                _context.Bookmarks
-                    .Where(bookmark => bookmark.UserId == userId && bookmark.Post.DateOfDel == null)
-                    .OrderByDescending(bookmark => bookmark.SavedAt)
-                    .ThenByDescending(bookmark => bookmark.PostId)
-                    .Select(bookmark => bookmark.Post),
-                userId)
-            .ToListAsync();
+        var isOwnProfile = viewerId == profileUserId;
+        var bookmarkedPosts = isOwnProfile
+            ? await ProjectProfileCards(
+                    _context.Bookmarks
+                        .Where(bookmark => bookmark.UserId == profileUserId && bookmark.Post.DateOfDel == null)
+                        .OrderByDescending(bookmark => bookmark.SavedAt)
+                        .ThenByDescending(bookmark => bookmark.PostId)
+                        .Select(bookmark => bookmark.Post),
+                    viewerId)
+                .ToListAsync()
+            : [];
 
         var communities = await _context.CommunityMembers
             .AsNoTracking()
-            .Where(member => member.UserId == userId)
+            .Where(member => member.UserId == profileUserId)
             .OrderBy(member => member.Community.Name)
             .Select(member => new CommunityLinkViewModel
             {
@@ -73,16 +82,17 @@ public class ProfileController : Controller
             })
             .ToListAsync();
 
-        return View(new ProfilePageViewModel
+        return new ProfilePageViewModel
         {
             Profile = profile,
+            IsOwnProfile = isOwnProfile,
             Posts = posts,
             Bookmarks = bookmarkedPosts,
             Communities = communities
-        });
+        };
     }
 
-    private IQueryable<PostCardViewModel> ProjectProfileCards(IQueryable<Post> posts, string userId)
+    private IQueryable<PostCardViewModel> ProjectProfileCards(IQueryable<Post> posts, string? userId)
     {
         return posts.AsNoTracking().Select(post => new PostCardViewModel
         {
@@ -110,12 +120,14 @@ public class ProfileController : Controller
             return NotFound();
         }
         var profile = await _context.Profiles
+            .AsNoTracking()
             .FirstOrDefaultAsync(m => m.UserId == userid);
         if (profile == null)
         {
             return NotFound();
         }
-        return View(profile);
+        var viewerId = _userManager.GetUserId(User);
+        return View("Index", await BuildProfilePageViewModel(profile, viewerId));
     }
 
     // GET: PROFILES/Create
