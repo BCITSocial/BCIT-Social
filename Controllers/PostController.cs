@@ -242,7 +242,8 @@ public class PostController : Controller
                     OriginalFileName = photo.OriginalFileName,
                     ContentType = photo.ContentType,
                     FileSizeBytes = photo.FileSizeBytes,
-                    DisplayOrder = displayOrder
+                    DisplayOrder = displayOrder,
+                    CreatedAt = DateTime.UtcNow
                 });
             }
 
