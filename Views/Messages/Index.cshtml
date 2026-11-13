@@ -32,8 +32,7 @@
     }
 }
 
-<div class="messages-page@(Model.IsActiveChosen ? " is-chat-open" : null)@(showDetails ? " is-details-open" : null)" data-messages>
-    @* @author Asher: the recipient picker submits to the existing conversation-creation action. *@
+<div class="messages-page@(Model.IsActiveChosen ? " is-chat-open" : null)@(showDetails ? " is-details-open" : null)" data-messages data-hub-url="@Url.Content("~/hubs/chat")">    @* @author Asher: the recipient picker submits to the existing conversation-creation action. *@
     <dialog class="msg-new-dialog" data-new-message-dialog aria-labelledby="new-message-heading">
         <form method="dialog" class="msg-new-dialog-close">
             <button class="icon-button" aria-label="Close">×</button>
@@ -362,5 +361,6 @@
 </div>
 
 @section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js" defer></script>
     <script src="~/js/messages.js" asp-append-version="true" defer></script>
 }

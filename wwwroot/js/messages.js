@@ -49,6 +49,7 @@
     function addMessage(message) {
         ensureDay(message.sentAt);
         const row = fromTemplate(message.isMine ? "mine" : "theirs");
+        if (message.id) row.dataset.messageId = message.id;
         row.querySelector("[data-text]").textContent = message.text;
         const time = row.querySelector("time");
         time.dateTime = isoLocal(message.sentAt);
@@ -61,7 +62,7 @@
 
     // Shows the latest message in the open conversation's row and moves the row to the top.
     function updateListRow(message) {
-        const link = page.querySelector(`.msg-conversation[data-conversation-id="${activeId}"]`);
+        const link = page.querySelector(`.msg-conversation[data-conversation-id="${message.chatboxId ?? activeId}"]`);
         if (!link) return;
         link.querySelector(".msg-preview").textContent = (message.isMine ? "You: " : "") + message.text;
         let time = link.querySelector(".msg-conversation-top time");
@@ -75,9 +76,61 @@
         item.parentElement.prepend(item);
     }
 
+    // ---- Live messages (SignalR) ----
+
+const myId = document.body.dataset.profileUserId;
+const hubUrl = page.dataset.hubUrl;
+let connection = null;
+
+if (hubUrl && window.signalR) {
+    connection = new signalR.HubConnectionBuilder()
+        .withUrl(hubUrl)
+        .withAutomaticReconnect()
+        .build();
+
+    // Every member of the chatbox, including the sender, receives each saved message.
+    connection.on("ReceiveMessage", (payload) => {
+        const message = {
+            id: payload.id,
+            chatboxId: String(payload.chatboxId),
+            text: payload.text,
+            sentAt: new Date(payload.createdAt),
+            isMine: payload.senderId === myId,
+        };
+        const isOpenChat = log && message.chatboxId === activeId;
+        if (isOpenChat && !log.querySelector(`[data-message-id="${message.id}"]`)) {
+            addMessage(message);
+        }
+        updateListRow(message);
+    });
+
+    connection.start().catch((error) => console.error("Live messages unavailable:", error));
+}
+
+const isConnected = () => connection !== null && connection.state === signalR.HubConnectionState.Connected;
+
     // ---- Sending ----
 
     if (form) {
+
+        // Send through the hub when connected; otherwise the form posts normally.
+        form.addEventListener("submit", async (event) => {
+            if (!isConnected()) return;
+            event.preventDefault();
+            const text = input.value.trim();
+            if (!text) return;
+            sendButton.disabled = true;
+            try {
+                await connection.invoke("SendMessage", Number(activeId), text);
+                input.value = "";
+                resize();
+            } catch (error) {
+                console.error("Send failed, using the normal form:", error);
+                form.submit();
+                return;
+            }
+            updateButton();
+        });
         const input = form.querySelector("textarea[name='text']");
         const sendButton = form.querySelector(".msg-send");
 
