@@ -95,4 +95,35 @@ public class ChatHub : Hub
             message.CreatedAt
         });
     }
+
+    /// <summary>
+    /// Author: Asher
+    /// Last Revised: Nov. 13, 2026
+    /// Description: Tells the other members of a chatbox that the caller is typing.
+    /// Throws a HubException if the user is unknown or not a member of the chatbox.
+    /// </summary>
+    /// <param name="chatboxId">Id of the chatbox the caller is typing in.</param>
+    public async Task Typing(int chatboxId)
+    {
+        string? userId = Context.UserIdentifier;
+
+        if (userId == null)
+        {
+            throw new HubException("User could not be identified.");
+        }
+
+        List<string> memberIds = await _db.ChatboxUsers
+            .Where(member => member.ChatboxId == chatboxId)
+            .Select(member => member.UserId)
+            .ToListAsync();
+
+        if (!memberIds.Contains(userId))
+        {
+            throw new HubException("You are not a member of this chat.");
+        }
+
+        List<string> otherIds = memberIds.Where(id => id != userId).ToList();
+
+        await Clients.Users(otherIds).SendAsync("UserTyping", new { chatboxId, userId });
+    }
 }
