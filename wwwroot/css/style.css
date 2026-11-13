@@ -1,0 +1,166 @@
+/*
+Shared base styles for site-wide HTML elements.
+Keep page and component styling in their existing stylesheets.
+*/
+
+/*
+Repeated global rules from home.css: universal box sizing, body defaults,
+control typography, and focus-visible styling. site.css also sets html/body
+defaults; differing values are documented below rather than overridden here.
+*/
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    min-width: 320px;
+    margin: 0;
+    font-family: var(--font-family, Arial, Helvetica, sans-serif);
+    color: var(--color-text, #172033);
+    background-color: var(--color-background, #f5f4ef);
+    line-height: var(--line-height-body, 1.5);
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button,
+[type="button"],
+[type="submit"],
+[type="reset"] {
+    cursor: pointer;
+}
+
+button:disabled,
+[type="button"]:disabled,
+[type="submit"]:disabled,
+[type="reset"]:disabled {
+    cursor: not-allowed;
+}
+
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+}
+
+img,
+video {
+    height: auto;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+::selection {
+    color: var(--color-text, #172033);
+    background: var(--color-selected, #edf2ff);
+}
+
+:focus-visible {
+    outline: 3px solid var(--color-focus, #245be8);
+    outline-offset: 3px;
+}
+
+/*
+Repeated: the shared category-badge base from communities.css and
+community-details.css. Their status/time variants remain page-specific.
+*/
+.category-badge {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm, 6px);
+    background-color: var(--tag-default-bg, hsla(217, 91%, 60%, 0.18));
+    color: var(--tag-default-text, rgb(29, 78, 216));
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.category-badge:empty {
+    display: none;
+}
+
+/*
+Shared community page surface. Source: communities.css (.communities-wrapper)
+and community-details.css (.details-wrapper). After this rule is adopted,
+remove only their background-color declarations; retain layout, padding,
+spacing, text, and border-radius rules.
+*/
+:root {
+    --color-surface-subtle: var(--color-input, #f3f5f8);
+}
+
+.communities-wrapper,
+.details-wrapper {
+    background-color: var(--color-surface-subtle);
+}
+
+/*
+Shared action-button base from communities.css and community-details.css:
+.btn-create, .btn-join, .btn-cancel, .btn-danger-confirm, and .btn-settings.
+Once this base is adopted, remove their duplicated sizing, typography, radius,
+alignment, and transition declarations. Keep each button's semantic colors,
+borders, and state-specific hover/disabled styles in its component stylesheet.
+*/
+.btn-create,
+.btn-join,
+.btn-cancel,
+.btn-danger-confirm,
+.btn-settings {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/*
+Conflicts found and intentionally kept in their source files because they
+need page-specific styling:
+- home.css and site.css set different link colors.
+- home.css, this file, and site.css have overlapping body/html defaults.
+- home.css and this file use different focus-ring offsets; component focus
+  rules in events.css and user-popout.css use their own sizes as well.
+- community action button color/border variants remain in their source files.
+- home.css and communities.css use .community-card for different layouts.
+- home.css and profile.css use .profile-button for different controls.
+- home.css contains overlapping .post-card, .post-title, .post-content,
+  .primary-button, and .secondary-button rules for different contexts.
+*/
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
