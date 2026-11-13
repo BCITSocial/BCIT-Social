@@ -124,10 +124,17 @@ This view renders the user's profile page, including their profile information, 
                                 </svg>
                             </div>
                             <h3>No posts yet</h3>
-                            <p>Share an update and start a conversation with your community.</p>
-                            <a class="profile-button profile-button-primary"
-                               asp-controller="Post"
-                               asp-action="Create">Create a post</a>
+                            @if(Model.IsOwnProfile)
+                            {
+                                <p>Share an update and start a conversation with your community.</p>
+                                <a class="profile-button profile-button-primary"
+                                   asp-controller="Post"
+                                   asp-action="Create">Create a post</a>
+                            }
+                            else
+                            {
+                                <p>This user hasn't shared any posts yet.</p>
+                            }
                         </div>
                     }
                     else
@@ -247,10 +254,6 @@ This view renders the user's profile page, including their profile information, 
                                 <span class="profile-theme-swatch profile-theme-swatch-campus" aria-hidden="true"></span>
                                 Campus
                             </button>
-                            <button class="profile-theme-option" type="button" data-profile-theme-choice="ocean" aria-pressed="false">
-                                <span class="profile-theme-swatch profile-theme-swatch-ocean" aria-hidden="true"></span>
-                                Ocean
-                            </button>
                             <button class="profile-theme-option" type="button" data-profile-theme-choice="forest" aria-pressed="false">
                                 <span class="profile-theme-swatch profile-theme-swatch-forest" aria-hidden="true"></span>
                                 Forest
@@ -262,10 +265,6 @@ This view renders the user's profile page, including their profile information, 
                             <button class="profile-theme-option" type="button" data-profile-theme-choice="dark" aria-pressed="false">
                                 <span class="profile-theme-swatch profile-theme-swatch-dark" aria-hidden="true"></span>
                                 Dark
-                            </button>
-                            <button class="profile-theme-option" type="button" data-profile-theme-choice="colorblind" aria-pressed="false">
-                                <span class="profile-theme-swatch profile-theme-swatch-colorblind" aria-hidden="true"></span>
-                                Red-green safe
                             </button>
                         </div>
                         </div>
@@ -312,25 +311,10 @@ This view renders the user's profile page, including their profile information, 
                     <input id="profile-accent-color" name="accentColor" type="color" value="#173a63" />
                 </div>
                 <div class="profile-customizer-field">
-                    <label for="profile-cover-style">Cover style</label>
-                    <select id="profile-cover-style" name="coverStyle">
-                        <option value="gradient">Soft gradient</option>
-                        <option value="glow">Color glow</option>
-                        <option value="stripes">Diagonal stripes</option>
-                    </select>
-                </div>
-                <div class="profile-customizer-field">
                     <label for="profile-avatar-shape">Avatar shape</label>
                     <select id="profile-avatar-shape" name="avatarShape">
                         <option value="circle">Circle</option>
                         <option value="rounded">Rounded square</option>
-                    </select>
-                </div>
-                <div class="profile-customizer-field">
-                    <label for="profile-card-style">Card style</label>
-                    <select id="profile-card-style" name="cardStyle">
-                        <option value="standard">Standard</option>
-                        <option value="lifted">Lifted</option>
                     </select>
                 </div>
             </div>

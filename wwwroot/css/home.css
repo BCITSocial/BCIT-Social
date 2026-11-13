@@ -77,6 +77,14 @@ main { min-width: 0; padding: 12px 16px 28px; }
 .page-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
 .panel { padding: 24px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); overflow-wrap: anywhere; }
 .empty-state { display: grid; place-items: center; min-height: 280px; text-align: center; }
+.error-page { display: grid; justify-items: center; max-width: 640px; margin: clamp(32px, 10vh, 100px) auto; padding: 40px 24px; text-align: center; }
+.error-page-icon { display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: 20px; border-radius: 50%; background: var(--color-danger-surface); color: var(--color-danger); font-size: 1.75rem; font-weight: var(--font-weight-bold); }
+.error-page-eyebrow { margin-bottom: 8px; color: var(--color-danger); font-size: 0.8125rem; font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: 0.06em; }
+.error-page h1 { margin-bottom: 10px; }
+.error-page-message { max-width: 420px; }
+.error-page-request { margin-top: 20px; font-size: 0.8125rem; overflow-wrap: anywhere; }
+.error-page-home { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; margin-top: 20px; padding: 8px 18px; border-radius: 8px; background: var(--color-accent); color: #fff; font-weight: var(--font-weight-bold); text-decoration: none; }
+.error-page-home:hover { color: #fff; filter: brightness(0.94); }
 
 /* Buttons and avatars */
 .primary-button { padding: 10px 18px; border: 1px solid var(--color-border); background: var(--color-selected); }

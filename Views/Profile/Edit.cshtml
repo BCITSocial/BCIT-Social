@@ -52,7 +52,13 @@
 
                     <div class="profile-edit-field">
                         <label asp-for="Campus"></label>
-                        <input asp-for="Campus" />
+                        <select asp-for="Campus">
+                            <option value="">Select a campus</option>
+                            <option value="Burnaby">Burnaby</option>
+                            <option value="Downtown">Downtown</option>
+                            <option value="Marine">Marine</option>
+                            <option value="Aerospace">Aerospace</option>
+                        </select>
                         <span asp-validation-for="Campus"></span>
                     </div>
                 </div>

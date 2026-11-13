@@ -33,24 +33,6 @@
     background: linear-gradient(115deg, #eef5ff 0%, #e5ebf2 58%, #dfe5ec 100%);
 }
 
-body[data-profile-cover="glow"] .profile-page .profile-cover,
-body[data-profile-cover="glow"] .profile-edit-cover {
-    background: radial-gradient(ellipse at 15% 15%, color-mix(in srgb, var(--color-accent) 36%, white), transparent 58%),
-        linear-gradient(115deg, #f8fafc, #e2e8f0);
-}
-
-body[data-profile-cover="stripes"] .profile-page .profile-cover,
-body[data-profile-cover="stripes"] .profile-edit-cover {
-    background: repeating-linear-gradient(135deg,
-            color-mix(in srgb, var(--color-accent) 16%, white) 0 18px,
-            #f8fafc 18px 36px);
-}
-
-body[data-profile-cover="gradient"] .profile-page .profile-cover,
-body[data-profile-cover="gradient"] .profile-edit-cover {
-    background: var(--profile-cover);
-}
-
 .profile-card-content {
     padding: 0 20px 16px;
 }
@@ -539,10 +521,6 @@ body[data-profile-cover="gradient"] .profile-edit-cover {
     background: #173a63;
 }
 
-.profile-theme-swatch-ocean {
-    background: #2563eb;
-}
-
 .profile-theme-swatch-forest {
     background: #16835d;
 }
@@ -553,10 +531,6 @@ body[data-profile-cover="gradient"] .profile-edit-cover {
 
 .profile-theme-swatch-dark {
     background: #172033;
-}
-
-.profile-theme-swatch-colorblind {
-    background: linear-gradient(135deg, #0072b2 0 50%, #e69f00 50% 100%);
 }
 
 .profile-customize-button {
@@ -830,6 +804,18 @@ body[data-profile-cover="gradient"] .profile-edit-cover {
 .profile-edit-field input.input-validation-error,
 .profile-edit-field textarea.input-validation-error {
     border-color: var(--color-danger);
+}
+
+.profile-edit-field select {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.875rem;
 }
 
 .profile-edit-field span[data-valmsg-for] {

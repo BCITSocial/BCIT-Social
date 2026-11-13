@@ -1,9 +1,8 @@
 //// Profile customizer
 //// Author: Jonathan
 //// Date: 2026-11-11
-//// Description: This script handles the profile customizer functionality, 
-//// allowing users to select and apply different themes, cover styles, avatar shapes, and 
-//// card styles to their profile page. 
+//// Description: This script handles the profile customizer functionality,
+//// allowing users to select themes, accent colors, and avatar shapes.
 //// It also manages the saving and loading of user preferences from local storage.
 
 (() => {
@@ -17,9 +16,7 @@
     }
 
     const accentInput = form.elements.namedItem("accentColor");
-    const coverSelect = form.elements.namedItem("coverStyle");
     const avatarSelect = form.elements.namedItem("avatarShape");
-    const cardSelect = form.elements.namedItem("cardStyle");
     const status = dialog.querySelector("[data-profile-customizer-status]");
     const storageKey = appearance.storageKey(page.dataset.profileUserId);
     const { defaults, themes, normalize, apply } = appearance;
@@ -27,18 +24,14 @@
 
     function setFormValues(value) {
         accentInput.value = value.accentColor;
-        coverSelect.value = value.coverStyle;
         avatarSelect.value = value.avatarShape;
-        cardSelect.value = value.cardStyle;
     }
 
     function getFormValues() {
         return normalize({
             ...preferences,
             accentColor: accentInput.value,
-            coverStyle: coverSelect.value,
-            avatarShape: avatarSelect.value,
-            cardStyle: cardSelect.value
+            avatarShape: avatarSelect.value
         });
     }
 

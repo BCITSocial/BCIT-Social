@@ -87,18 +87,6 @@ body[data-profile-theme="campus"] {
     --color-input: #f3f6f9;
 }
 
-body[data-profile-theme="ocean"] {
-    --color-background: #f2f7ff;
-    --color-surface: #ffffff;
-    --color-text: #172033;
-    --color-muted: #526174;
-    --color-border: #d6e1f0;
-    --profile-accent: #2563eb;
-    --profile-cover: linear-gradient(115deg, #dbeafe, #bfdbfe 55%, #e0f2fe);
-    --color-selected: #e8f0ff;
-    --color-input: #f2f6fc;
-}
-
 body[data-profile-theme="forest"] {
     --color-background: #f2f8f4;
     --color-surface: #ffffff;
@@ -140,20 +128,6 @@ body[data-profile-theme="dark"] {
     --color-avatar-text: #bfdbfe;
 }
 
-body[data-profile-theme="colorblind"] {
-    --color-background: #f3f8fa;
-    --color-surface: #ffffff;
-    --color-text: #172033;
-    --color-muted: #526174;
-    --color-border: #d5e2e8;
-    --profile-accent: #0072b2;
-    --profile-cover: linear-gradient(115deg, #e5f4fb, #d5eaf5 55%, #fff1d2);
-    --color-selected: #e5f4fb;
-    --color-input: #f1f7fa;
-    --color-avatar: #e5f4fb;
-    --color-avatar-text: #005a8c;
-}
-
 body[data-profile-theme] {
     --color-accent: var(--profile-accent);
     --color-focus: var(--profile-accent);
@@ -183,21 +157,4 @@ body[data-profile-avatar="rounded"] .post-avatar,
 body[data-profile-avatar="rounded"] .msg-avatar,
 body[data-profile-avatar="rounded"] .profile-avatar {
     border-radius: 14px;
-}
-
-body[data-profile-card="lifted"] .panel,
-body[data-profile-card="lifted"] .post-card,
-body[data-profile-card="lifted"] .post-details-card,
-body[data-profile-card="lifted"] .event-card,
-body[data-profile-card="lifted"] .msg-panel,
-body[data-profile-card="lifted"] .community-card,
-body[data-profile-card="lifted"] .featured-card,
-body[data-profile-card="lifted"] .details-card,
-body[data-profile-card="lifted"] .discussion-card,
-body[data-profile-card="lifted"] .profile-card,
-body[data-profile-card="lifted"] .profile-side-card,
-body[data-profile-card="lifted"] .profile-posts,
-body[data-profile-card="lifted"] .profile-edit-card {
-    border-radius: 16px;
-    box-shadow: 0 12px 30px rgb(23 32 51 / 10%);
 }

@@ -1,0 +1,23 @@
+@model ErrorViewModel
+
+@{
+    Layout = "_HomeLayout";
+    ViewData["Title"] = "Error";
+    ViewData["UseMinimalSiteShell"] = true;
+}
+
+<section class="error-page" aria-labelledby="error-heading">
+    <div class="error-page-icon" aria-hidden="true">!</div>
+    <p class="error-page-eyebrow">Something went wrong</p>
+    <h1 id="error-heading">We couldn’t load this page</h1>
+    <p class="error-page-message">Please try again in a moment, or return to the home page.</p>
+
+    @if (Model.ShowRequestId)
+    {
+        <p class="error-page-request">
+            Reference: <code>@Model.RequestId</code>
+        </p>
+    }
+
+    <a class="error-page-home" asp-controller="Home" asp-action="Index">Return to home</a>
+</section>
