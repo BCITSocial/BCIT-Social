@@ -8,6 +8,7 @@ public class CommunitiesText
     public string PageTitle { get; init; } = "Communities";
     public string PageSubtitle { get; init; } = "Join any of the communities listed below.";
     public string CreateButton { get; init; } = "+ Create";
+    public string AlertMessage { get; set; } = "You have created the maximum amount of communities (3)!";
 
     // Featured card at the
     public CommunityFeaturedText Featured { get; init; } = new();
