@@ -2,6 +2,7 @@
     "pageTitle": "Communities",
     "pageSubtitle": "Your communities!, Join any that are listed below.",
     "createButton": "+ Create",
+    "alertMaxCommunities": "You have created the maximum amount of communities (3)!",
     "featured": {
         "label": "THIS WEEK",
         "heading": "Placeholder, title of community post.",

@@ -11,6 +11,7 @@ frontend view for Communities page.
     var filters = text.Filters;
     var options = text.Options;
     ViewData["Title"] = text.PageTitle;
+    var alertMessage = text.AlertMessage;
 }
 
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
@@ -22,7 +23,16 @@ frontend view for Communities page.
             <h1 class="communities-title">@text.PageTitle</h1>
             <p class="communities-subtitle">@text.PageSubtitle</p>
         </div>
-        <button type="button" id="open-create-modal" class="btn-create">@text.CreateButton</button>
+        <p></p>
+        @if (ViewBag.UserCommunityCount < 3)
+        {
+            <button type="button" id="open-create-modal" class="btn-create">@text.CreateButton</button>
+        }
+        else
+        {
+            
+            <button type="button" class="btn-create" onclick='alert("@alertMessage");'>@text.CreateButton</button>
+        }
     </div>
 
     @* search & filter dropdowns, communities.js hides cards that don't match. *@
