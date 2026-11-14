@@ -81,6 +81,10 @@ public class CommunityController : Controller
         {
             return NotFound();
         }
+        if (community.DateOfDel != null)
+        {
+            return NotFound();
+        }
 
         CommunityDetailsViewModel viewModel = await DetailsViewModelFromCommunity(community);
         return View(viewModel);
@@ -96,11 +100,10 @@ public class CommunityController : Controller
 
         var community = await _context.Communities
             .FirstOrDefaultAsync(m => m.Id == id);
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
-
         CommunityMembersViewModel viewModel = await MembersViewModelFromCommunity(community);
         return View(viewModel);
     }
@@ -182,7 +185,7 @@ public class CommunityController : Controller
             return NotFound();
         }
         var community = await _context.Communities.FindAsync(id);
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -203,7 +206,7 @@ public class CommunityController : Controller
     {
         var community = await _context.Communities.FindAsync(id);
 
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -270,7 +273,7 @@ public class CommunityController : Controller
         var community = await _context.Communities
             .FirstOrDefaultAsync(m => m.Id == id);
 
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -298,7 +301,7 @@ public class CommunityController : Controller
     {
         var community = await _context.Communities.FindAsync(id);
         string? currentUserId = _userManager.GetUserId(User);
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -358,7 +361,7 @@ public class CommunityController : Controller
             .Include(m => m.Members)
             .FirstOrDefaultAsync(m => m.Id == id);
 
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -395,7 +398,7 @@ public class CommunityController : Controller
     {
         var community = await _context.Communities.FindAsync(id);
         string? currentUserId = _userManager.GetUserId(User);
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -450,7 +453,7 @@ public class CommunityController : Controller
             .ThenInclude(c => c.User)
             .FirstOrDefaultAsync(m => m.Id == id);
 
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -485,7 +488,7 @@ public class CommunityController : Controller
     {
         var community = await _context.Communities.FindAsync(id);
         string? currentUserId = _userManager.GetUserId(User);
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -505,8 +508,8 @@ public class CommunityController : Controller
         }
         if (ModelState.IsValid)
         {
-            _context.CommunityMembers.Remove(communityMember);
-            _context.Communities.Remove(community);
+            community.DateOfDel = DateTime.Now.AddDays(7);
+            _context.Communities.Update(community);
             await _context.SaveChangesAsync();
         }
         return RedirectToAction(nameof(Index));
@@ -529,7 +532,7 @@ public class CommunityController : Controller
     {
         var community = await _context.Communities.FindAsync(id);
         string? currentUserId = _userManager.GetUserId(User);
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -588,7 +591,7 @@ public class CommunityController : Controller
         var currentCommunityUser = await _context.CommunityMembers.FindAsync(currentUserId, id);
         var community = await _context.Communities.FirstOrDefaultAsync(m => m.Id == id);
 
-        if (id == null || userid == null || communityMember == null || community == null)
+        if (id == null || userid == null || communityMember == null || community == null || community.DateOfDel != null)
             return NotFound();
         if (currentUserId == null || currentCommunityUser == null)
             return Forbid();
@@ -650,7 +653,8 @@ public class CommunityController : Controller
         var community = await _context.Communities.FindAsync(id);
         var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
         string? currentUserId = _userManager.GetUserId(User);
-        if (community == null || communityMember == null)
+
+        if (community == null || communityMember == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -701,7 +705,7 @@ public class CommunityController : Controller
         var currentCommunityUser = await _context.CommunityMembers.FindAsync(currentUserId, id);
         var community = await _context.Communities.FirstOrDefaultAsync(m => m.Id == id);
 
-        if (id == null || userid == null || community == null)
+        if (id == null || userid == null || community == null || community.DateOfDel != null)
             return NotFound();
         if (currentUserId == null || currentCommunityUser == null)
             return Forbid();
@@ -745,7 +749,7 @@ public class CommunityController : Controller
         var community = await _context.Communities.FindAsync(id);
         var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
         string? currentUserId = _userManager.GetUserId(User);
-        if (community == null || communityMember == null)
+        if (community == null || communityMember == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -790,10 +794,11 @@ public class CommunityController : Controller
         var community = await _context.Communities.FindAsync(id);
         var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
         string? currentUserId = _userManager.GetUserId(User);
-        if (community == null || communityMember == null)
+        if (community == null || communityMember == null || community.DateOfDel != null)
         {
             return NotFound();
         }
+
         if (currentUserId == null || community.CreatorId != currentUserId)
         {
             return Forbid();
@@ -828,7 +833,7 @@ public class CommunityController : Controller
 
         var community = await _context.Communities
             .FirstOrDefaultAsync(m => m.Id == id);
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -848,10 +853,15 @@ public class CommunityController : Controller
     public async Task<IActionResult> DeleteConfirmed(int? id)
     {
         var community = await _context.Communities.FindAsync(id);
+        if (community == null || community.DateOfDel != null)
+        {
+            return NotFound();
+        }
         if (community != null)
         {
             CommunityAccessChecker(true, community);
-            _context.Communities.Remove(community);
+            community.DateOfDel = DateTime.Now.AddDays(7);
+            _context.Communities.Update(community);
         }
 
         await _context.SaveChangesAsync();
@@ -872,6 +882,7 @@ public class CommunityController : Controller
         // waits for db query.
         var communities = await _context.Communities
             .AsNoTracking()
+            .Where(m => m.DateOfDel == null)
             .Select(community => new
             {
                 community.Id,
