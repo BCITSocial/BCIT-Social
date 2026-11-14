@@ -214,26 +214,6 @@
     padding: 12px;
 }
 
-.profile-section-empty {
-    display: grid;
-    justify-items: center;
-    gap: 10px;
-    min-height: 208px;
-    padding: 32px 20px;
-    text-align: center;
-}
-
-.profile-section-empty h2 {
-    margin: 0;
-    font-size: 1rem;
-}
-
-.profile-section-empty p {
-    margin: 0;
-    color: var(--color-muted);
-    font-size: 0.8125rem;
-}
-
 .profile-bookmarks-empty {
     position: relative;
     display: grid;
@@ -370,49 +350,10 @@
     font-size: 1.5rem;
 }
 
-.profile-empty-posts {
-    display: grid;
-    justify-items: center;
-    gap: 8px;
-    padding: 36px 20px;
-    text-align: center;
-}
-
-.profile-empty-posts-icon {
-    display: grid;
-    place-items: center;
-    width: 42px;
-    height: 42px;
-    margin-bottom: 4px;
-    border-radius: 50%;
-    background: var(--color-selected);
-    color: var(--color-accent);
-}
-
-.profile-empty-posts-icon svg {
-    width: 22px;
-    height: 22px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.6;
-}
-
-.profile-empty-posts h3 {
-    margin: 0;
-    font-size: 0.9375rem;
-}
-
-.profile-empty-posts p,
 .profile-section-card p,
 .profile-discover > p {
     color: var(--color-muted);
     font-size: 0.75rem;
-}
-
-.profile-empty-posts .profile-button {
-    margin-top: 5px;
 }
 
 .profile-section-card,

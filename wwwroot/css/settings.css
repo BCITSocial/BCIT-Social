@@ -126,6 +126,7 @@ body[data-profile-theme="dark"] {
     --color-danger-surface: #512b32;
     --color-avatar: #273a55;
     --color-avatar-text: #bfdbfe;
+    --color-bubble-theirs: #263449;
 }
 
 body[data-profile-theme] {

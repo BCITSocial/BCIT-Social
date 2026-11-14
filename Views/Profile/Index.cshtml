@@ -116,14 +116,15 @@ This view renders the user's profile page, including their profile information, 
                          aria-labelledby="profile-posts-tab" data-profile-panel="posts" hidden="@(activeSection != "posts")">
                     @if (Model.Posts.Count == 0)
                     {
-                        <div class="profile-empty-posts">
-                            <div class="profile-empty-posts-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" focusable="false">
-                                    <path d="M5 4.5h14A1.5 1.5 0 0 1 20.5 6v10a1.5 1.5 0 0 1-1.5 1.5H9l-5.5 3v-3.2A1.5 1.5 0 0 1 3 16V6a1.5 1.5 0 0 1 2-1.5Z" />
-                                    <path d="M7 9h10M7 12.5h7" />
+                        <div class="profile-bookmarks-empty profile-posts-empty">
+                            <div class="profile-bookmarks-art" aria-hidden="true">
+                                <svg viewBox="0 0 64 64" focusable="false">
+                                    <path d="M12 15a5 5 0 0 1 5-5h30a5 5 0 0 1 5 5v23a5 5 0 0 1-5 5H29L16 54V43a5 5 0 0 1-4-5Z" />
+                                    <path d="M22 22h20M22 29h15" />
                                 </svg>
                             </div>
-                            <h3>No posts yet</h3>
+                            <span class="profile-bookmarks-eyebrow">Your posts</span>
+                            <h2>No posts yet</h2>
                             @if(Model.IsOwnProfile)
                             {
                                 <p>Share an update and start a conversation with your community.</p>
@@ -148,13 +149,36 @@ This view renders the user's profile page, including their profile information, 
 
                 <section class="profile-posts profile-content-panel" id="profile-communities" role="tabpanel"
                          aria-labelledby="profile-communities-tab" data-profile-panel="communities" hidden="@(activeSection != "communities")">
-                    @if (Model.Communities.Count == 0)
+                    @if (Model.Communities.Count == 0 && Model.IsOwnProfile)
                     {
-                        <div class="profile-section-empty">
+                        <div class="profile-bookmarks-empty profile-communities-empty">
+                            <div class="profile-bookmarks-art" aria-hidden="true">
+                                <svg viewBox="0 0 64 64" focusable="false">
+                                    <circle cx="24" cy="22" r="8" />
+                                    <path d="M9 53v-5a15 15 0 0 1 30 0v5Z" />
+                                    <path d="M42 16a7 7 0 0 1 0 13m4 6a13 13 0 0 1 9 12v6h-9" />
+                                </svg>
+                            </div>
+                            <span class="profile-bookmarks-eyebrow">Your communities</span>
                             <h2>You haven’t joined any communities yet</h2>
                             <p>Find a community that shares your interests and meet other BCIT students.</p>
                             <a class="profile-button profile-button-primary"
                                asp-controller="Community" asp-action="Index">Explore communities</a>
+                        </div>
+                    }
+                    else if (Model.Communities.Count == 0)
+                    {
+                        <div class="profile-bookmarks-empty profile-communities-empty">
+                            <div class="profile-bookmarks-art" aria-hidden="true">
+                                <svg viewBox="0 0 64 64" focusable="false">
+                                    <circle cx="24" cy="22" r="8" />
+                                    <path d="M9 53v-5a15 15 0 0 1 30 0v5Z" />
+                                    <path d="M42 16a7 7 0 0 1 0 13m4 6a13 13 0 0 1 9 12v6h-9" />
+                                </svg>
+                            </div>
+                            <span class="profile-bookmarks-eyebrow">Communities</span>
+                            <h2>This user hasn’t joined any communities yet</h2>
+                            <p>Communities are a great way to connect with other BCIT students who share your interests.</p>
                         </div>
                     }
                     else
@@ -277,7 +301,9 @@ This view renders the user's profile page, including their profile information, 
                 }
 
                 <section class="profile-side-card profile-discover" aria-labelledby="profile-discover-heading">
+
                     <div class="profile-side-heading">
+                        
                         <h2 id="profile-discover-heading">Discover communities</h2>
                         <a asp-controller="Community" asp-action="Index">See all</a>
                     </div>
