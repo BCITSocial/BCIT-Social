@@ -771,6 +771,51 @@ public class CommunityController : Controller
         });
     }
 
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Nov. 11, 2026
+    /// Description: POST call to make another user the creator of a server
+    /// Changes a moderator status of a community member
+    /// </summary>
+    /// <param name="id">community id</param>
+    /// <param name="userid">user id</param>
+    /// <returns></returns>
+    // POST: COMMUNITY/PassCreator/5/abc
+    [HttpPost, ActionName("PassCreator")]
+    [Route("Community/PassCreator/{id}/{userid}")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> PassCreator(int? id, string? userid)
+    {
+        var community = await _context.Communities.FindAsync(id);
+        var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
+        string? currentUserId = _userManager.GetUserId(User);
+        if (community == null || communityMember == null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null || community.CreatorId != currentUserId)
+        {
+            return Forbid();
+        }
+
+        if (communityMember.CommunityId != id)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (ModelState.IsValid)
+        {
+            community.CreatorId = communityMember.UserId;
+            communityMember.IsModerator = true;
+            _context.Update(communityMember);
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction(nameof(Members), new
+        {
+            community.Id
+        });
+    }
 
     // GET: COMMUNITY/Delete/5
     [Authorize]
