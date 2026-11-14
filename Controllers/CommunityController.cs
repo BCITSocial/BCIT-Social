@@ -365,26 +365,10 @@ public class CommunityController : Controller
 
         if (community.CreatorId == currentUserId)
         {
-            Console.WriteLine(community.Members.Count);
-            if (community.Members.Count == 1)
+            return RedirectToAction(nameof(LeaveCreator), new
             {
-
-            }
-            else if (community.Members.Count == 2)
-            {
-
-            }
-            else
-            {
-                return Forbid();
-            }
-
-            // TODO: might have to either not show "Leave" on frontend when creator or give a popup when trying to leave.
-            /// 1. check if creator 
-            /// 2. check number of members
-            /// 3. if creator only member --> delete group
-            /// 4. else. if one member --> member becomes leader
-            /// 5. else. --> creator chooses member to be leader (sort by admin first)
+                community.Id
+            });
         }
 
         if (await MemberExistsAsync(currentUserId, community))
@@ -442,13 +426,13 @@ public class CommunityController : Controller
     }
     /// <summary>
     /// Author: Tin Trinh
-    /// Last Revised: Oct. 21, 2026
-    /// Description: GET call to leave a community
-    /// Redirects to the Leave page, checks if the user is in this community, otherwise redirects
-    /// Also checks if user is Creator, they cannot leave (as of right now)
+    /// Last Revised: Nov. 13, 2026
+    /// Description: GET call to leave a community as the Creator
+    /// Redirects to the LeaveCreator page, checks if the user is in this community, otherwise redirects
+    /// Redirects to regular Leave page if just member
     /// </summary>
     /// <param name="id">community id</param>
-    // GET: COMMUNITY/Leave/5
+    // GET: COMMUNITY/LeaveCreator/5
     [Authorize]
     public async Task<IActionResult> LeaveCreator(int? id)
     {
@@ -463,6 +447,7 @@ public class CommunityController : Controller
         }
         var community = await _context.Communities
             .Include(m => m.Members)
+            .ThenInclude(c => c.User)
             .FirstOrDefaultAsync(m => m.Id == id);
 
         if (community == null)
@@ -470,33 +455,14 @@ public class CommunityController : Controller
             return NotFound();
         }
 
-        if (community.CreatorId == currentUserId)
+        if (community.CreatorId != currentUserId)
         {
-            Console.WriteLine(community.Members.Count);
-            if (community.Members.Count == 1)
-            {
-
-            }
-            else if (community.Members.Count == 2)
-            {
-
-            }
-            else
-            {
-                return Forbid();
-            }
-
-            // TODO: might have to either not show "Leave" on frontend when creator or give a popup when trying to leave.
-            /// 1. check if creator 
-            /// 2. check number of members
-            /// 3. if creator only member --> delete group
-            /// 4. else. if one member --> member becomes leader
-            /// 5. else. --> creator chooses member to be leader (sort by admin first)
+            return RedirectToAction(nameof(Leave));
         }
 
         if (await MemberExistsAsync(currentUserId, community))
         {
-            return View(community);
+            return View(await CreatorLeaveViewModelFromCommunity(community));
         }
         return RedirectToAction(nameof(Index));
 
@@ -506,15 +472,16 @@ public class CommunityController : Controller
     /// Author: Tin Trinh
     /// Last Revised: Oct. 21, 2026
     /// Description: POST call to leave a community
-    /// Removes user to a community, otherwise redirects to index.
+    /// Removes user from a community (they leave), otherwise redirects to index.
+    /// Community is either deleted or Creator role is passed to another member.
     /// </summary>
     /// <param name="id">community id</param>
     /// <returns></returns>
-    // POST: COMMUNITY/Leave/5
-    [HttpPost, ActionName("Leave")]
+    // POST: COMMUNITY/LeaveCreator/5
+    [HttpPost, ActionName("LeaveCreatorSolo")]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> LeaveCreatorConfirmed(int? id)
+    public async Task<IActionResult> LeaveCreatorSolo(int? id)
     {
         var community = await _context.Communities.FindAsync(id);
         string? currentUserId = _userManager.GetUserId(User);
@@ -536,13 +503,64 @@ public class CommunityController : Controller
         {
             return NotFound();
         }
-
         if (ModelState.IsValid)
         {
-            community.Members.Remove(communityMember);
-            _context.Remove(communityMember);
-            _context.Update(community);
+            _context.CommunityMembers.Remove(communityMember);
+            _context.Communities.Remove(community);
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction(nameof(Index));
+    }
 
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 21, 2026
+    /// Description: POST call to leave a community
+    /// Removes user from a community (they leave), otherwise redirects to index.
+    /// Community is either deleted or Creator role is passed to another member.
+    /// </summary>
+    /// <param name="id">community id</param>
+    /// <returns></returns>
+    // POST: COMMUNITY/LeaveCreator/5
+    [HttpPost, ActionName("LeaveCreatorMulti")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> LeaveCreatorMulti(int? id, CommunitiesLeaveCreatorModel viewModel)
+    {
+        var community = await _context.Communities.FindAsync(id);
+        string? currentUserId = _userManager.GetUserId(User);
+        if (community == null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Challenge();
+        }
+
+        if (await MemberExistsAsync(currentUserId, community) == false)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+        var communityMember = await _context.CommunityMembers.FindAsync(currentUserId, id);
+        var newCreator = await _context.CommunityMembers.FindAsync(viewModel.CreatorId, id);
+
+        if (communityMember == null || newCreator == null)
+        {
+            Console.WriteLine($"\n!{viewModel.CreatorId}!\n");
+            return NotFound();
+        }
+        if (ModelState.IsValid)
+        {
+            community.CreatorId = viewModel.CreatorId.Trim();
+            community.Creator = newCreator.User;
+            newCreator.IsModerator = true;
+
+            community.Members.Remove(communityMember);
+            _context.CommunityMembers.Remove(communityMember);
+            _context.CommunityMembers.Update(newCreator);
+
+            _context.Communities.Update(community);
             await _context.SaveChangesAsync();
         }
         return RedirectToAction(nameof(Index));
@@ -1016,6 +1034,26 @@ public class CommunityController : Controller
             IsModerator = communityMember.IsModerator,
             CommunityName = communityMember.Community.Name,
             CommunityId = communityMember.CommunityId
+        };
+        return viewModel;
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Nov. 13, 2026
+    /// Description: Creates a view model for a Member.
+    /// </summary>
+    /// <param name="communityMember">a Community Member</param>
+    /// <returns>a view model</returns>
+    private async Task<CommunitiesLeaveCreatorModel> CreatorLeaveViewModelFromCommunity(Community community)
+    {
+        var viewModel = new CommunitiesLeaveCreatorModel
+        {
+            Id = community.Id,
+            CommunityName = community.Name,
+            CreatorId = community.CreatorId,
+            MemberCount = community.Members.Count,
+            Members = community.Members
         };
         return viewModel;
     }
