@@ -152,10 +152,3 @@ body[data-profile-theme="dark"] .navbar .nav-link,
 body[data-profile-theme="dark"] .footer {
     color: var(--color-text) !important;
 }
-
-body[data-profile-avatar="rounded"] .avatar,
-body[data-profile-avatar="rounded"] .post-avatar,
-body[data-profile-avatar="rounded"] .msg-avatar,
-body[data-profile-avatar="rounded"] .profile-avatar {
-    border-radius: 14px;
-}

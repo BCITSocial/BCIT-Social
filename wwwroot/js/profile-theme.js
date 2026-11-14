@@ -2,7 +2,7 @@
 //// Author: Jonathan
 //// Date: 2026-11-11
 //// Description: This script handles the profile theme customizer functionality,
-//// allowing users to select themes, accent colors, and avatar shapes.
+//// allowing users to select themes and accent colors.
 //// It also manages the saving and loading of user preferences from local storage.
 
 (() => {
@@ -14,10 +14,8 @@
     });
     const defaults = Object.freeze({
         theme: "campus",
-        accentColor: themes.campus,
-        avatarShape: "circle"
+        accentColor: themes.campus
     });
-    const avatarShapes = ["circle", "rounded"];
     let currentPreferences = { ...defaults };
 
     function normalize(value) {
@@ -29,9 +27,6 @@
         const hasValidTheme = Object.hasOwn(themes, value.theme);
         if (hasValidTheme) {
             preferences.theme = value.theme;
-        }
-        if (avatarShapes.includes(value.avatarShape)) {
-            preferences.avatarShape = value.avatarShape;
         }
         if (hasValidTheme
             && typeof value.accentColor === "string"
@@ -47,7 +42,6 @@
     function apply(preferences, profilePage) {
         const body = document.body;
         body.dataset.profileTheme = preferences.theme;
-        body.dataset.profileAvatar = preferences.avatarShape;
         body.style.setProperty("--color-accent", preferences.accentColor);
         body.style.setProperty("--color-focus", preferences.accentColor);
         body.style.setProperty("--profile-accent-foreground", getAccentForeground(preferences.accentColor));

@@ -1,13 +1,13 @@
 //// Profile customizer
 //// Author: Jonathan
-//// Date: 2026-11-11
+//// Date: 2026-11-14
 //// Description: This script handles the profile customizer functionality,
-//// allowing users to select themes, accent colors, and avatar shapes.
+//// allowing users to select themes and accent colors.
 //// It also manages the saving and loading of user preferences from local storage.
 
 (() => {
     const appearance = window.bcitProfileAppearance;
-    const page = document.querySelector(".profile-page[data-profile-user-id]");
+    const page = document.querySelector("[data-profile-user-id]");
     const dialog = document.querySelector("[data-profile-customizer]");
     const form = document.querySelector("[data-profile-customizer-form]");
 
@@ -16,7 +16,6 @@
     }
 
     const accentInput = form.elements.namedItem("accentColor");
-    const avatarSelect = form.elements.namedItem("avatarShape");
     const status = dialog.querySelector("[data-profile-customizer-status]");
     const storageKey = appearance.storageKey(page.dataset.profileUserId);
     const { defaults, themes, normalize, apply } = appearance;
@@ -24,14 +23,12 @@
 
     function setFormValues(value) {
         accentInput.value = value.accentColor;
-        avatarSelect.value = value.avatarShape;
     }
 
     function getFormValues() {
         return normalize({
             ...preferences,
-            accentColor: accentInput.value,
-            avatarShape: avatarSelect.value
+            accentColor: accentInput.value
         });
     }
 
