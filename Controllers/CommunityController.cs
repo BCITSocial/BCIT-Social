@@ -56,9 +56,11 @@ public class CommunityController : Controller
 
         // Gets how many communities the user has made
         string? creatorId = _userManager.GetUserId(User);
-        var communitiesByUser = _context.Communities.Where(c => c.CreatorId == creatorId).ToList();
+        var communitiesByUser = _context.Communities
+            .Where(c => c.CreatorId == creatorId && c.DateOfDel == null)
+            .ToList();
         ViewBag.UserCommunityCount = communitiesByUser.Count;
-
+        Console.WriteLine(ViewBag.UserCommunityCount);
         return View(new CommunityIndexViewModel
         {
             Text = text,
@@ -116,7 +118,10 @@ public class CommunityController : Controller
         // reads from json files.
         var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
         string? creatorId = _userManager.GetUserId(User);
-        var communitiesByUser = _context.Communities.Where(c => c.CreatorId == creatorId).ToList();
+        var communitiesByUser = _context.Communities
+            .Where(c => c.CreatorId == creatorId)
+            .Where(c => c.DateOfDel != null)
+            .ToList();
         if (communitiesByUser.Count >= 3)
         {
             return RedirectToAction(nameof(Index));
@@ -153,7 +158,10 @@ public class CommunityController : Controller
             CommunityId = community.Id,
             IsModerator = true,
         };
-        var communitiesByUser = _context.Communities.Where(c => c.CreatorId == creatorId).ToList();
+        var communitiesByUser = _context.Communities
+            .Where(c => c.CreatorId == creatorId)
+            .Where(c => c.DateOfDel != null)
+            .ToList();
         if (communitiesByUser.Count >= 3)
         {
             return RedirectToAction(nameof(Index));
