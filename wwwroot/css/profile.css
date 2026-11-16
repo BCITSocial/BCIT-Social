@@ -967,6 +967,360 @@ body[data-profile-cover="gradient"] .profile-edit-cover {
     border-top: 1px solid var(--color-border);
 }
 
+.profile-card-button-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Settings and account deletion */
+
+.settings-page,
+.delete-page {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.settings-heading,
+.delete-header {
+    min-width: 0;
+}
+
+.settings-header h1,
+.delete-header h1 {
+    margin: 0 0 6px;
+    color: var(--color-text);
+    font-size: 1.75rem;
+}
+
+.settings-header p,
+.delete-header p {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.9375rem;
+}
+
+.settings-content {
+    display: grid;
+    gap: 18px;
+}
+
+.settings-card {
+    padding: 24px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+}
+
+.settings-card-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.settings-card h2 {
+    margin: 0 0 5px;
+    color: var(--color-text);
+    font-size: 1.125rem;
+}
+
+.settings-card-description {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.875rem;
+}
+
+.settings-form {
+    display: grid;
+    gap: 16px;
+    max-width: 560px;
+}
+
+.settings-field {
+    display: grid;
+    gap: 7px;
+}
+
+.settings-field label {
+    color: var(--color-text);
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-bold);
+}
+
+.settings-field input {
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-input);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.875rem;
+}
+
+.settings-field input:focus {
+    border-color: var(--color-accent);
+    outline: 3px solid color-mix(
+        in srgb,
+        var(--color-accent) 18%,
+        transparent
+    );
+}
+
+.settings-field input:disabled {
+    border-color: color-mix(
+        in srgb,
+        var(--color-border) 75%,
+        transparent
+    );
+    background: color-mix(
+        in srgb,
+        var(--color-input) 70%,
+        var(--color-surface)
+    );
+    color: var(--color-muted);
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+.settings-field input:disabled::placeholder {
+    color: var(--color-muted);
+    opacity: 0.7;
+}
+
+.settings-field small {
+    color: var(--color-muted);
+    font-size: 0.75rem;
+}
+
+.settings-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 42px;
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.15s ease;
+}
+
+.settings-button svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+}
+
+.settings-button-secondary {
+    border-color: var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.settings-button-secondary:hover {
+    background: var(--color-input);
+    color: var(--color-text);
+}
+
+.settings-button-primary {
+    justify-self: start;
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: #ffffff;
+}
+
+.settings-button:disabled {
+    border-color: var(--color-border);
+    background: var(--color-input);
+    color: var(--color-muted);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.settings-danger-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    border-color: color-mix(
+        in srgb,
+        var(--color-danger) 45%,
+        var(--color-border)
+    );
+    background: color-mix(
+        in srgb,
+        var(--color-danger-surface) 45%,
+        var(--color-surface)
+    );
+}
+
+.settings-danger-copy {
+    min-width: 0;
+}
+
+.settings-button-danger {
+    flex: none;
+    border-color: var(--color-danger);
+    background: var(--color-surface);
+    color: var(--color-danger);
+}
+
+.settings-button-danger:hover {
+    background: var(--color-danger);
+    color: #ffffff;
+}
+
+.settings-button-danger-solid {
+    border-color: var(--color-danger);
+    background: var(--color-danger);
+    color: #ffffff;
+}
+
+.settings-button-danger-solid:hover {
+    filter: brightness(0.9);
+}
+
+/* Delete-account confirmation */
+
+.delete-header {
+    margin-bottom: 24px;
+}
+
+.delete-card {
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+}
+
+.delete-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 24px;
+    background: color-mix(
+        in srgb,
+        var(--color-danger-surface) 55%,
+        var(--color-surface)
+    );
+}
+
+.delete-warning-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--color-danger-surface);
+    color: var(--color-danger);
+}
+
+.delete-warning-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.delete-warning h2 {
+    margin: 0 0 6px;
+    color: var(--color-text);
+    font-size: 1.125rem;
+}
+
+.delete-warning p {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.875rem;
+}
+
+.delete-details {
+    margin: 0;
+    padding: 0 24px;
+}
+
+.delete-detail-row {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 24px;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.delete-detail-row:last-child {
+    border-bottom: 0;
+}
+
+.delete-detail-row dt {
+    color: var(--color-muted);
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-bold);
+}
+
+.delete-detail-row dd {
+    min-width: 0;
+    margin: 0;
+    color: var(--color-text);
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+}
+
+.delete-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 20px 24px;
+    border-top: 1px solid color-mix(
+        in srgb,
+        var(--color-danger) 25%,
+        var(--color-border)
+    );
+    background: color-mix(
+        in srgb,
+        var(--color-danger-surface) 40%,
+        var(--color-surface)
+    );
+}
+
+.delete-actions form {
+    margin: 0;
+}
+
 @media (max-width: 900px) {
     .profile-layout {
         grid-template-columns: minmax(0, 1fr);
@@ -1047,5 +1401,58 @@ body[data-profile-cover="gradient"] .profile-edit-cover {
 
     .profile-button-new {
         align-self: flex-start;
+    }
+
+    .settings-header {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .settings-header h1,
+    .delete-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .settings-card {
+        padding: 20px 16px;
+    }
+
+    .settings-card-heading {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .settings-danger-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .settings-button {
+        width: 100%;
+    }
+
+    .delete-warning {
+        padding: 20px 16px;
+    }
+
+    .delete-details {
+        padding: 0 16px;
+    }
+
+    .delete-detail-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+    }
+
+    .delete-actions {
+        align-items: stretch;
+        flex-direction: column-reverse;
+        padding: 16px;
+    }
+
+    .delete-actions form,
+    .delete-actions form .settings-button {
+        width: 100%;
     }
 }

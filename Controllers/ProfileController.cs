@@ -587,4 +587,10 @@ public class ProfileController : Controller
     {
         return _context.Profiles.Any(e => e.UserId == userid);
     }
+
+    // Author: Cameron
+    public IActionResult Settings()
+    {
+        return View();
+    }
 }
