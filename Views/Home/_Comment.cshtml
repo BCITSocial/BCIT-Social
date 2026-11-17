@@ -5,10 +5,12 @@
     var returnUrl = ViewData["ReturnUrl"] as string;
 }
 <li class="comment">
-    <span class="avatar" aria-hidden="true">@Model.AuthorInitials</span>
+    <a class="avatar" aria-hidden="true" asp-controller="Profile" asp-action="Details"
+         asp-route-userId="@Model.AuthorId">@Model.AuthorInitials</a>
     <div class="comment-body">
         <p class="comment-meta">
-            <span class="comment-author">@Model.AuthorName</span>
+            <a class="comment-author" asp-controller="Profile" asp-action="Details"
+             asp-route-userId="@Model.AuthorId">@Model.AuthorName</a>
             @if (Model.IsPostAuthor)
             {
                 <span class="author-badge">Author</span>

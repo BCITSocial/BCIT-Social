@@ -1,27 +1,41 @@
 // wwwroot/js/communities.js
 // author: jaspreet bath
+//
+// Communities page: search and filter dropdowns (Type, Campus, Status).
+// Also opens and closes the create pop-up, here and on the Details page.
+// The tags are handled by community-form.js.
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Search & Pill Filtering
+    // --- Search & filter dropdowns ---
+    const filterForm = document.getElementById("community-filters");
     const searchInput = document.getElementById("community-search");
-    const pills = document.querySelectorAll("#category-pills .filter-pill");
-    const cards = document.querySelectorAll("#browse-grid .community-card");
+    const filterSelects = [...document.querySelectorAll("#community-filters [data-filter]")];
+    const cards = [...document.querySelectorAll("#browse-grid .community-card")];
     const heading = document.getElementById("browse-heading");
-    let activeCategory = "all";
+    const emptyMessage = document.getElementById("browse-empty");
+
+    const lower = (value) => (value || "").trim().toLowerCase();
+
+    // A card values for one filter.
+    // data-topics values are separated by "|".
+    const cardValues = (card, filter) => (card.dataset[filter] || "").split("|").map(lower).filter(Boolean);
 
     function filterCards() {
-        const query = (searchInput?.value || "").trim().toLowerCase();
+        const query = lower(searchInput?.value);
+        const chosen = filterSelects
+            .map((select) => ({ filter: select.dataset.filter, value: lower(select.value) }))
+            .filter((choice) => choice.value);
         let visibleCount = 0;
 
-        cards.forEach(card => {
-            const name = (card.dataset.name || "").toLowerCase();
-            const rawType = (card.dataset.type || "").toLowerCase();
-            const tags = rawType.split(",").map(t => t.trim()).filter(Boolean);
+        filterSelects.forEach((select) => select.classList.toggle("is-active", select.value !== ""));
 
-            const matchesCategory = activeCategory === "all" || tags.includes(activeCategory);
-            const matchesSearch = !query || name.includes(query) || rawType.includes(query);
+        cards.forEach((card) => {
+            const matchesFilters = chosen.every((choice) => cardValues(card, choice.filter).includes(choice.value));
+            const searchText = [card.dataset.name, card.dataset.topics, card.dataset.status, card.dataset.campus]
+                .map(lower)
+                .join(" ");
+            const isVisible = matchesFilters && (!query || searchText.includes(query));
 
-            const isVisible = matchesCategory && matchesSearch;
             card.style.display = isVisible ? "" : "none";
             if (isVisible) visibleCount++;
         });
@@ -30,92 +44,42 @@ document.addEventListener("DOMContentLoaded", () => {
             const baseText = heading.dataset.baseText || "Browse communities";
             heading.textContent = `${baseText} (${visibleCount})`;
         }
+        if (emptyMessage) {
+            emptyMessage.hidden = visibleCount > 0;
+        }
     }
 
-    pills.forEach(pill => {
-        pill.addEventListener("click", () => {
-            pills.forEach(p => p.classList.remove("active"));
-            pill.classList.add("active");
-            activeCategory = (pill.dataset.category || "all").trim().toLowerCase();
-            filterCards();
-        });
-    });
+    if (filterForm) {
+        filterForm.addEventListener("input", filterCards);
+        filterForm.addEventListener("change", filterCards);
+        // Filtering happens on the page.
+        filterForm.addEventListener("submit", (event) => event.preventDefault());
+        // "Clear" is the reset button.
+        filterForm.addEventListener("reset", () => setTimeout(filterCards));
+        filterCards();
+    }
 
-    searchInput?.addEventListener("input", filterCards);
-
-    // modal Open / Close
+    // Creating the pop-up open/close
     const modal = document.getElementById("create-community-modal");
-    const toggleModal = (show) => modal?.classList.toggle("open", show);
+    if (!modal) return;
+    const openButton = document.getElementById("open-create-modal");
 
-    document.getElementById("open-create-modal")?.addEventListener("click", () => {
-        syncModalTags();
-        toggleModal(true);
-    });
-    document.getElementById("close-create-modal")?.addEventListener("click", () => toggleModal(false));
-    document.getElementById("cancel-create-modal")?.addEventListener("click", () => toggleModal(false));
-    modal?.addEventListener("click", (e) => { if (e.target === modal) toggleModal(false); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") toggleModal(false); });
-
-    // modal Dropdowns -> Colored Preview & Type Sync
-    const categorySelect = document.getElementById("modal-category-select");
-    const tagSelect = document.getElementById("modal-tag-select");
-    const statusSelect = document.getElementById("modal-status-select");
-    const timeSelect = document.getElementById("modal-time-select");
-    const campusSelect = document.getElementById("Campus");
-    const hiddenTypeInput = document.getElementById("combined-type-input");
-    const previewContainer = document.getElementById("modal-tag-preview");
-
-    function syncModalTags() {
-        if (!hiddenTypeInput) return;
-
-        const allTags = [];
-        const previewPills = [];
-
-        // Category (Blue)
-        const cat = categorySelect?.value?.trim();
-        if (cat && cat !== "None") {
-            allTags.push(cat);
-            previewPills.push(`<span class="category-badge">${cat}</span>`);
-        }
-
-        // Tag (Blue)
-        const tag = tagSelect?.value?.trim();
-        if (tag && tag !== "None" && !allTags.includes(tag)) {
-            allTags.push(tag);
-            previewPills.push(`<span class="category-badge">${tag}</span>`);
-        }
-
-        // Status Tag (Green)
-        const status = statusSelect?.value?.trim();
-        if (status && status !== "None" && !allTags.includes(status)) {
-            allTags.push(status);
-            previewPills.push(`<span class="category-badge status-badge">${status}</span>`);
-        }
-
-        // Time Tag (Orange)
-        const time = timeSelect?.value?.trim();
-        if (time && time !== "None" && !allTags.includes(time)) {
-            allTags.push(time);
-            previewPills.push(`<span class="category-badge time-badge">${time}</span>`);
-        }
-
-        // Campus / Location (Bundled for backend persistence, not previewed as a pill)
-        const campus = campusSelect?.value?.trim();
-        if (campus && campus !== "None" && campus !== "All campuses" && !allTags.includes(campus)) {
-            allTags.push(campus);
-        }
-
-        hiddenTypeInput.value = allTags.join(", ");
-
-        if (previewContainer) {
-            previewContainer.innerHTML = previewPills.join("");
-        }
+    function openModal() {
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+        modal.querySelector("input:not([type='hidden']), textarea, select")?.focus();
     }
 
-    modal?.querySelectorAll("select").forEach(select => {
-        select.addEventListener("change", syncModalTags);
-    });
-    modal?.querySelector("form")?.addEventListener("submit", syncModalTags);
+    function closeModal() {
+        if (!modal.classList.contains("open")) return;
+        modal.classList.remove("open");
+        modal.setAttribute("aria-hidden", "true");
+        openButton?.focus();
+    }
 
-    syncModalTags();
+    openButton?.addEventListener("click", openModal);
+    document.getElementById("close-create-modal")?.addEventListener("click", closeModal);
+    document.getElementById("cancel-create-modal")?.addEventListener("click", closeModal);
+    modal.addEventListener("click", (event) => { if (event.target === modal) closeModal(); });
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeModal(); });
 });

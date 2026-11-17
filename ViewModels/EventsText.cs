@@ -24,16 +24,39 @@ public class EventsText
     public Dictionary<string, string> Ranges { get; init; } = [];
     public Dictionary<string, string> Sorts { get; init; } = [];
 
-    // Filter bar. {0} in SortOption is replaced with the sort label, e.g. "Sort: Soonest".
-    public string SearchPlaceholder { get; init; } = "Search events...";
+    // Filter menu button. {0} in ActiveFilters is the number of settings changed from the default;
+    // screen readers hear it after the button text, e.g. "Filter & sort, 2 filters on".
+    // ActiveFiltersOne is used when exactly one is on.
+    public string FilterMenuButton { get; init; } = "Filter & sort";
+    public string ActiveFilters { get; init; } = "{0} filters on";
+    public string ActiveFiltersOne { get; init; } = "{0} filter on";
+    public string ResetFilters { get; init; } = "Reset filters";
+
+    // Filter menu fields. {0} in SortOption is replaced with the sort label. The Sort label above the dropdown names it,
+    // so the option shows just the label ("Soonest").
     public string AllCommunities { get; init; } = "All communities";
     public string AllCampuses { get; init; } = "All campuses";
-    public string SortOption { get; init; } = "Sort: {0}";
+    public string SortOption { get; init; } = "{0}";
     public string Apply { get; init; } = "Apply";
+
+    // Tag chips above the cards. AllTags is the first chip, which shows every tag.
+    public string LabelTags { get; init; } = "Browse by tag";
+    public string AllTags { get; init; } = "All";
+
+    // Calendar tab. {0} in CalendarMore is how many more events that day has than fit in the box.
+    // Weekdays are the column headings, Sunday first.
+    public string CalendarPrevious { get; init; } = "Previous month";
+    public string CalendarNext { get; init; } = "Next month";
+    public string CalendarToday { get; init; } = "Today";
+    public string CalendarMore { get; init; } = "+{0} more";
+    public List<string> Weekdays { get; init; } = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    // Everything in the "Create event" pop-up (see CreateEventText).
+    public CreateEventText CreateEvent { get; init; } = new();
 
     // Messages shown instead of the card grid.
     public string EmptyEvents { get; init; } = "No events found.";
-    public string EmptyCalendar { get; init; } = "Your calendar will appear here.";
+    public string EmptyCalendar { get; init; } = "No events this month.";
 
     // Card badges and buttons. {0} in GoingCount is replaced with the number of people.
     public string BadgeGoing { get; init; } = "Going";
@@ -45,11 +68,12 @@ public class EventsText
     public string ButtonGoing { get; init; } = "Going";
     public string ButtonViewEvent { get; init; } = "View event";
     public string ButtonManageEvent { get; init; } = "Manage event";
+    // Bookmark icon on each card. Screen readers hear this text; the icon shows filled when the event is saved.
+    public string ButtonBookmark { get; init; } = "Save event";
 
     // Labels only screen readers hear (visually hidden or aria-label).
     public string LabelMyEvents { get; init; } = "My events";
     public string LabelEventsView { get; init; } = "Events view";
-    public string LabelSearch { get; init; } = "Search events";
     public string LabelCommunity { get; init; } = "Community";
     public string LabelCampus { get; init; } = "Campus";
     public string LabelRange { get; init; } = "Time range";
@@ -57,6 +81,7 @@ public class EventsText
     public string LabelHost { get; init; } = "Host";
     public string LabelTime { get; init; } = "Time";
     public string LabelLocation { get; init; } = "Location";
+    public string LabelEventTags { get; init; } = "Tags";
 
     // Label for an option from the JSON dictionary, or the fallback label from EventsViewModel.
     public static string Pick(Dictionary<string, string>? labels, string value, string fallback)

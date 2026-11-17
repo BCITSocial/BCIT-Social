@@ -8,10 +8,12 @@
 @foreach (BCIT_Social.ViewModels.PostCardViewModel post in Model)
 {
     <article class="post-card" data-post-id="@post.Id" data-created-ticks="@post.CreatedAt.Ticks" aria-labelledby="post-title-@post.Id">
-        <div class="post-avatar" aria-hidden="true">@post.AuthorInitials</div>
+        <a class="post-avatar" aria-hidden="true" asp-controller="Profile" asp-action="Details"
+         asp-route-userId="@post.AuthorId">@post.AuthorInitials</a>
         <div class="post-body">
             <p class="post-meta">
-                <span class="post-author">@post.AuthorName</span>
+                <a class="post-author" asp-controller="Profile" asp-action="Details"
+                    asp-route-userId="@post.AuthorId">@post.AuthorName</a>
                 @if (post.CommunityName is not null)
                 {
                     <span>· @post.CommunityName</span>

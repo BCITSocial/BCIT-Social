@@ -31,8 +31,9 @@ public class EventsController : Controller
         {
             // The page text always comes from the JSON file.
             Text = content.Text ?? new EventsText(),
-            // TODO(BE): set Communities to the signed-in user's communities, and replace content.Events
-            // with real events filtered by model.Query/Community/Campus/Range/Sort/Status.
+            // TODO(BE): set Communities to the signed-in user's communities, set Tags to the event tags,
+            // and replace content.Events with real events filtered by model.Query/Community/Campus/Range/Sort/Status/Tag.
+            Tags = content.Tags ?? [],
             Events = content.Events ?? [],
         };
         return View(model);

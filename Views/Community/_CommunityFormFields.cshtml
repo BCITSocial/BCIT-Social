@@ -1,0 +1,96 @@
+@*
+- Partial View: the community form fields. 
+- Shared by create pop-up, create page and Edit.
+- author: jaspreet bath
+*@
+
+@model BCIT_Social.ViewModels.CommunityFormViewModel
+
+@{
+    var text = Model.Text;
+    var options = Model.Options;
+}
+
+@* community name (required) *@
+<div class="modal-field">
+    <label for="community-name" class="modal-label">@text.NameLabel</label>
+    <input type="text" id="community-name" name="Name" class="modal-input" value="@Model.Name" required
+           placeholder="@text.NamePlaceholder" />
+</div>
+
+@* description *@
+<div class="modal-field">
+    <label for="community-description" class="modal-label">@text.DescriptionLabel</label>
+    <textarea id="community-description" name="Description" rows="3" class="modal-input"
+              placeholder="@text.DescriptionPlaceholder">@Model.Description</textarea>
+</div>
+
+@* category & campus *@
+<div class="modal-row-2col">
+    <div class="modal-field">
+        <label for="community-category" class="modal-label">@text.CategoryLabel</label>
+        <select id="community-category" class="modal-input" data-tag-part="category">
+            @foreach (var option in options.Categories)
+            {
+                <option value="@option" selected="@(option == Model.Category)">@option</option>
+            }
+        </select>
+    </div>
+
+    <div class="modal-field">
+        <label for="community-campus" class="modal-label">@text.CampusLabel</label>
+        <select id="community-campus" class="modal-input" data-tag-part="campus">
+            <option value="">@options.AnyCampusLabel</option>
+            @foreach (var option in options.Campuses)
+            {
+                <option value="@option" selected="@(option == Model.Campus)">@option</option>
+            }
+        </select>
+    </div>
+</div>
+
+@* tag (blue) & status tag (green) *@
+<div class="modal-row-2col">
+    <div class="modal-field">
+        <label for="community-tag" class="modal-label">@text.TagLabel</label>
+        <select id="community-tag" class="modal-input" data-tag-part="tag">
+            <option value="">@options.NoneLabel</option>
+            @foreach (var option in options.Tags)
+            {
+                <option value="@option" selected="@(option == Model.Tag)">@option</option>
+            }
+        </select>
+    </div>
+
+    <div class="modal-field">
+        <label for="community-status" class="modal-label">@text.StatusLabel</label>
+        <select id="community-status" class="modal-input" data-tag-part="status">
+            <option value="">@options.NoneLabel</option>
+            @foreach (var option in options.Statuses)
+            {
+                <option value="@option" selected="@(option == Model.Status)">@option</option>
+            }
+        </select>
+    </div>
+</div>
+
+@* time tag (orange) *@
+<div class="modal-field">
+    <label for="community-time" class="modal-label">@text.TimeLabel</label>
+    <select id="community-time" class="modal-input" data-tag-part="time">
+        <option value="">@options.NoneLabel</option>
+        @foreach (var option in options.Times)
+        {
+            <option value="@option" selected="@(option == Model.Time)">@option</option>
+        }
+    </select>
+</div>
+
+@* every tag combined, saved to Community.Type *@
+<input type="hidden" name="Type" value="@Model.Type" data-combined-type />
+
+@* live tag preview *@
+<div class="modal-field tag-preview-field">
+    <span class="modal-label tag-preview-label">@text.PreviewLabel</span>
+    <div class="badge-row tag-preview" data-tag-preview></div>
+</div>

@@ -6,6 +6,8 @@
     Layout = "_HomeLayout";
     // The event cards read their badge and button text from here.
     ViewData[nameof(EventsText)] = text;
+    // Card slots in the right rail, top to bottom. The entries come from right-rail-text.json.
+    ViewData["RightRail"] = new[] { RightRailCards.Events, RightRailCards.Links };
 }
 
 @* Events page: banner, heading with status chips, tabs and filter bar, then the card grid.
@@ -17,11 +19,19 @@
     <p class="events-banner-text">@text.BannerText</p>
 </section>
 
+@* Shown once after an event is created. TODO(BE): the Create action sets TempData["EventCreated"] = true before redirecting here. *@
+@if (TempData["EventCreated"] is true)
+{
+    <p class="events-notice" role="status">@text.CreateEvent.Created</p>
+}
+
 <section class="panel events-panel" aria-labelledby="events-heading">
     <div class="events-panel-head">
         <div>
             <h1 id="events-heading">@text.Heading</h1>
             <p>@text.Subheading</p>
+            @* Opens the "Create event" pop-up (_CreateEventDialog). *@
+            <button class="cta-button events-create-button" type="button" data-open-event aria-haspopup="dialog">@text.CreateEvent.OpenButton</button>
         </div>
         @* Status chips. Each link keeps the other filters and changes only "status". *@
         <nav class="chip-group" aria-label="@text.LabelMyEvents">
@@ -39,63 +49,99 @@
                 <a asp-action="Index" asp-all-route-data="@Model.RouteValues(view: value)" aria-current="@(Model.View == value ? "page" : null)">@EventsText.Pick(text.Views, value, label)</a>
             }
         </nav>
-        @* Plain GET form. The field names match EventsQuery. events.js submits it when a dropdown changes;
-           the Apply button appears only when JavaScript is off. *@
-        <form class="events-toolbar" method="get" asp-action="Index" data-events-filters>
-            <input type="hidden" name="view" value="@Model.View" />
-            <input type="hidden" name="status" value="@Model.Status" />
-            <label class="toolbar-search">
-                <span class="visually-hidden">@text.LabelSearch</span>
-                <input type="search" name="q" value="@Model.Query" placeholder="@text.SearchPlaceholder" />
-            </label>
-            <label>
-                <span class="visually-hidden">@text.LabelCommunity</span>
-                <select name="community">
-                    <option value="">@text.AllCommunities</option>
-                    @foreach (var community in Model.Communities)
+        @* Filter menu: the hamburger button opens a panel with the filter form. <details> opens and closes without
+           JavaScript; events.js also closes it on Escape or a click outside. The number on the button counts the
+           settings changed from the default. *@
+        <details class="filter-menu" data-filter-menu>
+            <summary class="filter-menu-button">
+                <partial name="_Icon" model='"menu"' />
+                <span>@text.FilterMenuButton</span>
+                @if (Model.ActiveFilterCount > 0)
+                {
+                    <span class="filter-count" aria-hidden="true">@Model.ActiveFilterCount</span>
+                    <span class="visually-hidden">@EventsText.Format(Model.ActiveFilterCount == 1 ? text.ActiveFiltersOne : text.ActiveFilters, Model.ActiveFilterCount)</span>
+                }
+            </summary>
+            <div class="filter-menu-panel">
+                @* Plain GET form. The field names match EventsQuery. events.js submits it when a dropdown changes;
+                   the Apply button appears only when JavaScript is off. *@
+                <form class="events-toolbar" method="get" asp-action="Index" data-events-filters>
+                    <input type="hidden" name="view" value="@Model.View" />
+                    <input type="hidden" name="status" value="@Model.Status" />
+                    @if (Model.Tag is not null)
                     {
-                        <option value="@community" selected="@(community == Model.Community)">@community</option>
+                        <input type="hidden" name="tag" value="@Model.Tag" />
                     }
-                </select>
-            </label>
-            <label>
-                <span class="visually-hidden">@text.LabelCampus</span>
-                <select name="campus">
-                    <option value="">@text.AllCampuses</option>
-                    @foreach (var campus in EventsViewModel.Campuses)
+                    @if (Model.View == EventsViewModel.Calendar)
                     {
-                        <option value="@campus" selected="@(campus == Model.Campus)">@campus</option>
+                        <input type="hidden" name="month" value="@EventsViewModel.MonthValue(Model.Month)" />
                     }
-                </select>
-            </label>
-            <label>
-                <span class="visually-hidden">@text.LabelRange</span>
-                <select name="range">
-                    @foreach (var (value, label) in EventsViewModel.Ranges)
-                    {
-                        <option value="@value" selected="@(value == Model.Range)">@EventsText.Pick(text.Ranges, value, label)</option>
-                    }
-                </select>
-            </label>
-            <label>
-                <span class="visually-hidden">@text.LabelSort</span>
-                <select name="sort">
-                    @foreach (var (value, label) in EventsViewModel.Sorts)
-                    {
-                        <option value="@value" selected="@(value == Model.Sort)">@EventsText.Format(text.SortOption, EventsText.Pick(text.Sorts, value, label))</option>
-                    }
-                </select>
-            </label>
-            <noscript><button class="primary-button" type="submit">@text.Apply</button></noscript>
-        </form>
+                    <label>
+                        <span>@text.LabelCommunity</span>
+                        <select name="community">
+                            <option value="">@text.AllCommunities</option>
+                            @foreach (var community in Model.Communities)
+                            {
+                                <option value="@community" selected="@(community == Model.Community)">@community</option>
+                            }
+                        </select>
+                    </label>
+                    <label>
+                        <span>@text.LabelCampus</span>
+                        <select name="campus">
+                            <option value="">@text.AllCampuses</option>
+                            @foreach (var campus in EventsViewModel.Campuses)
+                            {
+                                <option value="@campus" selected="@(campus == Model.Campus)">@campus</option>
+                            }
+                        </select>
+                    </label>
+                    <label>
+                        <span>@text.LabelRange</span>
+                        <select name="range">
+                            @foreach (var (value, label) in EventsViewModel.Ranges)
+                            {
+                                <option value="@value" selected="@(value == Model.Range)">@EventsText.Pick(text.Ranges, value, label)</option>
+                            }
+                        </select>
+                    </label>
+                    <label>
+                        <span>@text.LabelSort</span>
+                        <select name="sort">
+                            @foreach (var (value, label) in EventsViewModel.Sorts)
+                            {
+                                <option value="@value" selected="@(value == Model.Sort)">@EventsText.Format(text.SortOption, EventsText.Pick(text.Sorts, value, label))</option>
+                            }
+                        </select>
+                    </label>
+                    <noscript><button class="primary-button" type="submit">@text.Apply</button></noscript>
+                </form>
+                @if (Model.ActiveFilterCount > 0)
+                {
+                    <a class="filter-reset" asp-action="Index" asp-all-route-data="@Model.ResetRouteValues()">@text.ResetFilters</a>
+                }
+            </div>
+        </details>
     </div>
 
-    @* The calendar tab is only a placeholder for now. Otherwise show one card per event. With no events, no cards are shown. *@
+    @* Tag chips: "All" plus one chip per tag. Each link keeps the other filters and changes only "tag".
+       The row is left out while there are no tags. *@
+    @if (Model.Tags.Count > 0)
+    {
+        <nav class="tag-chips" aria-label="@text.LabelTags">
+            <a asp-action="Index" asp-all-route-data="@Model.RouteValues(tag: "")" aria-current="@(Model.Tag is null ? "page" : null)">@text.AllTags</a>
+            @foreach (var tag in Model.Tags)
+            {
+                <a asp-action="Index" asp-all-route-data="@Model.RouteValues(tag: tag)" aria-current="@(Model.Tag == tag ? "page" : null)">@tag</a>
+            }
+        </nav>
+    }
+
+    @* The calendar tab shows a month grid with each event on its start date. Otherwise show one card per event.
+       With no events, the grid stays empty and no cards are shown. *@
     @if (Model.View == EventsViewModel.Calendar)
     {
-        <div class="empty-state">
-            <p>@text.EmptyCalendar</p>
-        </div>
+        <partial name="_Calendar" model="Model" />
     }
     else if (Model.Events.Count == 0)
     {
@@ -113,6 +159,8 @@
         </ul>
     }
 </section>
+
+<partial name="_CreateEventDialog" model="Model" />
 
 @section Scripts {
     <script src="~/js/events.js" asp-append-version="true" defer></script>

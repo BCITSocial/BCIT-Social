@@ -11,9 +11,11 @@
 }
 <article class="post-details" aria-labelledby="post-details-title">
     <div class="post-details-author">
-        <span class="avatar avatar-large" aria-hidden="true">@post.AuthorInitials</span>
+        <a class="avatar avatar-large" aria-hidden="true" asp-controller="Profile" asp-action="Details"
+         asp-route-userId="@post.AuthorId">@post.AuthorInitials</a>
         <div>
-            <p class="post-details-name">@post.AuthorName</p>
+            <a class="post-details-name" asp-controller="Profile" asp-action="Details"
+             asp-route-userId="@post.AuthorId">@post.AuthorName</a>
             <p class="post-details-meta">
                 @if (post.CommunityName is not null)
                 {
