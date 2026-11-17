@@ -588,9 +588,25 @@ public class ProfileController : Controller
         return _context.Profiles.Any(e => e.UserId == userid);
     }
 
-    // Author: Cameron
-    public IActionResult Settings()
+    // Author: Cameron Morris
+    public async Task<IActionResult> Settings()
     {
-        return View();
+        string? userId = _userManager.GetUserId(User);
+
+        if (userId == null)
+        {
+            return Challenge();
+        }
+
+        var profile = await _context.Profiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(profile => profile.UserId == userId);
+
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        return View(profile);
     }
 }
