@@ -86,6 +86,10 @@
                                 {
                                     <a asp-action="EditStatus" asp-route-id="@member.CommunityId"
                                        asp-route-userid="@member.User.Id">Edit Member</a>
+                                    <form asp-action="PassCreator" asp-route-id="@member.CommunityId" asp-route-userid="@member.User.Id"
+                                          method="post">
+                                        <input type="submit" value="Pass Creator" />
+                                    </form>
                                 }
                             </td>
                         }
