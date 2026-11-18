@@ -11,6 +11,7 @@ frontend view for Communities page.
     var filters = text.Filters;
     var options = text.Options;
     ViewData["Title"] = text.PageTitle;
+    var signedIn = User.Identity?.IsAuthenticated == true;
 }
 
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
@@ -22,7 +23,11 @@ frontend view for Communities page.
             <h1 class="communities-title">@text.PageTitle</h1>
             <p class="communities-subtitle">@text.PageSubtitle</p>
         </div>
-        <button type="button" id="open-create-modal" class="btn-create">@text.CreateButton</button>
+        @* Creating a community needs an account, so signed-out visitors don't see the button. *@
+        @if (signedIn)
+        {
+            <button type="button" id="open-create-modal" class="btn-create">@text.CreateButton</button>
+        }
     </div>
 
     @* search & filter dropdowns, communities.js hides cards that don't match. *@
@@ -142,7 +147,10 @@ frontend view for Communities page.
 </div>
 
 @* partial load of pop-up modal *@
-<partial name="_CreateCommunityModal" model="Model.CreateForm" />
+@if (signedIn)
+{
+    <partial name="_CreateCommunityModal" model="Model.CreateForm" />
+}
 
 @section Scripts {
     <script src="~/js/communities.js" asp-append-version="true"></script>

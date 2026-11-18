@@ -115,6 +115,21 @@ a.primary-button { display: inline-flex; align-items: center; min-height: 44px; 
 .share-prompt { display: flex; align-items: center; min-height: 48px; padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-muted); font-size: 1rem; text-decoration: none; }
 .share-prompt:hover { border-color: var(--color-accent); }
 .share-hint { grid-column: 2 / -1; font-size: 0.875rem; }
+/* Signed-out visitors: sign-up prompt in place of the share box. */
+.share-box-guest { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.share-guest-text h2 { margin: 0 0 4px; font-size: 1.125rem; }
+.share-guest-text p { margin: 0; font-size: 0.875rem; color: var(--color-muted); }
+.share-guest-actions { display: flex; gap: 8px; }
+/* Guest buttons use the gold call-to-action colour and navy so they stand out from the blue header buttons. */
+.guest-login { border-color: var(--color-text); background: var(--color-surface); color: var(--color-text); }
+.guest-login:hover { background: var(--color-text); color: var(--color-surface); }
+.guest-signup { border-color: var(--color-cta); background: var(--color-cta); color: var(--color-cta-text); }
+.guest-signup:hover { border-color: #f5c63c; background: #f5c63c; color: var(--color-cta-text); }
+/* Signed-out visitors: call to action in place of the Events/Communities box. */
+.guest-cta-panel { position: sticky; top: 12px; }
+.guest-cta-panel h2 { margin: 0 0 6px; font-size: 1.125rem; }
+.guest-cta-panel p { margin: 0; font-size: 0.875rem; color: var(--color-muted); }
+.guest-cta-list { display: grid; gap: 6px; margin: 14px 0 0; padding-left: 18px; font-size: 0.875rem; }
 
 /* @author Asher. Feed layout and the Events/Communities discovery panel. */
 .home-feed-layout { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; }
@@ -164,7 +179,7 @@ a.primary-button { display: inline-flex; align-items: center; min-height: 44px; 
     .shell-right { grid-column: 2; grid-row: 1; padding: 12px 16px 0; }
     main { grid-column: 2; grid-row: 2; }
     .sidebar { grid-row: 1 / span 2; }
-    .discovery-panel { position: static; }
+    .discovery-panel, .guest-cta-panel { position: static; }
 }
 
 /* Post details: modal on Home, full page at /Home/Post/{id} */
@@ -277,7 +292,7 @@ body:has(.create-dialog[open]) { overflow: hidden; }
     .home-section { padding: 12px; }
     .share-box { grid-template-columns: minmax(0, 1fr) auto; }
     .home-feed-layout { grid-template-columns: minmax(0, 1fr); }
-    .discovery-panel { position: static; }
+    .discovery-panel, .guest-cta-panel { position: static; }
     .share-box .avatar { display: none; }
     .share-hint { grid-column: 1 / -1; }
     .post-card { grid-template-columns: minmax(0, 1fr); padding: 14px 12px 6px; }
