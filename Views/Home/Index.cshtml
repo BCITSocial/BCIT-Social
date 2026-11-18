@@ -27,7 +27,32 @@ Renders the Home banner, share box, feed, and discovery panel.
 <section class="panel home-section feed" aria-labelledby="feed-heading">
     <div class="feed-heading">
         <h2 id="feed-heading">Your feed</h2>
-        <span class="feed-tab" aria-current="true">All</span>
+
+        <nav class="feed-tabs" aria-label="Feed filter">
+            <a class="feed-tab @(Model.CurrentFilter == "all" ? "active" : "")"
+               asp-controller="Home"
+               asp-action="Index"
+               asp-route-filter="all"
+               aria-current="@(Model.CurrentFilter == "all" ? "page" : null)">
+                All
+            </a>
+
+            <a class="feed-tab @(Model.CurrentFilter == "friends" ? "active" : "")"
+               asp-controller="Home"
+               asp-action="Index"
+               asp-route-filter="friends"
+               aria-current="@(Model.CurrentFilter == "friends" ? "page" : null)">
+                Friends
+            </a>
+
+            <a class="feed-tab @(Model.CurrentFilter == "communities" ? "active" : "")"
+               asp-controller="Home"
+               asp-action="Index"
+               asp-route-filter="communities"
+               aria-current="@(Model.CurrentFilter == "communities" ? "page" : null)">
+                Communities
+            </a>
+        </nav>
     </div>
     @if (Model.Posts.Count == 0)
     {
@@ -37,7 +62,7 @@ Renders the Home banner, share box, feed, and discovery panel.
     }
     else
     {
-        <div class="feed-list" id="feed-list" data-feed-url="@Url.Action("Feed", "Home")" data-has-more="@(Model.HasMore ? "true" : "false")">
+        <div class="feed-list" id="feed-list" data-feed-url="@Url.Action("Feed", "Home")" data-has-more="@(Model.HasMore ? "true" : "false") data-filter="@Model.CurrentFilter">
             <partial name="_PostCards" model="Model.Posts" />
         </div>
         <div class="feed-status">

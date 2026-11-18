@@ -35,7 +35,7 @@
   -->
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <Compile Include="$(WebProjectDir)ViewModels\**\*.cs" Exclude="$(WebProjectDir)ViewModels\ProfilePageViewModel.cs;$(WebProjectDir)ViewModels\HomeViewModel.cs;$(WebProjectDir)ViewModels\CommunityVM\CommunityDetailsViewModel.cs;$(WebProjectDir)ViewModels\CommunityVM\CommunityMembersViewModel.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\**\*.cs" Exclude="$(WebProjectDir)ViewModels\ProfilePageViewModel.cs;$(WebProjectDir)ViewModels\HomeViewModel.cs;$(WebProjectDir)ViewModels\CommunityVM\CommunityDetailsViewModel.cs;$(WebProjectDir)ViewModels\CommunityVM\CommunityMembersViewModel.cs;$(WebProjectDir)ViewModels\CommunityVM\CommunitiesLeaveCreatorModel.cs" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
