@@ -715,6 +715,80 @@ a.primary-button {
     font-size: 0.875rem;
 }
 
+/* Signed-out visitors: sign-up prompt in place of the share box. */
+.share-box-guest {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 20px;
+}
+
+.share-guest-text h2 {
+    margin: 0 0 4px;
+    font-size: 1.125rem;
+}
+
+.share-guest-text p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-muted);
+}
+
+.share-guest-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Guest buttons use the gold call-to-action colour and navy so they stand out from the blue header buttons. */
+.guest-login {
+    border-color: var(--color-text);
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+    .guest-login:hover {
+        background: var(--color-text);
+        color: var(--color-surface);
+    }
+
+.guest-signup {
+    border-color: var(--color-cta);
+    background: var(--color-cta);
+    color: var(--color-cta-text);
+}
+
+    .guest-signup:hover {
+        border-color: #f5c63c;
+        background: #f5c63c;
+        color: var(--color-cta-text);
+    }
+
+/* Signed-out visitors: call to action in place of the Events/Communities box. */
+.guest-cta-panel {
+    position: sticky;
+    top: 12px;
+}
+
+    .guest-cta-panel h2 {
+        margin: 0 0 6px;
+        font-size: 1.125rem;
+    }
+
+    .guest-cta-panel p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--color-muted);
+    }
+
+.guest-cta-list {
+    display: grid;
+    gap: 6px;
+    margin: 14px 0 0;
+    padding-left: 18px;
+    font-size: 0.875rem;
+}
+
 /* @author Asher. Feed layout and the Events/Communities discovery panel. */
 .home-feed-layout {
     display: grid;
@@ -1015,7 +1089,7 @@ a.primary-button {
         grid-row: 1 / span 2;
     }
 
-    .discovery-panel {
+    .discovery-panel, .guest-cta-panel {
         position: static;
     }
 }
@@ -1875,7 +1949,7 @@ body:has(.create-dialog[open]) {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .discovery-panel {
+    .discovery-panel, .guest-cta-panel {
         position: static;
     }
 

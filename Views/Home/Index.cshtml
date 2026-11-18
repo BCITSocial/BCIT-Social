@@ -8,6 +8,10 @@ Renders the Home banner, share box, feed, and discovery panel.
 @{
     ViewData["Title"] = "Home";
     Layout = "_HomeLayout";
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var homeUrl = Url.Action("Index", "Home");
+    var loginUrl = Url.Page("/Account/Login", new { area = "Identity", returnUrl = homeUrl });
+    var registerUrl = Url.Page("/Account/Register", new { area = "Identity", returnUrl = homeUrl });
 }
 
 <h1 class="visually-hidden">Home</h1>
@@ -15,58 +19,83 @@ Renders the Home banner, share box, feed, and discovery panel.
 @* The banner image and its sizing come from settings.css (--image-home-banner). *@
 <section class="home-banner" role="img" aria-label="Your campus. Your people. Connect, share, and make the most of BCIT."></section>
 
-<section class="panel home-section share-box" aria-labelledby="share-heading">
-    <h2 id="share-heading" class="visually-hidden">Create a post</h2>
-    <span class="avatar" aria-hidden="true">
-        @if (Model.HasCurrentUserProfilePhoto && Model.CurrentUserId != null)
-        {
-            <img style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
-                src="@Url.Action("Photo", "Profile", new { id = Model.CurrentUserId })"/>
-        }
-        else
-        {
-            @(Model.CurrentUserInitials == "" ? "?" : Model.CurrentUserInitials)
-        }
-    </span>
-    <a class="share-prompt" asp-controller="Post" asp-action="Create" data-open-create>What would you like to share?</a>
-    <a class="cta-button" asp-controller="Post" asp-action="Create" data-open-create>+ Create</a>
-    <p class="share-hint">Ask a question, find friends, or share an update.</p>
-</section>
+@if (signedIn)
+{
+    <section class="panel home-section share-box" aria-labelledby="share-heading">
+        <h2 id="share-heading" class="visually-hidden">Create a post</h2>
+        <span class="avatar" aria-hidden="true">
+            @if (Model.HasCurrentUserProfilePhoto && Model.CurrentUserId != null)
+            {
+                <img style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
+                    src="@Url.Action("Photo", "Profile", new { id = Model.CurrentUserId })"/>
+            }
+            else
+            {
+                @(Model.CurrentUserInitials == "" ? "?" : Model.CurrentUserInitials)
+            }
+        </span>
+        <a class="share-prompt" asp-controller="Post" asp-action="Create" data-open-create>What would you like to share?</a>
+        <a class="cta-button" asp-controller="Post" asp-action="Create" data-open-create>+ Create</a>
+        <p class="share-hint">Ask a question, find friends, or share an update.</p>
+    </section>
+}
+else
+{
+    @* Signed-out visitors get a sign-up prompt here instead of the create post box. *@
+    <section class="panel home-section share-box-guest" aria-labelledby="share-heading">
+        <div class="share-guest-text">
+            <h2 id="share-heading">Join the BCIT community</h2>
+            <p>Sign up to post, comment, join communities, and connect with classmates.</p>
+        </div>
+        <div class="share-guest-actions">
+            <a class="header-auth-button guest-login" href="@loginUrl">Log in</a>
+            <a class="header-auth-button guest-signup" href="@registerUrl">Sign up</a>
+        </div>
+    </section>
+}
 
 <div class="home-feed-layout">
 <section class="panel home-section feed" aria-labelledby="feed-heading">
-    <div class="feed-heading">
-        <h2 id="feed-heading">Your feed</h2>
+    @if (signedIn)
+    {
+        <div class="feed-heading">
+            <h2 id="feed-heading">Your feed</h2>
 
-        <nav class="feed-tabs" aria-label="Feed filter">
-            <a class="feed-tab @(Model.CurrentFilter == "all" ? "active" : "")"
-               asp-controller="Home"
-               asp-action="Index"
-               asp-route-filter="all"
-               asp-route-tagId="@Model.CurrentTagId"
-               aria-current="@(Model.CurrentFilter == "all" ? "page" : null)">
-                All
-            </a>
+            <nav class="feed-tabs" aria-label="Feed filter">
+                <a class="feed-tab @(Model.CurrentFilter == "all" ? "active" : "")"
+                   asp-controller="Home"
+                   asp-action="Index"
+                   asp-route-filter="all"
+                   asp-route-tagId="@Model.CurrentTagId"
+                   aria-current="@(Model.CurrentFilter == "all" ? "page" : null)">
+                    All
+                </a>
 
-            <a class="feed-tab @(Model.CurrentFilter == "friends" ? "active" : "")"
-               asp-controller="Home"
-               asp-action="Index"
-               asp-route-filter="friends"
-               asp-route-tagId="@Model.CurrentTagId"
-               aria-current="@(Model.CurrentFilter == "friends" ? "page" : null)">
-                Friends
-            </a>
+                <a class="feed-tab @(Model.CurrentFilter == "friends" ? "active" : "")"
+                   asp-controller="Home"
+                   asp-action="Index"
+                   asp-route-filter="friends"
+                   asp-route-tagId="@Model.CurrentTagId"
+                   aria-current="@(Model.CurrentFilter == "friends" ? "page" : null)">
+                    Friends
+                </a>
 
-            <a class="feed-tab @(Model.CurrentFilter == "communities" ? "active" : "")"
-               asp-controller="Home"
-               asp-action="Index"
-               asp-route-filter="communities"
-               asp-route-tagId="@Model.CurrentTagId"
-               aria-current="@(Model.CurrentFilter == "communities" ? "page" : null)">
-                Communities
-            </a>
-        </nav>
-    </div>
+                <a class="feed-tab @(Model.CurrentFilter == "communities" ? "active" : "")"
+                   asp-controller="Home"
+                   asp-action="Index"
+                   asp-route-filter="communities"
+                   asp-route-tagId="@Model.CurrentTagId"
+                   aria-current="@(Model.CurrentFilter == "communities" ? "page" : null)">
+                    Communities
+                </a>
+            </nav>
+        </div>
+    }
+    else
+    {
+        @* "Your feed" is for members. Guests still see posts, so the heading stays for screen readers only. *@
+        <h2 id="feed-heading" class="visually-hidden">Posts</h2>
+    }
     <form class="feed-tag-filter"
       asp-controller="Home"
       asp-action="Index"
@@ -120,46 +149,62 @@ Renders the Home banner, share box, feed, and discovery panel.
 </section>
 </div>
 
-@* The Events/Communities box sits in the layout's right column, pinned to the right edge. *@
+@* The Events/Communities box sits in the layout's right column, pinned to the right edge.
+   Signed-out visitors get a call to action there instead. *@
 @section RightPanel {
-    <aside class="panel home-section discovery-panel" aria-label="Discover events and communities">
-        <div class="discovery-tabs" role="tablist" aria-label="Discover">
-            <button class="discovery-tab" id="events-tab" type="button" role="tab" aria-selected="true" aria-controls="events-panel">Events</button>
-            <button class="discovery-tab" id="communities-tab" type="button" role="tab" aria-selected="false" aria-controls="communities-panel" tabindex="-1">Communities</button>
-        </div>
-        <section class="discovery-content" id="events-panel" role="tabpanel" aria-labelledby="events-tab">
-            <h2>Upcoming events</h2>
-            <p class="discovery-empty">No upcoming events to show.</p>
-            <a class="discovery-link" asp-controller="Events" asp-action="Index">View all events</a>
-        </section>
-        <section class="discovery-content" id="communities-panel" role="tabpanel" aria-labelledby="communities-tab" hidden>
-            <div class="section-heading">
-                <h2>Your communities</h2>
-                <a asp-controller="Community" asp-action="Index">View all</a>
+    @if (signedIn)
+    {
+        <aside class="panel home-section discovery-panel" aria-label="Discover events and communities">
+            <div class="discovery-tabs" role="tablist" aria-label="Discover">
+                <button class="discovery-tab" id="events-tab" type="button" role="tab" aria-selected="true" aria-controls="events-panel">Events</button>
+                <button class="discovery-tab" id="communities-tab" type="button" role="tab" aria-selected="false" aria-controls="communities-panel" tabindex="-1">Communities</button>
             </div>
-            @if (Model.YourCommunities.Count > 0)
-            {
-                <ul class="discovery-community-list">
-                    @foreach (var community in Model.YourCommunities)
-                    {
-                        <li>
-                            <a class="discovery-community" asp-controller="Community" asp-action="Details" asp-route-id="@community.Id">
-                                <span class="community-tile" aria-hidden="true">@community.Initials</span>
-                                <span class="community-card-text">
-                                    <strong>@community.Name</strong>
-                                    <span>@DisplayFormat.Count(community.MemberCount) @(community.MemberCount == 1 ? "member" : "members") · @community.Type</span>
-                                </span>
-                            </a>
-                        </li>
-                    }
-                </ul>
-            }
-            else
-            {
-                <p class="discovery-empty">Join a community to see it here.</p>
-            }
-        </section>
-    </aside>
+            <section class="discovery-content" id="events-panel" role="tabpanel" aria-labelledby="events-tab">
+                <h2>Upcoming events</h2>
+                <p class="discovery-empty">No upcoming events to show.</p>
+                <a class="discovery-link" asp-controller="Events" asp-action="Index">View all events</a>
+            </section>
+            <section class="discovery-content" id="communities-panel" role="tabpanel" aria-labelledby="communities-tab" hidden>
+                <div class="section-heading">
+                    <h2>Your communities</h2>
+                    <a asp-controller="Community" asp-action="Index">View all</a>
+                </div>
+                @if (Model.YourCommunities.Count > 0)
+                {
+                    <ul class="discovery-community-list">
+                        @foreach (var community in Model.YourCommunities)
+                        {
+                            <li>
+                                <a class="discovery-community" asp-controller="Community" asp-action="Details" asp-route-id="@community.Id">
+                                    <span class="community-tile" aria-hidden="true">@community.Initials</span>
+                                    <span class="community-card-text">
+                                        <strong>@community.Name</strong>
+                                        <span>@DisplayFormat.Count(community.MemberCount) @(community.MemberCount == 1 ? "member" : "members") · @community.Type</span>
+                                    </span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="discovery-empty">Join a community to see it here.</p>
+                }
+            </section>
+        </aside>
+    }
+    else
+    {
+        <aside class="panel home-section guest-cta-panel" aria-labelledby="guest-cta-heading">
+            <h2 id="guest-cta-heading">Find your people</h2>
+            <p>Make an account to RSVP to events, join communities, and message classmates.</p>
+            <ul class="guest-cta-list">
+                <li>Join clubs and program communities</li>
+                <li>See what's happening on campus</li>
+                <li>Chat with friends and classmates</li>
+            </ul>
+        </aside>
+    }
 }
 
 @* Post details open here when a card is clicked. post-details.js fills the body from /Home/Post/{id}. *@
