@@ -28,12 +28,6 @@ public class ProfileController : Controller
     // GET: PROFILES
     public async Task<IActionResult> Index()
     {
-        // Preserve old links to the former profile tab after moving friends to their own page.
-        if (string.Equals(Request.Query["section"], "friends", StringComparison.OrdinalIgnoreCase))
-        {
-            return RedirectToAction("Index", "Friends");
-        }
-
         var userId = _userManager.GetUserId(User);
         if (userId == null)
         {
@@ -98,6 +92,52 @@ public class ProfileController : Controller
             })
             .ToListAsync();
 
+        var friends = isOwnProfile
+            ? await _context.FriendRelationships
+                .AsNoTracking()
+                .Where(friendship =>
+                    friendship.Status == "Accepted"
+                    && (friendship.RequesterId == profileUserId || friendship.RecipientId == profileUserId)
+                    && (friendship.RequesterId == profileUserId
+                        ? friendship.Recipient.DateOfDel == null
+                        : friendship.Requester.DateOfDel == null))
+                .Select(friendship => new FriendListItemViewModel
+                {
+                    RelationshipId = friendship.Id,
+                    UserId = friendship.RequesterId == profileUserId
+                        ? friendship.RecipientId
+                        : friendship.RequesterId,
+                    DisplayName = friendship.RequesterId == profileUserId
+                        ? _context.Profiles
+                            .Where(friendProfile => friendProfile.UserId == friendship.RecipientId)
+                            .Select(friendProfile => friendProfile.DisplayName)
+                            .FirstOrDefault() ?? friendship.Recipient.UserName ?? "BCIT member"
+                        : _context.Profiles
+                            .Where(friendProfile => friendProfile.UserId == friendship.RequesterId)
+                            .Select(friendProfile => friendProfile.DisplayName)
+                            .FirstOrDefault() ?? friendship.Requester.UserName ?? "BCIT member"
+                })
+                .OrderBy(friend => friend.DisplayName)
+                .ToListAsync()
+            : [];
+
+        var incomingFriendRequests = viewerId == profileUserId
+            ? await _context.FriendRelationships
+                .AsNoTracking()
+                .Where(request => request.RecipientId == profileUserId && request.Status == "Pending")
+                .OrderBy(request => request.CreatedAt)
+                .Select(request => new IncomingFriendRequestViewModel
+                {
+                    Id = request.Id,
+                    RequesterDisplayName = _context.Profiles
+                        .Where(requesterProfile => requesterProfile.UserId == request.RequesterId)
+                        .Select(requesterProfile => requesterProfile.DisplayName)
+                        .FirstOrDefault() ?? request.Requester.UserName ?? "BCIT member",
+                    CreatedAt = request.CreatedAt
+                })
+                .ToListAsync()
+            : [];
+
         return new ProfilePageViewModel
         {
             Profile = profile,
@@ -105,6 +145,9 @@ public class ProfileController : Controller
             Posts = posts,
             Bookmarks = bookmarkedPosts,
             Communities = communities,
+            Friends = friends,
+            IncomingFriendRequests = incomingFriendRequests,
+            FriendCount = friends.Count,
             CanSendFriendRequest = !string.IsNullOrEmpty(viewerId) && !isOwnProfile,
             FriendRelationshipStatus = friendRelationshipStatus
         };
@@ -112,12 +155,12 @@ public class ProfileController : Controller
 
     public IActionResult Friends()
     {
-        return RedirectToAction("Index", "Friends");
+        return RedirectToAction(nameof(Index), new { section = "friends" });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddFriend(string userId, bool fromFriends = false, string? q = null)
+    public async Task<IActionResult> AddFriend(string userId)
     {
         var requesterId = _userManager.GetUserId(User);
         if (requesterId == null)
@@ -174,10 +217,7 @@ public class ProfileController : Controller
             TempData["FriendRequestMessage"] = "Friend request sent.";
         }
 
-        // Keep the search term when a request is sent from the friends page.
-        return fromFriends
-            ? RedirectToAction("Index", "Friends", new { q })
-            : RedirectToAction(nameof(Details), new { userid = recipient.Id });
+        return RedirectToAction(nameof(Details), new { userid = recipient.Id });
     }
 
     [HttpPost]
@@ -208,7 +248,7 @@ public class ProfileController : Controller
         await _context.SaveChangesAsync();
 
         TempData["FriendListMessage"] = "Friend removed.";
-        return RedirectToAction("Index", "Friends");
+        return RedirectToAction(nameof(Index), new { section = "friends" });
     }
 
     [HttpPost]
@@ -224,20 +264,20 @@ public class ProfileController : Controller
         if (!ModelState.IsValid)
         {
             TempData["FriendRequestError"] = "Enter a valid email address.";
-            return RedirectToAction("Index", "Friends");
+            return RedirectToAction(nameof(Index));
         }
 
         var recipient = await _userManager.FindByEmailAsync(viewModel.Email.Trim());
         if (recipient == null || recipient.DateOfDel != null)
         {
             TempData["FriendRequestError"] = "No active account matches that email address.";
-            return RedirectToAction("Index", "Friends");
+            return RedirectToAction(nameof(Index));
         }
 
         if (recipient.Id == requesterId)
         {
             TempData["FriendRequestError"] = "You cannot send a friend request to yourself.";
-            return RedirectToAction("Index", "Friends");
+            return RedirectToAction(nameof(Index));
         }
 
         var relationshipKey = GetRelationshipKey(requesterId, recipient.Id);
@@ -247,7 +287,7 @@ public class ProfileController : Controller
         if (relationship?.Status == "Accepted")
         {
             TempData["FriendRequestError"] = "You are already friends with this person.";
-            return RedirectToAction("Index", "Friends");
+            return RedirectToAction(nameof(Index));
         }
 
         if (relationship?.Status == "Pending")
@@ -255,7 +295,7 @@ public class ProfileController : Controller
             TempData["FriendRequestError"] = relationship.RequesterId == requesterId
                 ? "You have already sent this person a friend request."
                 : "This person has already sent you a friend request. Review it in your incoming requests.";
-            return RedirectToAction("Index", "Friends");
+            return RedirectToAction(nameof(Index));
         }
 
         var now = DateTime.UtcNow;
@@ -283,7 +323,7 @@ public class ProfileController : Controller
 
         await _context.SaveChangesAsync();
         TempData["FriendRequestMessage"] = "Friend request sent.";
-        return RedirectToAction("Index", "Friends");
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
@@ -321,7 +361,7 @@ public class ProfileController : Controller
         TempData["FriendRequestMessage"] = decision == "accept"
             ? "Friend request accepted."
             : "Friend request denied.";
-        return RedirectToAction("Index", "Friends");
+        return RedirectToAction(nameof(Index));
     }
 
     private static string GetRelationshipKey(string firstUserId, string secondUserId)
