@@ -14,6 +14,9 @@ public class HomeController : Controller
     private const int FIRSTPAGESIZE = 20;
     private const int NEXTPAGESIZE = 10;
     private const int YOURCOMMUNITIESSHOWN = 3;
+    private const string ALLFILTER = "all";
+    private const string FRIENDSFILTER = "friends";
+    private const string COMMUNITIESFILTER = "communities";
 
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
@@ -24,29 +27,83 @@ public class HomeController : Controller
         _userManager = userManager;
     }
 
-    public async Task<IActionResult> Index()
+    /// <summary>
+    /// Description: Displays the Home feed using the selected feed filter.
+    /// Author: Livjot Mahendru
+    /// Last Revised: November 13, 2026
+    /// </summary>
+    /// <param name="filter">
+    /// The selected feed filter, Supported values are all, friends, and communities
+    /// </param>
+    /// <returns>
+    /// The Home view containing the filtered posts and the current user's communities.
+    /// </returns>
+    public async Task<IActionResult> Index(string filter = ALLFILTER)
     {
-        var userId = _userManager.GetUserId(User);
-        var (posts, hasMore) = await LoadFeedAsync(null, null, FIRSTPAGESIZE);
+        filter = NormalizeFeedFilter(filter);
+
+        string? userId = _userManager.GetUserId(User);
+
+        var (posts, hasMore) = await LoadFeedAsync(
+            null,
+            null,
+            FIRSTPAGESIZE,
+            filter,
+            userId);
 
         return View(new HomeViewModel
         {
             Posts = posts,
             HasMore = hasMore,
+
             YourCommunities = userId is null
                 ? []
-                : await _context.YourCommunitiesAsync(userId, YOURCOMMUNITIESSHOWN),
+                : await _context.YourCommunitiesAsync(
+                    userId,
+                    YOURCOMMUNITIESSHOWN),
+
             CurrentUserInitials = await CurrentUserInitialsAsync(userId),
+            CurrentFilter = filter
         });
     }
 
-    // Returns the next cards older than the given post, for infinite scroll.
-    // beforeTicks and beforeId come from the last card already on the page.
+    /// <summary>
+    /// Description: Loads the next group of posts for the selected Home feed filter.
+    /// Author: Livjot Mahendru
+    /// Last Revised: November 13, 2026
+    /// </summary>
+    /// <param name="beforeTicks">
+    /// The creation time of the last post displayed
+    /// </param>
+    /// <param name="beforeId">
+    /// The ID of the last post currently displayed.
+    /// </param>
+    /// <param name="filter">
+    /// The selected feed filter. Supported values are all, friends, and communities.
+    /// </param>
+    /// <returns>
+    /// A partial view containing the next group of filtered post cards.
+    /// </returns>
     [HttpGet]
-    public async Task<IActionResult> Feed(long beforeTicks, int beforeId)
+    public async Task<IActionResult> Feed(
+        long beforeTicks,
+        int beforeId,
+        string filter = ALLFILTER)
     {
-        var (posts, hasMore) = await LoadFeedAsync(new DateTime(beforeTicks), beforeId, NEXTPAGESIZE);
-        Response.Headers["X-Feed-Has-More"] = hasMore ? "true" : "false";
+        filter = NormalizeFeedFilter(filter);
+
+        string? userId = _userManager.GetUserId(User);
+
+        var (posts, hasMore) = await LoadFeedAsync(
+            new DateTime(beforeTicks),
+            beforeId,
+            NEXTPAGESIZE,
+            filter,
+            userId);
+
+        Response.Headers["X-Feed-Has-More"] =
+            hasMore ? "true" : "false";
+
         return PartialView("_PostCards", posts);
     }
 
@@ -91,13 +148,65 @@ public class HomeController : Controller
     // Paging continues from the last card's (CreatedAt, Id), so new posts don't shift or repeat cards.
     // TODO: limit to posts in the Home community once the DB team adds it.
     private async Task<(IReadOnlyList<PostCardViewModel> Posts, bool HasMore)> LoadFeedAsync(
-        DateTime? beforeCreatedAt, int? beforeId, int take)
+    DateTime? beforeCreatedAt,
+    int? beforeId,
+    int take,
+    string filter,
+    string? userId)
     {
-        var query = _context.Posts.Where(post => post.DateOfDel == null);
+        var query = _context.Posts
+            .Where(post => post.DateOfDel == null);
+
+        // Friends feed:
+        // Only posts authored by users who have an accepted friendship
+        // with the currently signed-in user.
+        if (filter == FRIENDSFILTER)
+        {
+            if (userId == null)
+            {
+                query = query.Where(post => false);
+            }
+            else
+            {
+                query = query.Where(post =>
+                    _context.FriendRelationships.Any(friendship =>
+                        friendship.Status == "Accepted"
+                        && friendship.DeactivatedAt == null
+                        &&
+                        (
+                            friendship.RequesterId == userId
+                            && friendship.RecipientId == post.AuthorId
+
+                            ||
+
+                            friendship.RecipientId == userId
+                            && friendship.RequesterId == post.AuthorId
+                        )));
+            }
+        }
+
+        // Communities feed:
+        // Only posts belonging to communities the current user has joined.
+        else if (filter == COMMUNITIESFILTER)
+        {
+            if (userId == null)
+            {
+                query = query.Where(post => false);
+            }
+            else
+            {
+                query = query.Where(post =>
+                    post.CommunityId.HasValue
+                    && _context.CommunityMembers.Any(member =>
+                        member.UserId == userId
+                        && member.CommunityId == post.CommunityId.Value));
+            }
+        }
 
         if (beforeCreatedAt is { } before && beforeId is { } id)
         {
-            query = query.Where(post => post.CreatedAt < before
+            query = query.Where(post =>
+                post.CreatedAt < before
                 || (post.CreatedAt == before && post.Id < id));
         }
 
@@ -105,9 +214,12 @@ public class HomeController : Controller
             .OrderByDescending(post => post.CreatedAt)
             .ThenByDescending(post => post.Id)
             .Take(take + 1);
-        var posts = await ProjectCards(ordered, _userManager.GetUserId(User)).ToListAsync();
+
+        var posts = await ProjectCards(ordered, userId)
+            .ToListAsync();
 
         var hasMore = posts.Count > take;
+
         return (posts.Take(take).ToList(), hasMore);
     }
 
@@ -190,5 +302,15 @@ public class HomeController : Controller
             .Select(profile => profile.DisplayName)
             .FirstOrDefaultAsync() ?? User.Identity?.Name ?? "";
         return DisplayFormat.Initials(name);
+    }
+
+    private static string NormalizeFeedFilter(string? filter)
+    {
+        return filter?.ToLowerInvariant() switch
+        {
+            FRIENDSFILTER => FRIENDSFILTER,
+            COMMUNITIESFILTER => COMMUNITIESFILTER,
+            _ => ALLFILTER
+        };
     }
 }

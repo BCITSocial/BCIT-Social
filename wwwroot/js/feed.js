@@ -35,6 +35,7 @@
         const url = new URL(list.dataset.feedUrl, window.location.origin);
         url.searchParams.set("beforeTicks", last.dataset.createdTicks);
         url.searchParams.set("beforeId", last.dataset.postId);
+        url.searchParams.set("filter", list.dataset.filter);
 
         try {
             const response = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
