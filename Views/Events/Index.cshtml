@@ -19,11 +19,19 @@
     <p class="events-banner-text">@text.BannerText</p>
 </section>
 
+@* Shown once after an event is created. TODO(BE): the Create action sets TempData["EventCreated"] = true before redirecting here. *@
+@if (TempData["EventCreated"] is true)
+{
+    <p class="events-notice" role="status">@text.CreateEvent.Created</p>
+}
+
 <section class="panel events-panel" aria-labelledby="events-heading">
     <div class="events-panel-head">
         <div>
             <h1 id="events-heading">@text.Heading</h1>
             <p>@text.Subheading</p>
+            @* Opens the "Create event" pop-up (_CreateEventDialog). *@
+            <button class="cta-button events-create-button" type="button" data-open-event aria-haspopup="dialog">@text.CreateEvent.OpenButton</button>
         </div>
         @* Status chips. Each link keeps the other filters and changes only "status". *@
         <nav class="chip-group" aria-label="@text.LabelMyEvents">
@@ -60,6 +68,14 @@
                 <form class="events-toolbar" method="get" asp-action="Index" data-events-filters>
                     <input type="hidden" name="view" value="@Model.View" />
                     <input type="hidden" name="status" value="@Model.Status" />
+                    @if (Model.Tag is not null)
+                    {
+                        <input type="hidden" name="tag" value="@Model.Tag" />
+                    }
+                    @if (Model.View == EventsViewModel.Calendar)
+                    {
+                        <input type="hidden" name="month" value="@EventsViewModel.MonthValue(Model.Month)" />
+                    }
                     <label>
                         <span>@text.LabelCommunity</span>
                         <select name="community">
@@ -108,12 +124,24 @@
         </details>
     </div>
 
-    @* The calendar tab is only a placeholder for now. Otherwise show one card per event. With no events, no cards are shown. *@
+    @* Tag chips: "All" plus one chip per tag. Each link keeps the other filters and changes only "tag".
+       The row is left out while there are no tags. *@
+    @if (Model.Tags.Count > 0)
+    {
+        <nav class="tag-chips" aria-label="@text.LabelTags">
+            <a asp-action="Index" asp-all-route-data="@Model.RouteValues(tag: "")" aria-current="@(Model.Tag is null ? "page" : null)">@text.AllTags</a>
+            @foreach (var tag in Model.Tags)
+            {
+                <a asp-action="Index" asp-all-route-data="@Model.RouteValues(tag: tag)" aria-current="@(Model.Tag == tag ? "page" : null)">@tag</a>
+            }
+        </nav>
+    }
+
+    @* The calendar tab shows a month grid with each event on its start date. Otherwise show one card per event.
+       With no events, the grid stays empty and no cards are shown. *@
     @if (Model.View == EventsViewModel.Calendar)
     {
-        <div class="empty-state">
-            <p>@text.EmptyCalendar</p>
-        </div>
+        <partial name="_Calendar" model="Model" />
     }
     else if (Model.Events.Count == 0)
     {
@@ -131,6 +159,8 @@
         </ul>
     }
 </section>
+
+<partial name="_CreateEventDialog" model="Model" />
 
 @section Scripts {
     <script src="~/js/events.js" asp-append-version="true" defer></script>

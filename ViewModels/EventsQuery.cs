@@ -9,5 +9,8 @@ public class EventsQuery
     public string? Range { get; set; }
     public string? Sort { get; set; }
     public string? Status { get; set; }
+    public string? Tag { get; set; }
+    // Month shown in the calendar tab, as "yyyy-MM" (e.g. "2026-11").
+    public string? Month { get; set; }
     public string? View { get; set; }
 }

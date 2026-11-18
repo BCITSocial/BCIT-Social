@@ -13,7 +13,8 @@
       "all": "All events",
       "interested": "Interested",
       "going": "Going",
-      "hosting": "Hosting"
+      "hosting": "Hosting",
+      "saved": "Saved"
     },
     "views": {
       "discover": "Discover events",
@@ -41,8 +42,52 @@
     "sortOption": "{0}",
     "apply": "Apply",
 
+    "labelTags": "Browse by tag",
+    "allTags": "All",
+
+    "calendarPrevious": "Previous month",
+    "calendarNext": "Next month",
+    "calendarToday": "Today",
+    "calendarMore": "+{0} more",
+    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+
+    "createEvent": {
+      "openButton": "Create event",
+      "title": "Create event",
+      "subtitle": "Share an event with your community.",
+      "close": "Close",
+      "labelTitle": "Event title",
+      "placeholderTitle": "Resume workshop",
+      "labelCommunity": "Community",
+      "chooseCommunity": "Choose a community",
+      "noCommunities": "Join a community to host events.",
+      "labelStart": "Starts",
+      "labelEnd": "Ends (optional)",
+      "labelCampus": "Campus",
+      "chooseCampus": "Choose a campus",
+      "labelLocation": "Room or venue",
+      "placeholderLocation": "SE12",
+      "labelDescription": "Description",
+      "placeholderDescription": "What should people know before they come?",
+      "labelTags": "Tags (optional)",
+      "labelCover": "Banner image (optional)",
+      "coverHelp": "A wide image works best. It is cropped to 2:1.",
+      "errorTitle": "Enter a title.",
+      "errorCommunity": "Choose a community.",
+      "errorStart": "Choose a start date and time.",
+      "errorStartPast": "The start time has already passed.",
+      "errorEnd": "The end time must be after the start time.",
+      "errorCampus": "Choose a campus.",
+      "errorSummary": "Check the highlighted fields.",
+      "cancel": "Cancel",
+      "submit": "Create event",
+      "submitting": "Creating...",
+      "notReady": "Creating events isn't available yet.",
+      "created": "Your event was created."
+    },
+
     "emptyEvents": "No events found.",
-    "emptyCalendar": "Your calendar will appear here.",
+    "emptyCalendar": "No events this month.",
 
     "badgeGoing": "Going",
     "badgeInterested": "Interested",
@@ -53,6 +98,7 @@
     "buttonGoing": "Going",
     "buttonViewEvent": "View event",
     "buttonManageEvent": "Manage event",
+    "buttonBookmark": "Save event",
 
     "labelMyEvents": "My events",
     "labelEventsView": "Events view",
@@ -62,7 +108,9 @@
     "labelSort": "Sort",
     "labelHost": "Host",
     "labelTime": "Time",
-    "labelLocation": "Location"
+    "labelLocation": "Location",
+    "labelEventTags": "Tags"
   },
+  "tags": [],
   "events": []
 }
