@@ -18,11 +18,16 @@ Provides the shared page structure, styles, header, navigation, and script secti
 <body data-profile-user-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value">
     <a class="skip-link" href="#main-content">Skip to content</a>
     <partial name="_Header" />
+    @* Three columns: the nav pinned to the left edge, the page centred, and a right column pinned to the right
+       edge. A page fills the right column with @section RightPanel { ... }. *@
     <div class="app-shell">
         <partial name="_Navigation" />
         <main id="main-content" tabindex="-1">
             @RenderBody()
         </main>
+        <div class="shell-right">
+            @await RenderSectionAsync("RightPanel", required: false)
+        </div>
     </div>
     @await Component.InvokeAsync("CreatePostDialog")
     <script src="~/js/create-post.js" asp-append-version="true" defer></script>
