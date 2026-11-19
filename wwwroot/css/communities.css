@@ -143,7 +143,6 @@
 }
 
 /* Opens on hover, keyboard focus, or while it has text in it. */
-.filter-search:hover,
 .filter-search:focus-within,
 .filter-search:has(.search-input:not(:placeholder-shown)) {
     width: 20rem;
@@ -193,7 +192,6 @@
     transition: opacity 0.2s ease;
 }
 
-.filter-search:hover .search-input,
 .filter-search:focus-within .search-input,
 .search-input:not(:placeholder-shown) {
     opacity: 1;
@@ -392,7 +390,6 @@
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .filter-search:hover,
     .filter-search:focus-within,
     .filter-search:has(.search-input:not(:placeholder-shown)) {
         width: 100%;
@@ -1060,7 +1057,7 @@ a.btn-cancel {
 
 /* Post type choices in the create post pop-up */
 .post-type-field {
-    margin: 0 0 0.95rem 0;
+    margin: 0 0 1.5rem 0;
     padding: 0;
     border: 0;
 }
@@ -1070,9 +1067,15 @@ a.btn-cancel {
 }
 
 .post-type-choices {
+    --pill-height: 2.1rem;
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     gap: 0.45rem;
+    flex: 1;
+    min-width: 0;
+    padding: 4px;
+    margin: -4px;
 }
 
 .post-type-choice {
@@ -1091,7 +1094,7 @@ a.btn-cancel {
 .post-type-choice span {
     display: inline-flex;
     align-items: center;
-    min-height: 2.1rem;
+    min-height: var(--pill-height);
     padding: 0.3rem 0.85rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-pill);
@@ -1115,6 +1118,31 @@ a.btn-cancel {
     outline: 3px solid var(--brand-blue);
     outline-offset: 2px;
 }
+
+/* Folded: show only the first row of pills */
+.post-type-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.post-type-row:not(.is-expanded) .post-type-choices {
+    max-height: calc(var(--pill-height) + 8px);
+    overflow: hidden;
+}
+
+.post-type-toggle {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    min-height: var(--pill-height);
+    white-space: nowrap;
+}
+
+.post-type-toggle[hidden] {
+    display: none;
+}
+
 
 /* Settings pop-up: delete sits apart at the very bottom.
    Neutral box; only the button is red, so it stands out without shouting. */
