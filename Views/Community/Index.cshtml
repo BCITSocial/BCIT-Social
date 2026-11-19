@@ -40,17 +40,9 @@ frontend view for Communities page.
         }
     </div>
 
-    @* search (an icon until hovered/focused) & filter dropdowns. communities.js hides cards that don't match. *@
+    @* filter dropdowns, communities.js hides cards that don't match. *@
     <form id="community-filters" class="community-filters" method="get" role="search" aria-label="@filters.Label">
-        <div class="filter-search">
-            <label for="community-search" class="filter-search-icon" title="@filters.SearchLabel">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
-                <span class="visually-hidden">@filters.SearchLabel</span>
-            </label>
-            <input type="search" id="community-search" class="search-input" autocomplete="off"
-                   placeholder="@filters.SearchPlaceholder" />
-        </div>
-
+        @* No search box here: the header search covers the whole site. *@
         <div class="filter-selects">
             <label>
                 <span class="visually-hidden">@filters.TypeLabel</span>
