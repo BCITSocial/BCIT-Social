@@ -72,6 +72,8 @@ public class EventsText
     public string ButtonBookmark { get; init; } = "Save event";
 
     // Labels only screen readers hear (visually hidden or aria-label).
+    public string LabelSearch { get; init; } = "Search events";
+    public string SearchPlaceholder { get; init; } = "Search events";
     public string LabelMyEvents { get; init; } = "My events";
     public string LabelEventsView { get; init; } = "Events view";
     public string LabelCommunity { get; init; } = "Community";

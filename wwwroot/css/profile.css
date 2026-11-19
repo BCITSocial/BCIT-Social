@@ -197,6 +197,21 @@ body[data-profile-cover="gradient"] .profile-edit-cover {
     font-weight: var(--font-weight-bold);
 }
 
+.profile-friend-search-result {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.profile-friend-search-result small {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.profile-friend-search-result .profile-button {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+
 .profile-friend-request-actions {
     display: flex;
     flex-wrap: wrap;

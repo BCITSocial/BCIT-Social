@@ -1,3 +1,23 @@
+// Keep the optional end date after the start date on both event forms.
+document.querySelectorAll("[data-event-date-range]").forEach((form) => {
+    const start = form.querySelector('input[name="EventDate" i]');
+    const end = form.querySelector('input[name="EndsAt" i]');
+    if (!start || !end) return;
+
+    const validate = () => {
+        const minimum = start.value || start.min;
+        if (minimum) end.min = minimum;
+        else end.removeAttribute("min");
+        end.setCustomValidity(start.value && end.value && end.valueAsNumber <= start.valueAsNumber
+            ? "End time must be after the start time." : "");
+    };
+    start.addEventListener("input", validate);
+    end.addEventListener("input", validate);
+    start.addEventListener("change", validate);
+    end.addEventListener("change", validate);
+    validate();
+});
+
 // Submit the Events filter form as soon as a dropdown changes.
 document.querySelectorAll("[data-events-filters] select").forEach((select) => {
     select.addEventListener("change", () => select.form.submit());
@@ -32,6 +52,7 @@ document.querySelectorAll("[data-filter-menu]").forEach((menu) => {
     const message = form.querySelector("[data-form-message]");
     const submit = form.querySelector("[type=submit]");
     const submitText = submit.textContent;
+    const initiallyDisabled = submit.disabled;
     const start = form.querySelector("#event-start");
     const end = form.querySelector("#event-end");
 
@@ -97,13 +118,6 @@ document.querySelectorAll("[data-filter-menu]").forEach((menu) => {
             return;
         }
 
-        // TODO(BE): remove data-not-ready from the form once the Create action exists, so the form is really sent.
-        if (form.hasAttribute("data-not-ready")) {
-            event.preventDefault();
-            showMessage(submit.dataset.notReadyText, "info");
-            return;
-        }
-
         // Sending: block a second click and show the "Creating..." text until the page reloads.
         submit.disabled = true;
         submit.textContent = submit.dataset.submittingText;
@@ -113,7 +127,7 @@ document.querySelectorAll("[data-filter-menu]").forEach((menu) => {
     dialog.addEventListener("close", () => {
         message.hidden = true;
         fields.forEach((field) => setError(field, ""));
-        submit.disabled = false;
+        submit.disabled = initiallyDisabled;
         submit.textContent = submitText;
     });
 })();
