@@ -22,6 +22,10 @@
                     <span>@post.CommunityName ·</span>
                 }
                 <time datetime="@post.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")">@post.TimeAgo(now)</time>
+                @if (post.EditedAt is { } editedAt)
+                {
+                    <span class="post-edited">· <time datetime="@editedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")" title="Edited @BCIT_Social.ViewModels.DisplayFormat.TimeAgo(editedAt, now)">Edited</time></span>
+                }
             </p>
         </div>
     </div>
@@ -64,7 +68,7 @@
         @if (post.IsAuthor)
         {
             <a class="link-action" asp-controller="Post" asp-action="Edit" asp-route-id="@post.Id">Edit</a>
-            <form method="post" asp-controller="Post" asp-action="Delete" asp-route-id="@post.Id" onsubmit="return confirm('Delete this post?');">
+            <form method="post" asp-controller="Post" asp-action="Delete" asp-route-id="@post.Id" onsubmit="return confirm('Delete this post?');" data-delete-post>
                 <button class="link-action" type="submit">Delete</button>
             </form>
         }

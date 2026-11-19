@@ -82,6 +82,7 @@ public class ProfileController : Controller
         var communities = await _context.CommunityMembers
             .AsNoTracking()
             .Where(member => member.UserId == profileUserId)
+            .Where(m => m.Community.DateOfDel == null)
             .OrderBy(member => member.Community.Name)
             .Select(member => new CommunityLinkViewModel
             {
@@ -148,7 +149,10 @@ public class ProfileController : Controller
                 .OrderBy(p => p.DisplayName).ThenBy(p => p.UserId)
                 .Select(p => new FriendSearchResultViewModel
                 {
-                    UserId = p.UserId, DisplayName = p.DisplayName, Program = p.Program, Campus = p.Campus,
+                    UserId = p.UserId,
+                    DisplayName = p.DisplayName,
+                    Program = p.Program,
+                    Campus = p.Campus,
                     RelationshipStatus = _context.FriendRelationships
                         .Where(r => (r.RequesterId == profileUserId && r.RecipientId == p.UserId) ||
                                     (r.RecipientId == profileUserId && r.RequesterId == p.UserId))
@@ -181,7 +185,7 @@ public class ProfileController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddFriend(string userId, string? friendSearch = null, string? section = null)
+    public async Task<IActionResult> AddFriend(string userId, string? friendSearch = null, string? section = null, bool fromFriends = false, string? q = null)
     {
         var requesterId = _userManager.GetUserId(User);
         if (requesterId == null)
@@ -238,6 +242,11 @@ public class ProfileController : Controller
             TempData["FriendRequestMessage"] = "Friend request sent.";
         }
 
+        if (fromFriends)
+        {
+            return RedirectToAction("Index", "Friends", new { q });
+        }
+
         return friendSearch is not null
             ? RedirectToAction(nameof(Index), new { section, friendSearch })
             : RedirectToAction(nameof(Details), new { userid = recipient.Id });
@@ -274,6 +283,34 @@ public class ProfileController : Controller
         return RedirectToAction(nameof(Index), new { section = "friends" });
     }
 
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CancelFriendRequest(int relationshipId)
+    {
+        var userId = _userManager.GetUserId(User);
+        if (userId == null)
+        {
+            return Challenge();
+        }
+
+        var now = DateTime.UtcNow;
+        var updated = await _context.FriendRelationships
+            .Where(request => request.Id == relationshipId
+                && request.RequesterId == userId && request.Status == "Pending")
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(request => request.Status, "Cancelled")
+                .SetProperty(request => request.UpdatedAt, now)
+                .SetProperty(request => request.DeactivatedAt, now));
+
+        if (updated == 0)
+        {
+            return NotFound();
+        }
+
+        TempData["FriendRequestMessage"] = "Friend request cancelled.";
+        return RedirectToAction("Index", "Friends");
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
