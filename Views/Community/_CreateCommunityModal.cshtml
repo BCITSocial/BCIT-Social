@@ -1,35 +1,23 @@
 @*
 - Partial View: Create Community Pop-up Modal
-- Used for Communities page and CommunityDetails. 
-  communities.js opens and closes it.
+- Used for the Communities page. Any button with data-open-modal="create-community-modal"
+  opens it (community-actions.js).
 - author: jaspreet bath
 *@
 
 @model BCIT_Social.ViewModels.CommunityFormViewModel
 
-<div id="create-community-modal" class="modal-backdrop-custom" aria-hidden="true">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+<dialog id="create-community-modal" class="community-dialog" aria-labelledby="modal-title">
+    <div class="modal-card">
         <!-- Title & Close Button -->
         <div class="modal-top-bar">
             <h2 id="modal-title" class="modal-title">@Model.Text.Title</h2>
-            <button type="button" id="close-create-modal" class="modal-close-btn" aria-label="Close">&times;</button>
+            <button type="button" class="modal-close-btn" data-close-modal aria-label="Close">&times;</button>
         </div>
         <p class="modal-subtitle">@Model.Text.Subtitle</p>
 
-        <!-- Form posts to CommunityController.Create -->
-        <form asp-action="Create" method="post" data-community-form>
-            <!-- Cover Image Placeholder Box -->
-            @if (!string.IsNullOrEmpty(Model.Text.CoverTitle))
-            {
-                <div class="cover-upload-box">
-                    <div class="cover-text-group">
-                        <span class="cover-title">@Model.Text.CoverTitle</span>
-                        <span class="cover-sub">@Model.Text.CoverSubtitle</span>
-                    </div>
-                    <div class="avatar-upload-box">+</div>
-                </div>
-            }
-
+        <!-- Form posts to CommunityController.Create. The cover image picker is in _CommunityFormFields. -->
+        <form asp-action="Create" method="post" enctype="multipart/form-data" data-community-form>
             <partial name="_CommunityFormFields" model="Model" />
 
             @if (!string.IsNullOrEmpty(Model.Text.HelperNote))
@@ -39,9 +27,9 @@
 
             <!-- Modal Footer Buttons -->
             <div class="modal-footer-actions">
-                <button type="button" id="cancel-create-modal" class="btn-cancel">@Model.Text.CancelButton</button>
+                <button type="reset" class="btn-cancel" data-close-modal>@Model.Text.CancelButton</button>
                 <button type="submit" class="btn-create">@Model.Text.SubmitButton</button>
             </div>
         </form>
     </div>
-</div>
+</dialog>

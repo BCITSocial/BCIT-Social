@@ -1,6 +1,7 @@
 @*
 frontend view for Communities page.
 - Everything comes from CommunityIndexViewModel, which CommunityController builds.
+- Your communities show first, then "Browse communities" (3 cards, "See all" pages through the rest).
 - author: jaspreet bath
 *@
 
@@ -10,8 +11,11 @@ frontend view for Communities page.
     var text = Model.Text;
     var filters = text.Filters;
     var options = text.Options;
+    var yours = Model.YourCommunities;
+    var browse = Model.BrowseCommunities;
     ViewData["Title"] = text.PageTitle;
-    var signedIn = User.Identity?.IsAuthenticated == true;
+    // Labels for _CommunityCard.
+    ViewData["CommunitiesText"] = text;
 }
 
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
@@ -23,11 +27,7 @@ frontend view for Communities page.
             <h1 class="communities-title">@text.PageTitle</h1>
             <p class="communities-subtitle">@text.PageSubtitle</p>
         </div>
-        @* Creating a community needs an account, so signed-out visitors don't see the button. *@
-        @if (signedIn)
-        {
-            <button type="button" id="open-create-modal" class="btn-create">@text.CreateButton</button>
-        }
+        <button type="button" class="btn-create" data-open-modal="create-community-modal">@text.CreateButton</button>
     </div>
 
     @* filter dropdowns, communities.js hides cards that don't match. *@
@@ -38,10 +38,18 @@ frontend view for Communities page.
                 <span class="visually-hidden">@filters.TypeLabel</span>
                 <select class="filter-select" data-filter="topics">
                     <option value="">@filters.AllTypes</option>
-                    @foreach (var option in options.Topics)
-                    {
-                        <option value="@option">@option</option>
-                    }
+                    <optgroup label="@filters.CategoriesGroup">
+                        @foreach (var option in options.Categories)
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </optgroup>
+                    <optgroup label="@filters.TagsGroup">
+                        @foreach (var option in options.Tags)
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </optgroup>
                 </select>
             </label>
 
@@ -56,102 +64,69 @@ frontend view for Communities page.
                 </select>
             </label>
 
-            <label>
-                <span class="visually-hidden">@filters.StatusLabel</span>
-                <select class="filter-select" data-filter="status">
-                    <option value="">@filters.AnyStatus</option>
-                    @foreach (var option in options.Statuses)
-                    {
-                        <option value="@option">@option</option>
-                    }
-                </select>
-            </label>
-
             <button type="reset" class="filter-clear">@filters.ClearButton</button>
         </div>
     </form>
 
-    @* main juicy stuff here ;) *@
-    <div class="communities-layout">
-        <div>
-            @* feature card (might delete later) *@
-            <div class="featured-card">
-                <div class="featured-header-row">
-                    <div class="featured-label">@text.Featured.Label</div>
-                    <div class="category-badge">@text.Featured.Tag</div>
-                    <div class="category-badge status-badge">@text.Featured.StatusTag</div>
-                    <div class="category-badge time-badge">@text.Featured.TimeTag</div>
-                </div>
-                <h2 class="featured-heading">@text.Featured.Heading</h2>
-                <p class="featured-desc">@text.Featured.Description</p>
+    @* your communities (joined), all of them *@
+    @if (Model.IsSignedIn)
+    {
+        <section class="community-section" aria-labelledby="your-heading">
+            <div class="community-section-header">
+                <h2 id="your-heading" class="community-section-title">
+                    @text.YourHeading <span id="your-count" class="section-count">@yours.Count</span>
+                </h2>
             </div>
 
-            @* browse heading. communities.js updates the count as you filter. *@
-            <h2 id="browse-heading" class="section-heading" data-base-text="@text.BrowseHeading">
-                @text.BrowseHeading (@Model.Communities.Count)
-            </h2>
-
-            @* browse grid. *@
-            <div id="browse-grid" class="browse-grid">
-                @foreach (var item in Model.Communities)
+            <div id="your-grid" class="browse-grid">
+                @foreach (var item in yours)
                 {
-                    @* Card: picture slot on the left, name with its tags, members and campus under the name,
-                       the description below, and Join at the top right. *@
-                    <div class="community-card" data-name="@item.Name" data-topics="@item.TopicsAttribute"
-                         data-campus="@item.Location" data-status="@item.Status">
-                        @* Room for a community picture later. Shows the initials until then. *@
-                        <div class="community-card-pic" aria-hidden="true">@BCIT_Social.ViewModels.DisplayFormat.Initials(item.Name)</div>
-
-                        <div class="community-card-body">
-                            <div class="community-card-top">
-                                <a asp-action="Details" asp-route-id="@item.Id" class="card-clickable-link">
-                                    <h3 class="community-card-title">@item.Name</h3>
-                                </a>
-                                <div class="badge-row">
-                                    @foreach (var badge in item.Badges)
-                                    {
-                                        <span class="category-badge @badge.CssClass">@badge.Text</span>
-                                    }
-                                </div>
-                            </div>
-
-                            <div class="member-count">
-                                <span>@item.MemberCount @text.MembersLabel</span>
-                                <span>&bull;</span>
-                                <span>@item.Location</span>
-                            </div>
-
-                            <p class="community-desc">@item.Description</p>
-                        </div>
-
-                        <div class="card-actions">
-                            @if (item.IsJoined)
-                            {
-                                <span class="btn-joined">@text.JoinedLabel</span>
-                            }
-                            else
-                            {
-                                <form asp-action="Join" asp-route-id="@item.Id" method="get">
-                                    <button type="submit" class="btn-join">@text.JoinButton</button>
-                                </form>
-                            }
-                        </div>
-                    </div>
+                    <partial name="_CommunityCard" model="item" />
                 }
             </div>
 
-            <p id="browse-empty" class="browse-empty" hidden="@(Model.Communities.Count > 0)">@filters.EmptyMessage</p>
+            <p id="your-empty" class="browse-empty" hidden="@(yours.Count > 0)"
+               data-empty-none="@text.YourEmpty" data-empty-filtered="@filters.EmptyMessage">@text.YourEmpty</p>
+        </section>
+    }
+
+    @* browse: 3 cards, then "See all" turns it into pages of 8 with a pager (communities.js) *@
+    <section class="community-section" aria-labelledby="browse-heading">
+        <div class="community-section-header">
+            <h2 id="browse-heading" class="community-section-title">
+                @text.BrowseHeading <span id="browse-count" class="section-count">@browse.Count</span>
+            </h2>
+            <button type="button" id="browse-toggle" class="link-action-btn" aria-expanded="false" aria-controls="browse-page"
+                    data-see-all="@text.SeeAllButton" data-show-less="@text.ShowLessButton"
+                    hidden="@(browse.Count <= text.BrowsePreviewCount)">@text.SeeAllButton</button>
         </div>
     </div>
 </div>
 
-@* partial load of pop-up modal *@
-@if (signedIn)
-{
-    <partial name="_CreateCommunityModal" model="Model.CreateForm" />
-}
+        <div id="browse-page" class="browse-page"
+             data-preview-count="@text.BrowsePreviewCount" data-page-size="@text.BrowsePageSize">
+            <div id="browse-grid" class="browse-grid">
+                @foreach (var item in browse)
+                {
+                    <partial name="_CommunityCard" model="item" />
+                }
+            </div>
+
+            <nav id="browse-pager" class="browse-pager" aria-label="@text.Pager.Label" hidden
+                 data-prev="@text.Pager.Previous" data-next="@text.Pager.Next" data-end="@text.Pager.End"></nav>
+        </div>
+
+        <p id="browse-empty" class="browse-empty" hidden="@(browse.Count > 0)"
+           data-empty-none="@text.BrowseNone" data-empty-filtered="@filters.EmptyMessage">@text.BrowseNone</p>
+    </section>
+</div>
+
+@* pop-ups: create community, and "Are you sure?" for Leave *@
+<partial name="_CreateCommunityModal" model="Model.CreateForm" />
+<partial name="_ConfirmDialog" />
 
 @section Scripts {
+    <script src="~/js/community-actions.js" asp-append-version="true"></script>
     <script src="~/js/communities.js" asp-append-version="true"></script>
     <script src="~/js/community-form.js" asp-append-version="true"></script>
 }

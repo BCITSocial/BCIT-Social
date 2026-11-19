@@ -1,4 +1,4 @@
-// see all/show all
+// see all/show all for the Posts list on a community's page
 // author: jaspreet bath
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             toggleBtn.textContent = isExpanded ? showLessLabel : seeAllLabel;
+            toggleBtn.setAttribute("aria-expanded", String(isExpanded));
         });
     } else if (toggleBtn) {
         // if no extra items, hide the toggle button

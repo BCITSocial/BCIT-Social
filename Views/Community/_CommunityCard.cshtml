@@ -1,0 +1,114 @@
+@*
+- Partial View: one community card on the Communities page.
+- Page text comes from ViewData["CommunitiesText"], set in Index.cshtml.
+- "Joined" opens a menu (community-actions.js).
+- author: jaspreet bath
+*@
+
+@model BCIT_Social.ViewModels.CommunityCardViewModel
+
+@{
+    var text = ViewData["CommunitiesText"] as BCIT_Social.ViewModels.CommunitiesText ?? new();
+    var menuId = $"community-menu-{Model.Id}";
+    var hasBanner = !string.IsNullOrEmpty(Model.BannerUrl);
+}
+
+<article class="community-card" data-name="@Model.Name" data-topics="@Model.TopicsAttribute"
+         data-campus="@Model.Location" data-status="@Model.Status">
+    <div class="community-card-top">
+        @* cover image thumbnail, or the community's initials *@
+        <span class="community-card-icon" aria-hidden="true"
+              style="@(hasBanner ? $"background-image: url('{Model.BannerUrl}')" : null)">@(hasBanner ? "" :
+              Model.Initials)</span>
+
+            <div class="community-card-main">
+                <h3 class="community-card-title">
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="card-clickable-link">@Model.Name</a>
+                </h3>
+
+                @* badges *@
+                @if (Model.Badges.Count > 0)
+                {
+                    <div class="badge-row">
+                        @foreach (var badge in Model.Badges)
+                        {
+                            <span class="category-badge @badge.CssClass">@badge.Text</span>
+                        }
+                    </div>
+                }
+
+                @* member count and location *@
+                <div class="member-count">
+                    <span>@Model.MemberCount @text.MembersLabel</span>
+                    <span aria-hidden="true">&bull;</span>
+                    <span>@Model.Location</span>
+                </div>
+            </div>
+
+            <div class="card-actions">
+                @if (Model.IsJoined)
+                {
+                    <div class="action-menu" data-menu>
+                        <button type="button" class="btn-joined" aria-expanded="false" aria-controls="@menuId"
+                                aria-label="@text.JoinedLabel, @text.Menu.Label" data-menu-toggle>
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M5 12.5l4.5 4.5L19 7.5" />
+                            </svg>
+                            @text.JoinedLabel
+                            <svg class="menu-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                        </button>
+                        <div id="@menuId" class="action-menu-list" hidden>
+                            <a asp-action="Details" asp-route-id="@Model.Id" class="action-menu-item">
+                                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+                                    <circle cx="12" cy="12" r="2.8" />
+                                </svg>
+                                @text.Menu.View
+                            </a>
+                            @if (Model.IsCreator)
+                            {
+                                @* Opens the Settings pop-up on the community's page.
+                               The svg is the gear icon *@
+                                <a href="@Url.Action("Details", new { id = Model.Id })#settings" class="action-menu-item">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <circle cx="12" cy="12" r="3" />
+                                        <path
+                                        d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+                                    </svg>
+                                    @text.Menu.Settings
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="action-menu-divider" role="presentation"></div>
+                                @* Asks user if they're sure(_ConfirmDialog), 
+                                   then posts to CommunityController.Leave. *@
+                                <button type="button" class="action-menu-item is-danger"
+                                        data-confirm-action="@Url.Action("Leave", new { id = Model.Id })"
+                                        data-confirm-title="@text.LeaveConfirm.Title"
+                                        data-confirm-message="@text.LeaveConfirm.MessageFor(Model.Name)"
+                                        data-confirm-button="@text.LeaveConfirm.ConfirmButton"
+                                        data-confirm-cancel="@text.LeaveConfirm.CancelButton">
+                                    @* This svg is for the logout icon. *@
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+                                    </svg>
+                                    @text.Menu.Leave
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <form asp-action="Join" asp-route-id="@Model.Id" method="post">
+                        <button type="submit" class="btn-join">@text.JoinButton</button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <p class="community-desc">@Model.Description</p>
+    </article>
