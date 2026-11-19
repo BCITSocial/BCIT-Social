@@ -57,6 +57,13 @@ public class CommunityController : Controller
             _logger.LogWarning(ex, "Could not load communities; showing an empty list.");
         }
 
+        // Gets how many communities the user has made
+        string? creatorId = _userManager.GetUserId(User);
+        var communitiesByUser = _context.Communities
+            .Where(c => c.CreatorId == creatorId && c.DateOfDel == null)
+            .ToList();
+        ViewBag.UserCommunityCount = communitiesByUser.Count;
+        Console.WriteLine(ViewBag.UserCommunityCount);
         return View(new CommunityIndexViewModel
         {
             Text = text,
@@ -79,6 +86,10 @@ public class CommunityController : Controller
         {
             return NotFound();
         }
+        if (community.DateOfDel != null)
+        {
+            return NotFound();
+        }
 
         CommunityDetailsViewModel viewModel = await DetailsViewModelFromCommunity(community);
         return View(viewModel);
@@ -94,11 +105,10 @@ public class CommunityController : Controller
 
         var community = await _context.Communities
             .FirstOrDefaultAsync(m => m.Id == id);
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
-
         CommunityMembersViewModel viewModel = await MembersViewModelFromCommunity(community);
         return View(viewModel);
     }
@@ -110,6 +120,15 @@ public class CommunityController : Controller
     {
         // reads from json files.
         var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
+        string? creatorId = _userManager.GetUserId(User);
+        var communitiesByUser = _context.Communities
+            .Where(c => c.CreatorId == creatorId)
+            .Where(c => c.DateOfDel != null)
+            .ToList();
+        if (communitiesByUser.Count >= 3)
+        {
+            return RedirectToAction(nameof(Index));
+        }
         return View(BuildCommunityForm(text.CreateForm, text.Options));
     }
 
@@ -148,6 +167,14 @@ public class CommunityController : Controller
             CommunityId = community.Id,
             IsModerator = true,
         };
+        var communitiesByUser = _context.Communities
+            .Where(c => c.CreatorId == creatorId)
+            .Where(c => c.DateOfDel != null)
+            .ToList();
+        if (communitiesByUser.Count >= 3)
+        {
+            return RedirectToAction(nameof(Index));
+        }
         community.Members.Add(communityMember);
 
         UploadedFile? uploadedBannerPhoto = null;
@@ -230,7 +257,7 @@ public class CommunityController : Controller
             return NotFound();
         }
         var community = await _context.Communities.FindAsync(id);
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -251,7 +278,7 @@ public class CommunityController : Controller
     {
         var community = await _context.Communities.FindAsync(id);
 
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -318,7 +345,7 @@ public class CommunityController : Controller
         var community = await _context.Communities
             .FirstOrDefaultAsync(m => m.Id == id);
 
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -346,7 +373,7 @@ public class CommunityController : Controller
     {
         var community = await _context.Communities.FindAsync(id);
         string? currentUserId = _userManager.GetUserId(User);
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -403,17 +430,20 @@ public class CommunityController : Controller
             return Forbid();
         }
         var community = await _context.Communities
+            .Include(m => m.Members)
             .FirstOrDefaultAsync(m => m.Id == id);
 
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
 
         if (community.CreatorId == currentUserId)
         {
-            return Forbid();
-            // TODO: might have to either not show "Leave" on frontend when creator or give a popup when trying to leave.
+            return RedirectToAction(nameof(LeaveCreator), new
+            {
+                community.Id
+            });
         }
 
         if (await MemberExistsAsync(currentUserId, community))
@@ -440,7 +470,7 @@ public class CommunityController : Controller
     {
         var community = await _context.Communities.FindAsync(id);
         string? currentUserId = _userManager.GetUserId(User);
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -469,6 +499,147 @@ public class CommunityController : Controller
         }
         return RedirectToAction(nameof(Index));
     }
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Nov. 13, 2026
+    /// Description: GET call to leave a community as the Creator
+    /// Redirects to the LeaveCreator page, checks if the user is in this community, otherwise redirects
+    /// Redirects to regular Leave page if just member
+    /// </summary>
+    /// <param name="id">community id</param>
+    // GET: COMMUNITY/LeaveCreator/5
+    [Authorize]
+    public async Task<IActionResult> LeaveCreator(int? id)
+    {
+        string? currentUserId = _userManager.GetUserId(User);
+        if (id == null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Forbid();
+        }
+        var community = await _context.Communities
+            .Include(m => m.Members)
+            .ThenInclude(c => c.User)
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (community == null || community.DateOfDel != null)
+        {
+            return NotFound();
+        }
+
+        if (community.CreatorId != currentUserId)
+        {
+            return RedirectToAction(nameof(Leave));
+        }
+
+        if (await MemberExistsAsync(currentUserId, community))
+        {
+            return View(await CreatorLeaveViewModelFromCommunity(community));
+        }
+        return RedirectToAction(nameof(Index));
+
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 21, 2026
+    /// Description: POST call to leave a community
+    /// Removes user from a community (they leave), otherwise redirects to index.
+    /// Community is either deleted or Creator role is passed to another member.
+    /// </summary>
+    /// <param name="id">community id</param>
+    /// <returns></returns>
+    // POST: COMMUNITY/LeaveCreator/5
+    [HttpPost, ActionName("LeaveCreatorSolo")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> LeaveCreatorSolo(int? id)
+    {
+        var community = await _context.Communities.FindAsync(id);
+        string? currentUserId = _userManager.GetUserId(User);
+        if (community == null || community.DateOfDel != null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Challenge();
+        }
+
+        if (await MemberExistsAsync(currentUserId, community) == false)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+        var communityMember = await _context.CommunityMembers.FindAsync(currentUserId, id);
+        if (communityMember == null)
+        {
+            return NotFound();
+        }
+        if (ModelState.IsValid)
+        {
+            community.DateOfDel = DateTime.Now.AddDays(7);
+            _context.Communities.Update(community);
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction(nameof(Index));
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Oct. 21, 2026
+    /// Description: POST call to leave a community
+    /// Removes user from a community (they leave), otherwise redirects to index.
+    /// Community is either deleted or Creator role is passed to another member.
+    /// </summary>
+    /// <param name="id">community id</param>
+    /// <returns></returns>
+    // POST: COMMUNITY/LeaveCreator/5
+    [HttpPost, ActionName("LeaveCreatorMulti")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> LeaveCreatorMulti(int? id, CommunitiesLeaveCreatorModel viewModel)
+    {
+        var community = await _context.Communities.FindAsync(id);
+        string? currentUserId = _userManager.GetUserId(User);
+        if (community == null || community.DateOfDel != null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Challenge();
+        }
+
+        if (await MemberExistsAsync(currentUserId, community) == false)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+        var communityMember = await _context.CommunityMembers.FindAsync(currentUserId, id);
+        var newCreator = await _context.CommunityMembers.FindAsync(viewModel.CreatorId, id);
+
+        if (communityMember == null || newCreator == null)
+        {
+            Console.WriteLine($"\n!{viewModel.CreatorId}!\n");
+            return NotFound();
+        }
+        if (ModelState.IsValid)
+        {
+            community.CreatorId = viewModel.CreatorId.Trim();
+            community.Creator = newCreator.User;
+            newCreator.IsModerator = true;
+
+            community.Members.Remove(communityMember);
+            _context.CommunityMembers.Remove(communityMember);
+            _context.CommunityMembers.Update(newCreator);
+
+            _context.Communities.Update(community);
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction(nameof(Index));
+    }
 
     /// <summary>
     /// Author: Tin Trinh
@@ -492,7 +663,7 @@ public class CommunityController : Controller
         var currentCommunityUser = await _context.CommunityMembers.FindAsync(currentUserId, id);
         var community = await _context.Communities.FirstOrDefaultAsync(m => m.Id == id);
 
-        if (id == null || userid == null || communityMember == null || community == null)
+        if (id == null || userid == null || communityMember == null || community == null || community.DateOfDel != null)
             return NotFound();
         if (currentUserId == null || currentCommunityUser == null)
             return Forbid();
@@ -554,7 +725,8 @@ public class CommunityController : Controller
         var community = await _context.Communities.FindAsync(id);
         var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
         string? currentUserId = _userManager.GetUserId(User);
-        if (community == null || communityMember == null)
+
+        if (community == null || communityMember == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -605,7 +777,7 @@ public class CommunityController : Controller
         var currentCommunityUser = await _context.CommunityMembers.FindAsync(currentUserId, id);
         var community = await _context.Communities.FirstOrDefaultAsync(m => m.Id == id);
 
-        if (id == null || userid == null || community == null)
+        if (id == null || userid == null || community == null || community.DateOfDel != null)
             return NotFound();
         if (currentUserId == null || currentCommunityUser == null)
             return Forbid();
@@ -649,7 +821,7 @@ public class CommunityController : Controller
         var community = await _context.Communities.FindAsync(id);
         var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
         string? currentUserId = _userManager.GetUserId(User);
-        if (community == null || communityMember == null)
+        if (community == null || communityMember == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -675,6 +847,52 @@ public class CommunityController : Controller
         });
     }
 
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Nov. 11, 2026
+    /// Description: POST call to make another user the creator of a server
+    /// Changes a moderator status of a community member
+    /// </summary>
+    /// <param name="id">community id</param>
+    /// <param name="userid">user id</param>
+    /// <returns></returns>
+    // POST: COMMUNITY/PassCreator/5/abc
+    [HttpPost, ActionName("PassCreator")]
+    [Route("Community/PassCreator/{id}/{userid}")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> PassCreator(int? id, string? userid)
+    {
+        var community = await _context.Communities.FindAsync(id);
+        var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
+        string? currentUserId = _userManager.GetUserId(User);
+        if (community == null || communityMember == null || community.DateOfDel != null)
+        {
+            return NotFound();
+        }
+
+        if (currentUserId == null || community.CreatorId != currentUserId)
+        {
+            return Forbid();
+        }
+
+        if (communityMember.CommunityId != id)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (ModelState.IsValid)
+        {
+            community.CreatorId = communityMember.UserId;
+            communityMember.IsModerator = true;
+            _context.Update(communityMember);
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction(nameof(Members), new
+        {
+            community.Id
+        });
+    }
 
     // GET: COMMUNITY/Delete/5
     [Authorize]
@@ -687,7 +905,7 @@ public class CommunityController : Controller
 
         var community = await _context.Communities
             .FirstOrDefaultAsync(m => m.Id == id);
-        if (community == null)
+        if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
@@ -707,10 +925,15 @@ public class CommunityController : Controller
     public async Task<IActionResult> DeleteConfirmed(int? id)
     {
         var community = await _context.Communities.FindAsync(id);
+        if (community == null || community.DateOfDel != null)
+        {
+            return NotFound();
+        }
         if (community != null)
         {
             CommunityAccessChecker(true, community);
-            _context.Communities.Remove(community);
+            community.DateOfDel = DateTime.Now.AddDays(7);
+            _context.Communities.Update(community);
         }
 
         await _context.SaveChangesAsync();
@@ -731,6 +954,7 @@ public class CommunityController : Controller
         // waits for db query.
         var communities = await _context.Communities
             .AsNoTracking()
+            .Where(m => m.DateOfDel == null)
             .Select(community => new
             {
                 community.Id,
@@ -939,6 +1163,26 @@ public class CommunityController : Controller
             IsModerator = communityMember.IsModerator,
             CommunityName = communityMember.Community.Name,
             CommunityId = communityMember.CommunityId
+        };
+        return viewModel;
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Nov. 13, 2026
+    /// Description: Creates a view model for a Member.
+    /// </summary>
+    /// <param name="communityMember">a Community Member</param>
+    /// <returns>a view model</returns>
+    private async Task<CommunitiesLeaveCreatorModel> CreatorLeaveViewModelFromCommunity(Community community)
+    {
+        var viewModel = new CommunitiesLeaveCreatorModel
+        {
+            Id = community.Id,
+            CommunityName = community.Name,
+            CreatorId = community.CreatorId,
+            MemberCount = community.Members.Count,
+            Members = community.Members
         };
         return viewModel;
     }

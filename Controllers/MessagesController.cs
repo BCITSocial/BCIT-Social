@@ -2,6 +2,8 @@ using System.Security.Claims;
 using BCIT_Social.Data;
 using BCIT_Social.Models;
 using BCIT_Social.ViewModels;
+using BCIT_Social.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +16,15 @@ namespace BCIT_Social.Controllers;
 public class MessagesController : Controller
 {
     private const int MESSAGE_PAGE_SIZE = 100;
-    private const int MESSAGE_MAX_LENGTH = 5000;
+    public const int MESSAGE_MAX_LENGTH = 5000;
     private readonly ApplicationDbContext _db;
+    private readonly IHubContext<ChatHub> _hub;
 
-    public MessagesController(ApplicationDbContext db) => _db = db;
+    public MessagesController(ApplicationDbContext db, IHubContext<ChatHub> hub)
+    {
+        _db = db;
+        _hub = hub;
+    }
 
     // GET /Messages?c=3&filter=unread&details=true
     [HttpGet]
@@ -108,20 +115,39 @@ public class MessagesController : Controller
             return RedirectToAction(nameof(Index), new { c = conversationId });
         }
 
-        var isMember = await _db.ChatboxUsers.AnyAsync(
-            member => member.ChatboxId == conversationId && member.UserId == userId,
-            cancellationToken);
-        if (!isMember) return NotFound();
+        // Load every member once: this checks membership and tells us who to notify.
+        var memberIds = await _db.ChatboxUsers
+            .Where(member => member.ChatboxId == conversationId)
+            .Select(member => member.UserId)
+            .ToListAsync(cancellationToken);
+        if (!memberIds.Contains(userId)) return NotFound();
 
         // Take the sender identity from the authenticated session, never from submitted form data.
-        _db.Messages.Add(new Message
+        var message = new Message
         {
             ChatboxId = conversationId,
             SenderId = userId,
             Text = body,
             CreatedAt = DateTime.UtcNow,
-        });
+        };
+        _db.Messages.Add(message);
         await _db.SaveChangesAsync(cancellationToken);
+
+        var profileName = await _db.Profiles.AsNoTracking()
+            .Where(profile => profile.UserId == userId)
+            .Select(profile => profile.DisplayName)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        // Same payload as ChatHub.SendMessage, so the page handles both the same way.
+        await _hub.Clients.Users(memberIds).SendAsync("ReceiveMessage", new
+        {
+            message.Id,
+            message.ChatboxId,
+            message.SenderId,
+            SenderName = string.IsNullOrWhiteSpace(profileName) ? User.Identity?.Name ?? "Alumni member" : profileName,
+            message.Text,
+            message.CreatedAt,
+        }, cancellationToken);
 
         return RedirectToAction(nameof(Index), new { c = conversationId });
     }

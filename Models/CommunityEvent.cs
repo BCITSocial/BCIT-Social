@@ -20,6 +20,10 @@ public class CommunityEvent
 
     // Date and time when the event occurs.
     public DateTime EventDate { get; set; }
+    public DateTime? EndsAt { get; set; }
+    public string Campus { get; set; } = "";
+    public string Location { get; set; } = "";
+    public string Description { get; set; } = "";
 
     // Null when active; stores when the event is soft-deleted.
     public DateTime? DateOfDel { get; set; }

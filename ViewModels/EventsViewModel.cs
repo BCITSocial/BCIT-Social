@@ -1,23 +1,24 @@
+
 namespace BCIT_Social.ViewModels;
 
 // Data for the whole Events page: the current filters, the dropdown options, and the cards.
 public class EventsViewModel
 {
-    public const string Discover = "discover";
-    public const string Calendar = "calendar";
+    public const string DISCOVER = "discover";
+    public const string CALENDAR = "calendar";
 
     // The time range and sort used when the URL does not pick one.
-    public const string DefaultRange = "month";
-    public const string DefaultSort = "soonest";
+    public const string DEFAULTRANGE = "all";
+    public const string DEFAULTSORT = "soonest";
 
     // Option lists for the page. Value is what goes in the URL, Label is what the user sees.
-    public static readonly IReadOnlyList<(string Value, string Label)> Views =
+    public static readonly IReadOnlyList<(string Value, string Label)> views =
     [
-        (Discover, "Discover events"),
-        (Calendar, "My calendar"),
+        (DISCOVER, "Discover events"),
+        (CALENDAR, "My calendar"),
     ];
 
-    public static readonly IReadOnlyList<(string Value, string Label)> Statuses =
+    public static readonly IReadOnlyList<(string Value, string Label)> statuses =
     [
         ("all", "All events"),
         ("interested", "Interested"),
@@ -26,22 +27,23 @@ public class EventsViewModel
         ("saved", "Saved"),
     ];
 
-    public static readonly IReadOnlyList<(string Value, string Label)> Ranges =
+    public static readonly IReadOnlyList<(string Value, string Label)> ranges =
     [
+        ("all", "All dates"),
         ("week", "This week"),
         ("month", "This month"),
         ("upcoming", "All upcoming"),
         ("past", "Past"),
     ];
 
-    public static readonly IReadOnlyList<(string Value, string Label)> Sorts =
+    public static readonly IReadOnlyList<(string Value, string Label)> sorts =
     [
         ("soonest", "Soonest"),
         ("latest", "Latest"),
         ("popular", "Most popular"),
     ];
 
-    public static readonly IReadOnlyList<string> Campuses =
+    public static readonly IReadOnlyList<string> campuses =
     [
         "Burnaby",
         "Downtown",
@@ -68,6 +70,8 @@ public class EventsViewModel
     public EventsText Text { get; set; } = new();
     // Options for the Community dropdown. Backend fills this in.
     public IReadOnlyList<string> Communities { get; set; } = [];
+    public IReadOnlyList<(int Id, string Name)> OwnedCommunities { get; set; } = [];
+    public DateTime MinimumEventDate { get; set; }
     // Tag chips above the cards. Backend fills this in.
     public IReadOnlyList<string> Tags { get; set; } = [];
     // The cards to show. Backend fills this in.
@@ -78,14 +82,13 @@ public class EventsViewModel
     {
         Query = string.IsNullOrWhiteSpace(query.Q) ? null : query.Q.Trim();
         Community = string.IsNullOrWhiteSpace(query.Community) ? null : query.Community;
-        Campus = Campuses.FirstOrDefault(c => c == query.Campus);
-        Range = Pick(Ranges, query.Range, DefaultRange);
-        Sort = Pick(Sorts, query.Sort, DefaultSort);
-        Status = Pick(Statuses, query.Status, "all");
-        View = Pick(Views, query.View, Discover);
+        Campus = campuses.FirstOrDefault(c => c == query.Campus);
+        Range = Pick(ranges, query.Range, DEFAULTRANGE);
+        Sort = Pick(sorts, query.Sort, DEFAULTSORT);
+        Status = Pick(statuses, query.Status, "all");
+        View = Pick(views, query.View, DISCOVER);
         _requestedTag = string.IsNullOrWhiteSpace(query.Tag) ? null : query.Tag.Trim();
-        var today = DateOnly.FromDateTime(DateTime.Today);
-        Month = DateOnly.TryParseExact((query.Month ?? "") + "-01", "yyyy-MM-dd", out var month) ? month : new DateOnly(today.Year, today.Month, 1);
+        Month = DateOnly.TryParseExact((query.Month ?? "") + "-01", "yyyy-MM-dd", out var month) ? month : ThisMonth;
     }
 
     // The "month" URL value for a month, e.g. "2026-11".
@@ -108,14 +111,14 @@ public class EventsViewModel
             ["status"] = status ?? Status,
             ["view"] = nextView,
             ["tag"] = tag ?? Tag,
-            ["month"] = nextView == Calendar && (month is not null || Month != ThisMonth) ? MonthValue(month ?? Month) : null,
+            ["month"] = nextView == CALENDAR && (month is not null || Month != ThisMonth) ? MonthValue(month ?? Month) : null,
         };
         return values.Where(v => !string.IsNullOrEmpty(v.Value)).ToDictionary(v => v.Key, v => v.Value!);
     }
 
     // How many filter menu settings differ from the defaults. Shown as a number on the menu button.
     public int ActiveFilterCount =>
-        (Community is null ? 0 : 1) + (Campus is null ? 0 : 1) + (Range == DefaultRange ? 0 : 1) + (Sort == DefaultSort ? 0 : 1);
+        (Community is null ? 0 : 1) + (Campus is null ? 0 : 1) + (Range == DEFAULTRANGE ? 0 : 1) + (Sort == DEFAULTSORT ? 0 : 1);
 
     // Link parameters for "Reset filters": keeps the search, the status chip, the tab and the tag chip, drops the menu settings.
     public Dictionary<string, string> ResetRouteValues()

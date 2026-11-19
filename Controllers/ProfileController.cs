@@ -29,7 +29,7 @@ public class ProfileController : Controller
     }
 
     // GET: PROFILES
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? friendSearch = null)
     {
         var userId = _userManager.GetUserId(User);
         if (userId == null)
@@ -46,10 +46,10 @@ public class ProfileController : Controller
             return View(new ProfilePageViewModel());
         }
 
-        return View(await BuildProfilePageViewModel(profile, userId));
+        return View(await BuildProfilePageViewModel(profile, userId, friendSearch));
     }
 
-    private async Task<ProfilePageViewModel> BuildProfilePageViewModel(Profile profile, string? viewerId)
+    private async Task<ProfilePageViewModel> BuildProfilePageViewModel(Profile profile, string? viewerId, string? friendSearch = null)
     {
         var profileUserId = profile.UserId;
         var posts = await ProjectProfileCards(
@@ -85,6 +85,7 @@ public class ProfileController : Controller
         var communities = await _context.CommunityMembers
             .AsNoTracking()
             .Where(member => member.UserId == profileUserId)
+            .Where(m => m.Community.DateOfDel == null)
             .OrderBy(member => member.Community.Name)
             .Select(member => new CommunityLinkViewModel
             {
@@ -141,6 +142,28 @@ public class ProfileController : Controller
                 .ToListAsync()
             : [];
 
+        var search = isOwnProfile ? friendSearch?.Trim() ?? "" : "";
+        var searchResults = new List<FriendSearchResultViewModel>();
+        if (isOwnProfile && search.Length > 0)
+        {
+            var normalizedSearch = search.ToUpperInvariant();
+            searchResults = await _context.Profiles.AsNoTracking()
+                .Where(p => p.UserId != profileUserId && p.User.DateOfDel == null && p.DisplayName.ToUpper().Contains(normalizedSearch))
+                .OrderBy(p => p.DisplayName).ThenBy(p => p.UserId)
+                .Select(p => new FriendSearchResultViewModel
+                {
+                    UserId = p.UserId,
+                    DisplayName = p.DisplayName,
+                    Program = p.Program,
+                    Campus = p.Campus,
+                    RelationshipStatus = _context.FriendRelationships
+                        .Where(r => (r.RequesterId == profileUserId && r.RecipientId == p.UserId) ||
+                                    (r.RecipientId == profileUserId && r.RequesterId == p.UserId))
+                        .Select(r => r.Status == "Pending" ? r.RequesterId == profileUserId ? "PendingSent" : "PendingReceived" : r.Status)
+                        .FirstOrDefault()
+                }).ToListAsync();
+        }
+
         return new ProfilePageViewModel
         {
             Profile = profile,
@@ -150,6 +173,8 @@ public class ProfileController : Controller
             Communities = communities,
             Friends = friends,
             IncomingFriendRequests = incomingFriendRequests,
+            FriendSearch = search,
+            FriendSearchResults = searchResults,
             FriendCount = friends.Count,
             CanSendFriendRequest = !string.IsNullOrEmpty(viewerId) && !isOwnProfile,
             FriendRelationshipStatus = friendRelationshipStatus
@@ -163,7 +188,7 @@ public class ProfileController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddFriend(string userId)
+    public async Task<IActionResult> AddFriend(string userId, string? friendSearch = null, string? section = null, bool fromFriends = false, string? q = null)
     {
         var requesterId = _userManager.GetUserId(User);
         if (requesterId == null)
@@ -220,7 +245,14 @@ public class ProfileController : Controller
             TempData["FriendRequestMessage"] = "Friend request sent.";
         }
 
-        return RedirectToAction(nameof(Details), new { userid = recipient.Id });
+        if (fromFriends)
+        {
+            return RedirectToAction("Index", "Friends", new { q });
+        }
+
+        return friendSearch is not null
+            ? RedirectToAction(nameof(Index), new { section, friendSearch })
+            : RedirectToAction(nameof(Details), new { userid = recipient.Id });
     }
 
     [HttpPost]
@@ -254,79 +286,33 @@ public class ProfileController : Controller
         return RedirectToAction(nameof(Index), new { section = "friends" });
     }
 
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SendFriendRequest(SendFriendRequestViewModel viewModel)
+    public async Task<IActionResult> CancelFriendRequest(int relationshipId)
     {
-        var requesterId = _userManager.GetUserId(User);
-        if (requesterId == null)
+        var userId = _userManager.GetUserId(User);
+        if (userId == null)
         {
             return Challenge();
         }
 
-        if (!ModelState.IsValid)
-        {
-            TempData["FriendRequestError"] = "Enter a valid email address.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        var recipient = await _userManager.FindByEmailAsync(viewModel.Email.Trim());
-        if (recipient == null || recipient.DateOfDel != null)
-        {
-            TempData["FriendRequestError"] = "No active account matches that email address.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        if (recipient.Id == requesterId)
-        {
-            TempData["FriendRequestError"] = "You cannot send a friend request to yourself.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        var relationshipKey = GetRelationshipKey(requesterId, recipient.Id);
-        var relationship = await _context.FriendRelationships
-            .FirstOrDefaultAsync(friendship => friendship.RelationshipKey == relationshipKey);
-
-        if (relationship?.Status == "Accepted")
-        {
-            TempData["FriendRequestError"] = "You are already friends with this person.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        if (relationship?.Status == "Pending")
-        {
-            TempData["FriendRequestError"] = relationship.RequesterId == requesterId
-                ? "You have already sent this person a friend request."
-                : "This person has already sent you a friend request. Review it in your incoming requests.";
-            return RedirectToAction(nameof(Index));
-        }
-
         var now = DateTime.UtcNow;
-        if (relationship == null)
+        var updated = await _context.FriendRelationships
+            .Where(request => request.Id == relationshipId
+                && request.RequesterId == userId && request.Status == "Pending")
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(request => request.Status, "Cancelled")
+                .SetProperty(request => request.UpdatedAt, now)
+                .SetProperty(request => request.DeactivatedAt, now));
+
+        if (updated == 0)
         {
-            relationship = new FriendRelationship
-            {
-                RelationshipKey = relationshipKey,
-                RequesterId = requesterId,
-                RecipientId = recipient.Id,
-                Status = "Pending",
-                CreatedAt = now
-            };
-            _context.FriendRelationships.Add(relationship);
-        }
-        else
-        {
-            relationship.RequesterId = requesterId;
-            relationship.RecipientId = recipient.Id;
-            relationship.Status = "Pending";
-            relationship.CreatedAt = now;
-            relationship.UpdatedAt = now;
-            relationship.DeactivatedAt = null;
+            return NotFound();
         }
 
-        await _context.SaveChangesAsync();
-        TempData["FriendRequestMessage"] = "Friend request sent.";
-        return RedirectToAction(nameof(Index));
+        TempData["FriendRequestMessage"] = "Friend request cancelled.";
+        return RedirectToAction("Index", "Friends");
     }
 
     [HttpPost]
