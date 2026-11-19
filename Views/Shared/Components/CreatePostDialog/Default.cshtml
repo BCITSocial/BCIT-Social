@@ -2,9 +2,16 @@
 @*
 The create post modal. Submits the post title, content, and one post type (TagId) to
 PostController.Create. Parts the backend doesn't handle yet are shown disabled: Post to,
-formatting, extra tags, attachments, and the Event tab.
+formatting, extra tags, and the Event tab.
+create-post.js checks the fields and the chosen photos, shows previews, and sends the form in the background.
+After a post is published the page reloads and shows a short "published" note, so the new post appears in the feed
+as a normal card instead of opening on its own page.
+TODO(BE): with JavaScript off the form is sent normally and PostController.Create redirects to /Home/Post/{id}
+(the full page). Redirecting to Home/Index there instead would keep that path in the feed too.
 *@
-<dialog class="create-dialog" id="create-post-dialog" aria-labelledby="create-post-title">
+<dialog class="create-dialog" id="create-post-dialog" aria-labelledby="create-post-title"
+        data-published-text="Your post was published." data-view-post-text="View post" data-dismiss-text="Dismiss"
+        data-deleted-text="Your post was deleted.">
     <div class="create-dialog-top">
         <div class="create-tabs" role="group" aria-label="What to create">
             <span class="create-tab" aria-current="true">
@@ -21,10 +28,14 @@ formatting, extra tags, attachments, and the Event tab.
         </button>
     </div>
 
-    <form class="create-form" method="post" enctype="multipart/form-data" asp-area="" asp-controller="Post" asp-action="Create">
+    <form class="create-form" method="post" enctype="multipart/form-data" asp-area="" asp-controller="Post" asp-action="Create"
+          novalidate data-create-post>
         <div class="create-form-body">
             <h2 class="create-title" id="create-post-title">Create post</h2>
             <p class="create-subtitle">Start a conversation with your community.</p>
+
+            @* Filled in by create-post.js: the error summary, or why the post couldn't be published. *@
+            <p class="form-message" role="alert" data-form-message hidden></p>
 
             <div class="create-field">
                 <label for="create-post-to">Post to</label>
@@ -34,7 +45,7 @@ formatting, extra tags, attachments, and the Event tab.
                 <p class="create-help">Posting to a community isn't available yet.</p>
             </div>
 
-            <fieldset class="create-field">
+            <fieldset class="create-field" aria-describedby="create-post-type-error" data-error="Choose a post type.">
                 <legend>Post type</legend>
                 <div class="post-type-options">
                     @foreach (var type in Model.PostTypes)
@@ -45,17 +56,25 @@ formatting, extra tags, attachments, and the Event tab.
                         </label>
                     }
                 </div>
+                <p class="field-error" id="create-post-type-error" hidden></p>
             </fieldset>
 
             <div class="create-field">
-                <label for="create-post-title-input">Title</label>
-                <input id="create-post-title-input" name="Title" maxlength="150" placeholder="How do you organize MVC controllers?" required />
+                <div class="create-label-row">
+                    <label for="create-post-title-input">Title</label>
+                    @* Characters used out of the 150 allowed, kept up to date by create-post.js. *@
+                    <span class="create-count" data-count-for="create-post-title-input" aria-hidden="true"></span>
+                </div>
+                <input id="create-post-title-input" name="Title" maxlength="150" placeholder="How do you organize MVC controllers?" required
+                       aria-describedby="create-post-title-error" data-error="Enter a title." />
+                <p class="field-error" id="create-post-title-error" hidden></p>
             </div>
 
             <div class="create-field">
                 <label for="create-post-content">Content</label>
                 <div class="content-editor">
-                    <textarea id="create-post-content" name="Content" rows="5" placeholder="Share your question, idea, or update..." required></textarea>
+                    <textarea id="create-post-content" name="Content" rows="5" placeholder="Share your question, idea, or update..." required
+                              aria-describedby="create-post-content-error" data-error="Write something for your post."></textarea>
                     <div class="content-toolbar" aria-label="Formatting (not available yet)">
                         <button type="button" disabled aria-label="Bold"><strong>B</strong></button>
                         <button type="button" disabled aria-label="Italic"><em>I</em></button>
@@ -63,6 +82,7 @@ formatting, extra tags, attachments, and the Event tab.
                         <button type="button" disabled aria-label="List"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 7h14M5 12h14M5 17h14" /></svg></button>
                     </div>
                 </div>
+                <p class="field-error" id="create-post-content-error" hidden></p>
             </div>
 
             <div class="create-field">
@@ -71,19 +91,33 @@ formatting, extra tags, attachments, and the Event tab.
                 <p class="create-help">Extra tags aren't available yet. The post type is saved as the post's tag.</p>
             </div>
 
+            @* Photos: the box opens the file picker. create-post.js shows a preview of each chosen photo with a
+               Remove button, and checks them against the upload rules in UploadService (post photos). *@
             <div class="create-field">
+                <span class="create-label">Photos (optional)</span>
                 <label class="attach-box" for="Photos">
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="5" width="17" height="14" rx="1.5" /><circle cx="9" cy="10" r="1.6" /><path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5" /></svg>
                     Add photos
                 </label>
-                <input asp-for="Photos" type="file" multiple accept="image/png, image/jpeg, image/jpg, image/webp, image/gif"/>
+                <input asp-for="Photos" type="file" multiple class="visually-hidden" accept=".png,.jpg,.jpeg,.webp,.gif"
+                       aria-describedby="create-post-photos-help create-post-photos-error"
+                       data-max-bytes="@(20 * 1024 * 1024)" data-min-size="300"
+                       data-error-type="{0} isn't a PNG, JPG, WEBP or GIF image."
+                       data-error-size="{0} is larger than 20 MB."
+                       data-error-dimensions="{0} is smaller than 300 × 300 pixels."
+                       data-remove-text="Remove {0}" />
+                <p class="create-help" id="create-post-photos-help">PNG, JPG, WEBP or GIF. Up to 20 MB each, at least 300 × 300 pixels.</p>
+                <ul class="photo-previews" data-photo-previews hidden></ul>
+                <p class="field-error" id="create-post-photos-error" hidden></p>
                 <span asp-validation-for="Photos" class="text-danger"></span>
             </div>
         </div>
 
         <div class="create-footer">
             <button class="secondary-button" type="button" data-close-create>Cancel</button>
-            <button class="cta-button publish-button" type="submit">Publish post</button>
+            <button class="cta-button publish-button" type="submit" data-submitting-text="Publishing..."
+                    data-error-summary="Check the highlighted fields."
+                    data-error-failed="Your post couldn't be published. Try again.">Publish post</button>
         </div>
     </form>
 </dialog>
