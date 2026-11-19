@@ -1058,10 +1058,6 @@ public class CommunityController : Controller
     public async Task<IActionResult> DeleteConfirmed(int? id)
     {
         var community = await _context.Communities.FindAsync(id);
-        if (community == null || community.DateOfDel != null)
-        {
-            return NotFound();
-        }
         string? bannerKey = null;
         if (community == null || community.DateOfDel != null)
         {
@@ -1076,7 +1072,6 @@ public class CommunityController : Controller
         community.DateOfDel = DateTime.Now.AddDays(7);
         _context.Communities.Update(community);
         await _context.SaveChangesAsync();
-
         // Author: Jay
         await DeleteBannerAsync(bannerKey);
         return RedirectToAction(nameof(Index));
