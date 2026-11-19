@@ -36,6 +36,7 @@ public class ProfileController : Controller
 
         var profile = await _context.Profiles
             .AsNoTracking()
+            .Where(item => item.User.DateOfDel == null)
             .FirstOrDefaultAsync(item => item.UserId == userId);
 
         if (profile == null)
@@ -148,7 +149,10 @@ public class ProfileController : Controller
                 .OrderBy(p => p.DisplayName).ThenBy(p => p.UserId)
                 .Select(p => new FriendSearchResultViewModel
                 {
-                    UserId = p.UserId, DisplayName = p.DisplayName, Program = p.Program, Campus = p.Campus,
+                    UserId = p.UserId,
+                    DisplayName = p.DisplayName,
+                    Program = p.Program,
+                    Campus = p.Campus,
                     RelationshipStatus = _context.FriendRelationships
                         .Where(r => (r.RequesterId == profileUserId && r.RecipientId == p.UserId) ||
                                     (r.RecipientId == profileUserId && r.RequesterId == p.UserId))
@@ -352,7 +356,10 @@ public class ProfileController : Controller
         }
         var profile = await _context.Profiles
             .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.UserId == requestedUserId);
+            .Where(m => m.UserId == requestedUserId)
+            .Include(m => m.User)
+            .Where(m => m.User.DateOfDel == null)
+            .FirstOrDefaultAsync();
         if (profile == null)
         {
             return NotFound();
@@ -504,10 +511,11 @@ public class ProfileController : Controller
 
     // POST: PROFILES/Delete/5
     /// <summary>
-    /// Author: Joshua Trepanier
-    /// Last Revised: Oct 21, 2026
+    /// Author: Joshua Trepanier, Tin Trinh
+    /// Last Revised: Nov 18, 2026
     /// Description: Delete the existing profile (Also deletes the account from the database).
     /// Signs user out once account is deleted.
+    /// Checks if user does not own any communities first
     /// </summary>
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
@@ -524,10 +532,31 @@ public class ProfileController : Controller
         }
         var profile = await _context.Profiles.FindAsync(userid);
         var account = await _context.Users.FindAsync(userid);
-        if (profile != null && account != null)
+        var communities = await _context.Communities
+                            .Where(c => c.CreatorId == currentUserID)
+                            .Where(c => c.DateOfDel == null)
+                            .ToListAsync();
+        if (communities.Count > 0)
         {
-            _context.Profiles.Remove(profile);
-            _context.Users.Remove(account);
+            /*
+            Logic
+            1. Redirect to community handling page
+            2. Page has a list of communities either to delete or assign new creator
+            3. redirect to that page until count == 0
+            4. are you sure you want to delete your account page
+            5. mark for deletion.
+            */
+            return RedirectToAction(nameof(Index));
+        }
+        if (profile != null && account != null && communities.Count == 0)
+        {
+            account.DateOfDel = DateTime.Now.AddDays(7);
+            /*
+             We need to handle this in log in
+             1. Make sure if user.DateOfDel != null 
+                the user can't log in
+            */
+            _context.Users.Update(account);
         }
         await _context.SaveChangesAsync();
         await _signInManager.SignOutAsync();
