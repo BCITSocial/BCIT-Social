@@ -82,6 +82,7 @@ public class ProfileController : Controller
         var communities = await _context.CommunityMembers
             .AsNoTracking()
             .Where(member => member.UserId == profileUserId)
+            .Where(m => m.Community.DateOfDel == null)
             .OrderBy(member => member.Community.Name)
             .Select(member => new CommunityLinkViewModel
             {
@@ -148,7 +149,10 @@ public class ProfileController : Controller
                 .OrderBy(p => p.DisplayName).ThenBy(p => p.UserId)
                 .Select(p => new FriendSearchResultViewModel
                 {
-                    UserId = p.UserId, DisplayName = p.DisplayName, Program = p.Program, Campus = p.Campus,
+                    UserId = p.UserId,
+                    DisplayName = p.DisplayName,
+                    Program = p.Program,
+                    Campus = p.Campus,
                     RelationshipStatus = _context.FriendRelationships
                         .Where(r => (r.RequesterId == profileUserId && r.RecipientId == p.UserId) ||
                                     (r.RecipientId == profileUserId && r.RequesterId == p.UserId))
