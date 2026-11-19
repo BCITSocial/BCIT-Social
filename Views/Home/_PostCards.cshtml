@@ -19,6 +19,11 @@
                     <span>· @post.CommunityName</span>
                 }
                 <span>· <time datetime="@post.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")">@post.TimeAgo(now)</time></span>
+                @* "Edited" appears only when the post has been changed after it was created (PostCardViewModel.EditedAt). *@
+                @if (post.EditedAt is { } editedAt)
+                {
+                    <span class="post-edited">· <time datetime="@editedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")" title="Edited @BCIT_Social.ViewModels.DisplayFormat.TimeAgo(editedAt, now)">Edited</time></span>
+                }
             </p>
             @if (post.Tags.Count > 0)
             {
@@ -66,7 +71,7 @@
                 @if (post.IsAuthor)
                 {
                     <a class="post-action" asp-controller="Post" asp-action="Edit" asp-route-id="@post.Id">Edit</a>
-                    <form class="post-manage" method="post" asp-controller="Post" asp-action="Delete" asp-route-id="@post.Id" onsubmit="return confirm('Delete this post?');">
+                    <form class="post-manage" method="post" asp-controller="Post" asp-action="Delete" asp-route-id="@post.Id" onsubmit="return confirm('Delete this post?');" data-delete-post>
                         <button class="post-action" type="submit">Delete</button>
                     </form>
                 }
