@@ -72,7 +72,7 @@
         body.style.setProperty("--bs-link-color-rgb", accentRgb);
         body.style.setProperty("--bs-link-hover-color-rgb", accentRgb);
 
-        profilePage?.querySelectorAll("[data-profile-theme-choice]").forEach((button) => {
+        document.querySelectorAll("[data-profile-theme-choice]").forEach((button) => {
             button.setAttribute("aria-pressed", String(button.dataset.profileThemeChoice === preferences.theme));
         });
     }

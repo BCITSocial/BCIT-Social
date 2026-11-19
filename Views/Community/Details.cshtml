@@ -10,6 +10,14 @@
     var meta = text.Meta;
     var discussions = text.Discussions;
     ViewData["Title"] = Model.Name;
+    // Same shell as the other pages: header, left nav and the centred column.
+    Layout = "_HomeLayout";
+    // When you're a member, the left nav highlights this community under "Your communities"
+    // instead of the Communities link (_Navigation and the SidebarCommunities view read this).
+    if (Model.IsMember)
+    {
+        ViewData["ActiveCommunityId"] = Model.Id;
+    }
 }
 
 <!-- Included communities.css for shared modal styling and badges -->
@@ -90,21 +98,19 @@
         <p class="about-text">@Model.About</p>
     </div>
 
-    <!-- Latest Discussions (placeholder content from the JSON) -->
+    <!-- Latest Discussions (placeholder content from the JSON).
+         TODO(BE): real posts need CommunityController to pass this community's posts in the view model;
+         then render them with <partial name="~/Views/Home/_PostCards.cshtml" /> so they match Home. -->
     <div class="discussions-section-container">
+        @* No "See all" button: every discussion shows, you just scroll. *@
         <div class="section-header-row">
             <h3 class="section-title">@discussions.Title</h3>
-            <button type="button" id="toggle-discussions-btn" class="link-action-btn"
-                    data-see-all="@discussions.SeeAllText" data-show-less="@discussions.ShowLessText">
-                @discussions.SeeAllText
-            </button>
         </div>
         <div id="discussions-list" class="discussions-list">
             @for (var i = 0; i < discussions.Items.Count; i++)
             {
                 var discussion = discussions.Items[i];
-                var isHiddenByDefault = i >= discussions.InitiallyShown;
-                <div class="discussion-card @(isHiddenByDefault ? "discussion-extra is-hidden" : "")">
+                <div class="discussion-card">
                     <div class="avatar-initials">@discussion.Initials</div>
                     <div class="discussion-content">
                         <div class="discussion-top-row">
@@ -131,5 +137,4 @@
          community-form.js fills in its tags -->
     <script src="~/js/communities.js" asp-append-version="true"></script>
     <script src="~/js/community-form.js" asp-append-version="true"></script>
-    <script src="~/js/community-details.js" asp-append-version="true"></script>
 }

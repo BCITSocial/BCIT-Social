@@ -671,3 +671,90 @@ a.btn-cancel {
 .delete-summary .delete-summary-count {
     margin: 0;
 }
+/* Community card layout: picture slot left, name + tags on one line, members and campus under the name,
+   description below, Join at the top right. */
+.browse-grid .community-card {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 0 1rem;
+    padding: 1.1rem 1.25rem;
+}
+
+.community-card-pic {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-sm);
+    background-color: var(--avatar-box-bg);
+    color: var(--text-primary);
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.community-card-body {
+    min-width: 0;
+}
+
+.community-card-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.6rem;
+    margin-bottom: 0.25rem;
+}
+
+.community-card-top .community-card-title {
+    margin: 0;
+}
+
+.community-card-top .badge-row {
+    margin: 0;
+}
+
+.browse-grid .member-count {
+    margin-bottom: 0.4rem;
+}
+
+.browse-grid .community-desc {
+    margin: 0;
+}
+
+.browse-grid .card-actions {
+    margin-top: 0;
+}
+
+/* Phone layout: less padding, a smaller picture slot, and the filters fill the width. */
+@media (max-width: 640px) {
+    .communities-wrapper {
+        padding: 0.9rem 0.75rem;
+    }
+
+    .communities-header {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .browse-grid .community-card {
+        grid-template-columns: 44px minmax(0, 1fr) auto;
+        gap: 0 0.75rem;
+        padding: 0.9rem;
+    }
+
+    .community-card-pic {
+        width: 44px;
+        height: 44px;
+        font-size: 0.9rem;
+    }
+
+    .filter-selects {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    .filter-select {
+        width: 100%;
+    }
+}

@@ -140,12 +140,6 @@
                     <button class="icon-button" type="button" aria-label="Search in conversation" aria-controls="msg-chat-search" aria-expanded="false" data-conversation-search>
                         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
                     </button>
-                    <button class="icon-button" type="button" aria-label="Start video call">
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="6.5" width="12.5" height="11" rx="2" /><path d="m15.5 10.5 5-3v9l-5-3" /></svg>
-                    </button>
-                    <button class="icon-button" type="button" aria-label="More options">
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></svg>
-                    </button>
                     @* Hidden while the panel is open, like the Figma frame; the panel has its own close button.
                        Without JavaScript the links reload the page with ?details=...; messages.js toggles the panel in place. *@
                     <a class="msg-details-button" asp-action="Index" asp-all-route-data="@Model.RouteValues(conversation: active.Id, details: true)" aria-controls="msg-details" data-details-open>
@@ -268,37 +262,6 @@
                     <p class="msg-details-status"><span class="msg-status-dot" aria-hidden="true"></span>Active now</p>
                 }
                 <a class="msg-outline-button" asp-controller="Profile" asp-action="Details" asp-route-userid="@active.UserId">View profile</a>
-            </section>
-
-            <section class="msg-panel msg-details-card" aria-labelledby="shared-communities-heading">
-                <div class="msg-details-head">
-                    <h2 id="shared-communities-heading">Shared communities</h2>
-                    @if (active.SharedCommunities.Count > 2)
-                    {
-                        <a asp-controller="Community" asp-action="Index">See all</a>
-                    }
-                </div>
-                @if (active.SharedCommunities.Count == 0)
-                {
-                    <p class="msg-details-empty">No communities in common yet.</p>
-                }
-                else
-                {
-                    <ul class="msg-details-list">
-                        @foreach (var community in active.SharedCommunities.Take(2))
-                        {
-                            <li>
-                                <a class="msg-community" asp-controller="Community" asp-action="Details" asp-route-id="@community.Id">
-                                    <span class="msg-community-tile" aria-hidden="true">@community.Initials</span>
-                                    <span class="msg-community-text">
-                                        <strong>@community.Name</strong>
-                                        <span>@DisplayFormat.Count(community.MemberCount) members</span>
-                                    </span>
-                                </a>
-                            </li>
-                        }
-                    </ul>
-                }
             </section>
 
             <section class="msg-panel msg-details-card" aria-labelledby="shared-media-heading">

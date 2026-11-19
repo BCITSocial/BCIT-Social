@@ -22,6 +22,8 @@ Provides the shared page structure, styles, header, navigation, and script secti
        edge. A page fills the right column with @section RightPanel { ... }. *@
     <div class="app-shell">
         <partial name="_Navigation" />
+        @* Dims the page behind the slide-out menu on phones; a tap closes the menu. *@
+        <div class="nav-backdrop" hidden data-nav-backdrop></div>
         <main id="main-content" tabindex="-1">
             @RenderBody()
         </main>
@@ -31,6 +33,7 @@ Provides the shared page structure, styles, header, navigation, and script secti
     </div>
     @await Component.InvokeAsync("CreatePostDialog")
     <script src="~/js/create-post.js" asp-append-version="true" defer></script>
+    <script src="~/js/nav-drawer.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

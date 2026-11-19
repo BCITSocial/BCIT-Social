@@ -30,14 +30,9 @@ frontend view for Communities page.
         }
     </div>
 
-    @* search & filter dropdowns, communities.js hides cards that don't match. *@
+    @* filter dropdowns, communities.js hides cards that don't match. *@
     <form id="community-filters" class="community-filters" method="get" role="search" aria-label="@filters.Label">
-        <label class="filter-search">
-            <span class="visually-hidden">@filters.SearchLabel</span>
-            <input type="search" id="community-search" class="search-input" autocomplete="off"
-                   placeholder="@filters.SearchPlaceholder" />
-        </label>
-
+        @* No search box here: the header search covers the whole site. *@
         <div class="filter-selects">
             <label>
                 <span class="visually-hidden">@filters.TypeLabel</span>
@@ -100,22 +95,26 @@ frontend view for Communities page.
             <div id="browse-grid" class="browse-grid">
                 @foreach (var item in Model.Communities)
                 {
+                    @* Card: picture slot on the left, name with its tags, members and campus under the name,
+                       the description below, and Join at the top right. *@
                     <div class="community-card" data-name="@item.Name" data-topics="@item.TopicsAttribute"
                          data-campus="@item.Location" data-status="@item.Status">
-                        <div>
-                            <a asp-action="Details" asp-route-id="@item.Id" class="card-clickable-link">
-                                <h3 class="community-card-title">@item.Name</h3>
-                            </a>
+                        @* Room for a community picture later. Shows the initials until then. *@
+                        <div class="community-card-pic" aria-hidden="true">@BCIT_Social.ViewModels.DisplayFormat.Initials(item.Name)</div>
 
-                            @* badges *@
-                            <div class="badge-row">
-                                @foreach (var badge in item.Badges)
-                                {
-                                    <span class="category-badge @badge.CssClass">@badge.Text</span>
-                                }
+                        <div class="community-card-body">
+                            <div class="community-card-top">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="card-clickable-link">
+                                    <h3 class="community-card-title">@item.Name</h3>
+                                </a>
+                                <div class="badge-row">
+                                    @foreach (var badge in item.Badges)
+                                    {
+                                        <span class="category-badge @badge.CssClass">@badge.Text</span>
+                                    }
+                                </div>
                             </div>
 
-                            @* member count and location *@
                             <div class="member-count">
                                 <span>@item.MemberCount @text.MembersLabel</span>
                                 <span>&bull;</span>
