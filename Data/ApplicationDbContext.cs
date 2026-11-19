@@ -16,6 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Community> Communities { get; set; }
     public DbSet<CommunityMember> CommunityMembers { get; set; }
     public DbSet<CommunityEvent> CommunityEvents { get; set; }
+    public DbSet<EventRsvp> EventRsvps { get; set; }
     public DbSet<CommunityMessage> CommunityMessages { get; set; }
     public DbSet<Post> Posts { get; set; }
     public DbSet<Comments> Comments { get; set; }
@@ -33,6 +34,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<EventRsvp>().HasOne(r => r.Event).WithMany().HasForeignKey(r => r.EventId).OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<EventRsvp>().HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
 
         // One Profile belongs to one ApplicationUser.
         builder.Entity<Profile>()

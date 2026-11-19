@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace BCIT_Social.ViewModels;
 
@@ -15,7 +16,17 @@ public class ProfileViewModel
 
     public string Bio { get; set; } = null!;
 
+
     public string Program { get; set; } = null!;
 
     public string Campus { get; set; } = null!;
+    // Storage key for the profile photo.
+    public string? ProfilePhotoStorageKey { get; set; }
+    public string? ProfilePhotoOriginalFileName { get; set; }
+    public string? ProfilePhotoContentType { get; set; }
+    public long? ProfilePhotoFileSizeBytes { get; set; }
+    public DateTime? ProfilePhotoUpdatedAt { get; set; }
+
+    public IFormFile? ProfilePhoto { get; set; }
+
 }

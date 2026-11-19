@@ -329,3 +329,26 @@
     font-size: 0.75rem;
     color: var(--text-muted);
 }
+
+/* Delete page */
+.modal-title.danger-title {
+    color: rgb(185, 28, 28);
+}
+
+.delete-summary {
+    margin-bottom: 1.5rem;
+}
+
+.delete-summary-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.delete-summary .badge-row {
+    margin-bottom: 0.5rem;
+}
+
+.delete-summary .delete-summary-count {
+    margin: 0;
+}

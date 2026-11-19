@@ -14,15 +14,17 @@
         <a class="profile-button profile-button-outline" asp-action="Index">Cancel</a>
     </header>
 
-    <section class="profile-edit-card" aria-labelledby="profile-create-details-heading">
-        <div class="profile-edit-cover" aria-hidden="true"></div>
-        <div class="profile-edit-content">
-            <div class="profile-edit-section-heading">
-                <div class="profile-avatar" aria-hidden="true">B</div>
-                <div>
-                    <h2 id="profile-create-details-heading">Profile information</h2>
-                    <p>Your profile helps other students get to know you.</p>
-                </div>
+<h4>Profile</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="DisplayName" class="control-label"></label>
+                <input asp-for="DisplayName" class="form-control" />
+                <span asp-validation-for="DisplayName" class="text-danger"></span>
             </div>
 
             <form asp-action="Create" method="post" class="profile-edit-form">
@@ -34,31 +36,22 @@
                     <span asp-validation-for="DisplayName"></span>
                 </div>
 
-                <div class="profile-edit-field">
-                    <label asp-for="Bio">About me</label>
-                    <textarea asp-for="Bio" rows="4" placeholder="Share a little about yourself..."></textarea>
-                    <span asp-validation-for="Bio"></span>
-                </div>
-
-                <div class="profile-edit-fields-row">
-                    <div class="profile-edit-field">
-                        <label asp-for="Program"></label>
-                        <input asp-for="Program" autocomplete="organization-title" />
-                        <span asp-validation-for="Program"></span>
-                    </div>
-
-                    <div class="profile-edit-field">
-                        <label asp-for="Campus"></label>
-                        <select asp-for="Campus">
-                            <option value="">Select a campus</option>
-                            <option value="Burnaby">Burnaby</option>
-                            <option value="Downtown">Downtown</option>
-                            <option value="Marine">Marine</option>
-                            <option value="Aerospace">Aerospace</option>
-                        </select>
-                        <span asp-validation-for="Campus"></span>
-                    </div>
-                </div>
+            <div class="form-group">
+                <label asp-for="Campus" class="control-label"></label>
+                <input asp-for="Campus" class="form-control" />
+                <span asp-validation-for="Campus" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ProfilePhoto">Profile photo</label>
+                <input asp-for="ProfilePhoto" type="file" accept=".png,.jpg,.jpeg,.webp" />
+                <span asp-validation-for="ProfilePhoto" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
 
                 <div class="profile-edit-actions">
                     <a class="profile-button profile-button-outline" asp-action="Index">Cancel</a>

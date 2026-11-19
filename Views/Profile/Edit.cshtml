@@ -18,8 +18,16 @@
         <div class="profile-edit-cover" aria-hidden="true"></div>
         <div class="profile-edit-content">
             <div class="profile-edit-section-heading">
-                <div class="profile-avatar" aria-hidden="true">
-                    @(string.IsNullOrWhiteSpace(Model.DisplayName) ? "B" : Model.DisplayName[..1].ToUpperInvariant())
+                <div class="profile-avatar">
+                    @if (!string.IsNullOrEmpty(Model.ProfilePhotoStorageKey))
+                    {
+                        <img style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
+                            src="@Url.Action("Photo", "Profile", new { id = Model.UserId })"/>
+                    }
+                    else
+                    {
+                        @(string.IsNullOrWhiteSpace(Model.DisplayName) ? "B" : Model.DisplayName[..1].ToUpperInvariant())
+                    }
                 </div>
                 <div>
                     <h2 id="profile-edit-details-heading">Profile information</h2>
@@ -27,7 +35,7 @@
                 </div>
             </div>
 
-            <form asp-action="Edit" asp-route-userid="@Model.UserId" method="post" class="profile-edit-form">
+            <form asp-action="Edit" asp-route-userid="@Model.UserId" method="post" enctype="multipart/form-data" class="profile-edit-form">
                 <div asp-validation-summary="ModelOnly" class="profile-edit-validation" role="alert"></div>
                 <input type="hidden" asp-for="UserId" />
 
@@ -61,6 +69,12 @@
                         </select>
                         <span asp-validation-for="Campus"></span>
                     </div>
+                </div>
+
+                <div class="profile-edit-field">
+                    <label for="ProfilePhoto">Profile photo</label>
+                    <input id="ProfilePhoto" name="ProfilePhoto" type="file" accept=".png,.jpg,.jpeg,.webp" />
+                    <span class="text-danger" data-valmsg-for="ProfilePhoto"></span>
                 </div>
 
                 <div class="profile-edit-actions">

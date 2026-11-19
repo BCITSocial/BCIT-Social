@@ -20,6 +20,9 @@
         for (const panel of panels) {
             panel.hidden = panel.dataset.profilePanel !== section;
         }
+        for (const input of document.querySelectorAll("[data-preserve-profile-section]")) {
+            input.value = section;
+        }
 
         if (focus) {
             selectedTab.focus();

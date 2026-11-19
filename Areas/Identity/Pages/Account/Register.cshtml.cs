@@ -65,6 +65,13 @@ public class RegisterModel(UserManager<ApplicationUser> userManager,
         OnGet(returnUrl);
         if (!ModelState.IsValid) return Page();
 
+        if (!Input.Email.EndsWith("@bcit.ca", StringComparison.OrdinalIgnoreCase)
+            && !Input.Email.EndsWith("@my.bcit.ca", StringComparison.OrdinalIgnoreCase))
+        {
+            ModelState.AddModelError("Input.Email", "Use your BCIT email address.");
+            return Page();
+        }
+
         var user = new ApplicationUser { UserName = Input.Email, Email = Input.Email };
         var result = await userManager.CreateAsync(user, Input.Password);
         if (!result.Succeeded)

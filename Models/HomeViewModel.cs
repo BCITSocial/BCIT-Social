@@ -16,4 +16,16 @@ public class HomeViewModel
     public IReadOnlyList<CommunityLinkViewModel> YourCommunities { get; init; } = [];
     // Initials for the signed-in user's avatar in the share box. Empty when signed out.
     public string CurrentUserInitials { get; init; } = "";
+    public string? CurrentUserId { get; init; }
+    public bool HasCurrentUserProfilePhoto { get; init; }
+    public string? CurrentUserProfilePhotoOriginalFileName { get; init; }
+
+    public string CurrentFilter { get; init; } = "all";
+
+    // The tag currently selected for the Home feed.
+    // Null means that posts from all tags are displayed.
+    public int? CurrentTagId { get; init; }
+
+    // Tags available in the Home feed filter.
+    public IReadOnlyList<TagFilterViewModel> AvailableTags { get; init; } = [];
 }

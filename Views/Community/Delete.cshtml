@@ -3,19 +3,12 @@
 - author: jaspreet bath
 *@
 
-@model BCIT_Social.Models.Community
-@using System.IO
-@using System.Text.Json
-@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
+@model BCIT_Social.ViewModels.CommunityDeleteViewModel
 
 @{
     Layout = "_HomeLayout";
-    var jsonPath = System.IO.Path.Combine(Env.WebRootPath, "content", "communities-text.json");
-    using var jsonDoc = JsonDocument.Parse(File.ReadAllText(jsonPath));
-    var text = jsonDoc.RootElement;
-    var del = text.GetProperty("deletePage");
-
-    ViewData["Title"] = del.GetProperty("title").GetString();
+    var text = Model.Text;
+    ViewData["Title"] = text.Title;
 }
 
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
@@ -23,42 +16,35 @@
 <div class="communities-wrapper">
     <div class="form-page-container">
         <div class="modal-card danger-card">
-            <h1 class="modal-title" style="color: rgb(185, 28, 28);">@del.GetProperty("title").GetString()</h1>
-            <p class="modal-subtitle">@del.GetProperty("subtitle").GetString()</p>
+            <h1 class="modal-title danger-title">@text.Title</h1>
+            <p class="modal-subtitle">@text.Subtitle</p>
 
             <div class="danger-box">
-                <p>Are you sure you want to permanently remove <strong>@Model?.Name</strong>? All associations and
-                    memberships will be lost.</p>
-                </div>
-
-                <div class="details-card" style="margin-bottom: 1.5rem;">
-                    <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 0.5rem 0;">@Model?.Name</h3>
-                    <div class="badge-row" style="flex-wrap: wrap; margin-bottom: 0.5rem;">
-                        @if (!string.IsNullOrWhiteSpace(Model?.Type))
-                        {
-                            @foreach (var rawTag in Model.Type.Split(',', StringSplitOptions.RemoveEmptyEntries |
-                        StringSplitOptions.TrimEntries))
-                            {
-                                <span class="category-badge">@rawTag</span>
-                            }
-                        }
-                    </div>
-                    <div class="member-count" style="margin: 0;">
-                        @(Model?.Members?.Count ?? 0) @text.GetProperty("membersLabel").GetString()
-                    </div>
-                </div>
-
-                <form asp-action="Delete" method="post">
-                    <input type="hidden" asp-for="Id" />
-                    <div class="modal-footer-actions">
-                        <a asp-action="Index" class="btn-cancel" style="text-decoration: none;">
-                            @del.GetProperty("cancelButton").GetString()
-                        </a>
-                        <button type="submit" class="btn-danger-confirm">
-                            @del.GetProperty("confirmButton").GetString()
-                        </button>
-                    </div>
-                </form>
+                <p>@text.WarningPrefix<strong>@Model.Name</strong>@text.WarningSuffix</p>
             </div>
+
+            <div class="details-card delete-summary">
+                <h3 class="delete-summary-title">@Model.Name</h3>
+                <div class="badge-row">
+                    @foreach (var badge in Model.Badges)
+                    {
+                        <span class="category-badge @badge.CssClass">@badge.Text</span>
+                    }
+                </div>
+                <div class="member-count delete-summary-count">
+                    <span>@Model.MemberCount @Model.MembersLabel</span>
+                    <span>&bull;</span>
+                    <span>@Model.Location</span>
+                </div>
+            </div>
+
+            <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+                <input type="hidden" asp-for="Id" />
+                <div class="modal-footer-actions">
+                    <a asp-action="Index" class="btn-cancel">@text.CancelButton</a>
+                    <button type="submit" class="btn-danger-confirm">@text.ConfirmButton</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>

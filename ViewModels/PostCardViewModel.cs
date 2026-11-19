@@ -1,3 +1,5 @@
+using BCIT_Social.Models;
+
 namespace BCIT_Social.ViewModels;
 
 // Data for one post card in the Home feed.
@@ -8,10 +10,14 @@ public class PostCardViewModel
     public string Content { get; init; } = "";
     // Profile display name, or the account user name when there is no profile.
     public string AuthorName { get; init; } = "";
+	public List<PostPhoto> Photos { get; set; } = new();
     // Null when the post is not in a community.
     public string? CommunityName { get; init; }
     // Stored in UTC.
     public DateTime CreatedAt { get; init; }
+    // When the post was last edited, in UTC. Null when it has never been edited; the card then shows no "Edited" label.
+    // TODO(BE): Post has no "updated at" column yet. Add one, set it in PostController.Edit, and fill this in HomeController.ProjectCards.
+    public DateTime? EditedAt { get; init; }
     public IReadOnlyList<string> Tags { get; init; } = [];
     public int CommentCount { get; init; }
     // True when the signed-in user has bookmarked the post.
@@ -19,6 +25,10 @@ public class PostCardViewModel
     // True when the signed-in user authored the post.
     public bool IsAuthor { get; init; }
 
+    // Id of the user who created the post
+    public string AuthorId { get; init; } = "";
+    public bool AuthorHasProfilePhoto { get; init; }
+    public string? AuthorProfilePhotoOriginalFileName { get; init; }
     public string AuthorInitials => DisplayFormat.Initials(AuthorName);
 
     public string TimeAgo(DateTime utcNow) => DisplayFormat.TimeAgo(CreatedAt, utcNow);

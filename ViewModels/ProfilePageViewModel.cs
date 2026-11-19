@@ -14,4 +14,11 @@ public class ProfilePageViewModel
     public IReadOnlyList<PostCardViewModel> Posts { get; init; } = [];
     public IReadOnlyList<PostCardViewModel> Bookmarks { get; init; } = [];
     public IReadOnlyList<CommunityLinkViewModel> Communities { get; init; } = [];
+    public IReadOnlyList<FriendListItemViewModel> Friends { get; init; } = [];
+    public IReadOnlyList<IncomingFriendRequestViewModel> IncomingFriendRequests { get; init; } = [];
+    public string FriendSearch { get; init; } = "";
+    public IReadOnlyList<FriendSearchResultViewModel> FriendSearchResults { get; init; } = [];
+    public int FriendCount { get; init; }
+    public bool CanSendFriendRequest { get; init; }
+    public string? FriendRelationshipStatus { get; init; }
 }
