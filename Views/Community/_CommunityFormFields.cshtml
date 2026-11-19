@@ -1,6 +1,6 @@
 @*
-- Partial View: the community form fields. 
-- Shared by create pop-up, create page and Edit.
+- Partial View: the community form fields.
+- Shared by create pop-up, Settings pop-up, create page and Edit.
 - author: jaspreet bath
 *@
 
@@ -9,37 +9,63 @@
 @{
     var text = Model.Text;
     var options = Model.Options;
+    // Unique ids, so the create and Settings forms can share a page.
+    var prefix = Model.Id is int id ? $"community-{id}" : "community";
+    var hasBanner = !string.IsNullOrEmpty(Model.BannerUrl);
+}
+
+@* Cover image: click the box(the "+") to pick a picture. 
+   It becomes the community banner. *@
+@if (!string.IsNullOrEmpty(text.CoverTitle))
+{
+    <label class="cover-upload-box @(hasBanner ? "has-image" : "")" data-cover-picker
+           style="@(hasBanner ? $"background-image: url('{Model.BannerUrl}')" : null)">
+        <input type="file" name="BannerImage" class="cover-file-input" accept="image/jpeg,image/png,image/webp,image/gif"
+               data-max-bytes="@Model.MaxBannerBytes" data-too-large="@Model.CoverTooLarge" />
+        <span class="cover-text-group">
+            <span class="cover-title">@text.CoverTitle</span>
+            <span class="cover-sub">@Model.CoverSubtitle</span>
+        </span>
+        <span class="avatar-upload-box" aria-hidden="true">+</span>
+        <span class="cover-change-pill" aria-hidden="true">@text.CoverChange</span>
+    </label>
+    <p class="cover-error" data-cover-error role="alert" hidden></p>
 }
 
 @* community name (required) *@
 <div class="modal-field">
-    <label for="community-name" class="modal-label">@text.NameLabel</label>
-    <input type="text" id="community-name" name="Name" class="modal-input" value="@Model.Name" required
+    <label for="@prefix-name" class="modal-label">@text.NameLabel</label>
+    <input type="text" id="@prefix-name" name="Name" class="modal-input" value="@Model.Name" required
            placeholder="@text.NamePlaceholder" />
 </div>
 
 @* description *@
 <div class="modal-field">
-    <label for="community-description" class="modal-label">@text.DescriptionLabel</label>
-    <textarea id="community-description" name="Description" rows="3" class="modal-input"
+    <label for="@prefix-description" class="modal-label">@text.DescriptionLabel</label>
+    <textarea id="@prefix-description" name="Description" rows="3" class="modal-input"
               placeholder="@text.DescriptionPlaceholder">@Model.Description</textarea>
 </div>
 
-@* category & campus *@
+@* category (broad) & campus *@
 <div class="modal-row-2col">
     <div class="modal-field">
-        <label for="community-category" class="modal-label">@text.CategoryLabel</label>
-        <select id="community-category" class="modal-input" data-tag-part="category">
+        <label for="@prefix-category" class="modal-label">@text.CategoryLabel</label>
+        <select id="@prefix-category" class="modal-input" data-tag-part="category"
+                aria-describedby="@(string.IsNullOrEmpty(text.CategoryHint) ? null : $"{prefix}-category-hint")">
             @foreach (var option in options.Categories)
             {
                 <option value="@option" selected="@(option == Model.Category)">@option</option>
             }
         </select>
+        @if (!string.IsNullOrEmpty(text.CategoryHint))
+        {
+            <p id="@prefix-category-hint" class="modal-hint">@text.CategoryHint</p>
+        }
     </div>
 
     <div class="modal-field">
-        <label for="community-campus" class="modal-label">@text.CampusLabel</label>
-        <select id="community-campus" class="modal-input" data-tag-part="campus">
+        <label for="@prefix-campus" class="modal-label">@text.CampusLabel</label>
+        <select id="@prefix-campus" class="modal-input" data-tag-part="campus">
             <option value="">@options.AnyCampusLabel</option>
             @foreach (var option in options.Campuses)
             {
@@ -49,41 +75,21 @@
     </div>
 </div>
 
-@* tag (blue) & status tag (green) *@
-<div class="modal-row-2col">
-    <div class="modal-field">
-        <label for="community-tag" class="modal-label">@text.TagLabel</label>
-        <select id="community-tag" class="modal-input" data-tag-part="tag">
-            <option value="">@options.NoneLabel</option>
-            @foreach (var option in options.Tags)
-            {
-                <option value="@option" selected="@(option == Model.Tag)">@option</option>
-            }
-        </select>
-    </div>
-
-    <div class="modal-field">
-        <label for="community-status" class="modal-label">@text.StatusLabel</label>
-        <select id="community-status" class="modal-input" data-tag-part="status">
-            <option value="">@options.NoneLabel</option>
-            @foreach (var option in options.Statuses)
-            {
-                <option value="@option" selected="@(option == Model.Status)">@option</option>
-            }
-        </select>
-    </div>
-</div>
-
-@* time tag (orange) *@
+@* tag (specific) *@
 <div class="modal-field">
-    <label for="community-time" class="modal-label">@text.TimeLabel</label>
-    <select id="community-time" class="modal-input" data-tag-part="time">
+    <label for="@prefix-tag" class="modal-label">@text.TagLabel</label>
+    <select id="@prefix-tag" class="modal-input" data-tag-part="tag"
+            aria-describedby="@(string.IsNullOrEmpty(text.TagHint) ? null : $"{prefix}-tag-hint")">
         <option value="">@options.NoneLabel</option>
-        @foreach (var option in options.Times)
+        @foreach (var option in options.Tags)
         {
-            <option value="@option" selected="@(option == Model.Time)">@option</option>
+            <option value="@option" selected="@(option == Model.Tag)">@option</option>
         }
     </select>
+    @if (!string.IsNullOrEmpty(text.TagHint))
+    {
+        <p id="@prefix-tag-hint" class="modal-hint">@text.TagHint</p>
+    }
 </div>
 
 @* every tag combined, saved to Community.Type *@
