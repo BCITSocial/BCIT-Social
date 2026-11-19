@@ -91,7 +91,8 @@
                 href,
                 fields: {
                     title: name,
-                    tags: `${card.dataset.topics ?? ""} ${card.dataset.campus ?? ""}`,
+                    // Campus is left out on purpose, so "burnaby" doesn't list every Burnaby community.
+                    tags: card.dataset.topics ?? "",
                     body: clean(card.querySelector(".community-desc")?.textContent),
                 },
             });
