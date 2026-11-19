@@ -33,6 +33,7 @@ Renders the Home banner, share box, feed, and discovery panel.
                asp-controller="Home"
                asp-action="Index"
                asp-route-filter="all"
+               asp-route-tagId="@Model.CurrentTagId"
                aria-current="@(Model.CurrentFilter == "all" ? "page" : null)">
                 All
             </a>
@@ -41,6 +42,7 @@ Renders the Home banner, share box, feed, and discovery panel.
                asp-controller="Home"
                asp-action="Index"
                asp-route-filter="friends"
+               asp-route-tagId="@Model.CurrentTagId"
                aria-current="@(Model.CurrentFilter == "friends" ? "page" : null)">
                 Friends
             </a>
@@ -49,11 +51,46 @@ Renders the Home banner, share box, feed, and discovery panel.
                asp-controller="Home"
                asp-action="Index"
                asp-route-filter="communities"
+               asp-route-tagId="@Model.CurrentTagId"
                aria-current="@(Model.CurrentFilter == "communities" ? "page" : null)">
                 Communities
             </a>
         </nav>
     </div>
+    <form class="feed-tag-filter"
+      asp-controller="Home"
+      asp-action="Index"
+      method="get">
+
+        <input type="hidden"
+               name="filter"
+               value="@Model.CurrentFilter" />
+
+        <label for="tagId">Filter by tag:</label>
+
+        <select id="tagId"
+                name="tagId"
+                onchange="this.form.submit()">
+
+            <option value="">All tags</option>
+
+            @foreach (var tag in Model.AvailableTags)
+            {
+                if (Model.CurrentTagId == tag.Id)
+                {
+                    <option value="@tag.Id" selected>
+                        @tag.Name
+                    </option>
+                }
+                else
+                {
+                    <option value="@tag.Id">
+                        @tag.Name
+                    </option>
+                }
+            }
+        </select>
+    </form>
     @if (Model.Posts.Count == 0)
     {
         <div class="empty-state">
@@ -62,7 +99,7 @@ Renders the Home banner, share box, feed, and discovery panel.
     }
     else
     {
-        <div class="feed-list" id="feed-list" data-feed-url="@Url.Action("Feed", "Home")" data-has-more="@(Model.HasMore ? "true" : "false") data-filter="@Model.CurrentFilter">
+        <div class="feed-list" id="feed-list" data-feed-url="@Url.Action("Feed", "Home")" data-has-more="@(Model.HasMore ? "true" : "false") data-filter="@Model.CurrentFilter" data-tag-id="@(Model.CurrentTagId?.ToString() ?? "")">
             <partial name="_PostCards" model="Model.Posts" />
         </div>
         <div class="feed-status">
