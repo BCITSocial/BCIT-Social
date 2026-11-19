@@ -18,4 +18,11 @@ public class HomeViewModel
     public string CurrentUserInitials { get; init; } = "";
 
     public string CurrentFilter { get; init; } = "all";
+
+    // The tag currently selected for the Home feed.
+    // Null means that posts from all tags are displayed.
+    public int? CurrentTagId { get; init; }
+
+    // Tags available in the Home feed filter.
+    public IReadOnlyList<TagFilterViewModel> AvailableTags { get; init; } = [];
 }

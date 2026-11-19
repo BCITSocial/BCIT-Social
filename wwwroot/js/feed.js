@@ -37,6 +37,12 @@
         url.searchParams.set("beforeId", last.dataset.postId);
         url.searchParams.set("filter", list.dataset.filter);
 
+        const tagId = list.dataset.tagId;
+
+        if (tagId) {
+            url.searchParams.set("tagId", tagId);
+        }
+
         try {
             const response = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
             if (!response.ok) throw new Error(`Feed request failed: ${response.status}`);
