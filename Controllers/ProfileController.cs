@@ -181,7 +181,7 @@ public class ProfileController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddFriend(string userId, string? friendSearch = null, string? section = null)
+    public async Task<IActionResult> AddFriend(string userId, string? friendSearch = null, string? section = null, bool fromFriends = false, string? q = null)
     {
         var requesterId = _userManager.GetUserId(User);
         if (requesterId == null)
@@ -238,6 +238,11 @@ public class ProfileController : Controller
             TempData["FriendRequestMessage"] = "Friend request sent.";
         }
 
+        if (fromFriends)
+        {
+            return RedirectToAction("Index", "Friends", new { q });
+        }
+
         return friendSearch is not null
             ? RedirectToAction(nameof(Index), new { section, friendSearch })
             : RedirectToAction(nameof(Details), new { userid = recipient.Id });
@@ -274,6 +279,34 @@ public class ProfileController : Controller
         return RedirectToAction(nameof(Index), new { section = "friends" });
     }
 
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CancelFriendRequest(int relationshipId)
+    {
+        var userId = _userManager.GetUserId(User);
+        if (userId == null)
+        {
+            return Challenge();
+        }
+
+        var now = DateTime.UtcNow;
+        var updated = await _context.FriendRelationships
+            .Where(request => request.Id == relationshipId
+                && request.RequesterId == userId && request.Status == "Pending")
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(request => request.Status, "Cancelled")
+                .SetProperty(request => request.UpdatedAt, now)
+                .SetProperty(request => request.DeactivatedAt, now));
+
+        if (updated == 0)
+        {
+            return NotFound();
+        }
+
+        TempData["FriendRequestMessage"] = "Friend request cancelled.";
+        return RedirectToAction("Index", "Friends");
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
