@@ -5,11 +5,13 @@
         "caption": "Code today. A brighter tomorrow.",
         "codeBadge": "class BCITDeveloper {}"
     },
-    "communityMeta": {
+    "meta": {
         "joinedLabel": "Joined",
         "joinButton": "+ Join",
+        "leaveButton": "Leave",
         "privacy": "Public community",
         "campus": "Burnaby Campus",
+        "membersLabel": "members",
         "createButton": "+ Create",
         "settingsButton": "Settings"
     },
@@ -17,11 +19,12 @@
     "navTabs": [
         "Overview"
     ],
-    "discussionsSection": {
+    "discussions": {
         "title": "Latest discussions",
         "seeAllText": "See all",
         "showLessText": "Show less",
-        "discussions": [
+        "initiallyShown": 2,
+        "items": [
             {
                 "initials": "PN",
                 "title": "How are you organizing your MVC controllers?",

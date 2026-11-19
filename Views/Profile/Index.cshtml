@@ -50,7 +50,18 @@ This view renders the user's profile page, including their profile information, 
                     <div class="profile-cover" aria-hidden="true"></div>
                     <div class="profile-card-content">
                         <div class="profile-card-actions">
-                            <div class="profile-avatar" aria-hidden="true">@avatarInitials</div>
+                            <div class="profile-avatar">
+                                @if (!string.IsNullOrWhiteSpace(profile.ProfilePhotoStorageKey))
+                                {
+                                    <img style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
+                                         src="@Url.Action("Photo", "Profile", new { id = profile.UserId })"
+                                         alt="@($"{profile.DisplayName}'s profile photo")" />
+                                }
+                                else
+                                {
+                                    <span aria-hidden="true">@avatarInitials</span>
+                                }
+                            </div>
                             @if (Model.IsOwnProfile)
                             {
                                 <a class="profile-button profile-button-outline"
@@ -319,12 +330,56 @@ This view renders the user's profile page, including their profile information, 
                             <p class="profile-friend-status profile-friend-error" role="alert">@friendRequestError</p>
                         }
 
-                        <form asp-action="SendFriendRequest" method="post" class="profile-friend-form">
-                            <label for="friend-request-email">Send a friend request</label>
-                            <input id="friend-request-email" name="Email" type="email" autocomplete="email"
-                                   placeholder="person@example.com" required />
-                            <button class="profile-button profile-button-primary" type="submit">Send request</button>
+                        <form asp-action="Index" method="get" class="profile-friend-form">
+                            <input type="hidden" name="section" value="@activeSection" data-preserve-profile-section />
+                            <label for="friend-search">Find friends by display name</label>
+                            <input id="friend-search" name="friendSearch" type="search" value="@Model.FriendSearch"
+                                   placeholder="Enter a display name" required />
+                            <button class="profile-button profile-button-primary" type="submit">Search</button>
                         </form>
+
+                        @if (!string.IsNullOrWhiteSpace(Model.FriendSearch))
+                        {
+                            @if (Model.FriendSearchResults.Count == 0)
+                            {
+                                <p class="profile-info-empty">No matching users found.</p>
+                            }
+                            else
+                            {
+                                <ul class="profile-friend-request-list">
+                                    @foreach (var result in Model.FriendSearchResults)
+                                    {
+                                        <li class="profile-friend-request profile-friend-search-result">
+                                            <div>
+                                                <a class="profile-friend-request-name" asp-action="Details" asp-route-userid="@result.UserId">@result.DisplayName</a>
+                                                <small>@string.Join(" · ", new[] { result.Program, result.Campus }.Where(s => !string.IsNullOrWhiteSpace(s)))</small>
+                                            </div>
+                                            @if (result.RelationshipStatus == "Accepted")
+                                            {
+                                                <small>Already friends</small>
+                                            }
+                                            else if (result.RelationshipStatus == "PendingSent")
+                                            {
+                                                <small>Request sent</small>
+                                            }
+                                            else if (result.RelationshipStatus == "PendingReceived")
+                                            {
+                                                <small>Incoming request</small>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="AddFriend" method="post">
+                                                    <input type="hidden" name="userId" value="@result.UserId" />
+                                                    <input type="hidden" name="friendSearch" value="@Model.FriendSearch" />
+                                                    <input type="hidden" name="section" value="@activeSection" data-preserve-profile-section />
+                                                    <button class="profile-button profile-button-primary" type="submit">Add friend</button>
+                                                </form>
+                                            }
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        }
 
                         <div class="profile-incoming-requests">
                             <h3>Incoming requests (@Model.IncomingFriendRequests.Count)</h3>

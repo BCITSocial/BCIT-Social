@@ -1,0 +1,80 @@
+@using System.Globalization
+@using BCIT_Social.ViewModels
+@model EventsViewModel
+@* Calendar tab: one month as a grid, Sunday first, with each event on the day it starts.
+   Previous / next links move a month and keep the other filters. All wording comes from Model.Text.
+   TODO(BE): Model.Events should hold the events for the month shown (Model.Month). *@
+@{
+    var text = Model.Text;
+    var culture = CultureInfo.InvariantCulture;
+    const int perDay = 3;
+
+    var first = Model.Month;
+    var today = DateOnly.FromDateTime(DateTime.Today);
+    // Start on the Sunday on or before the 1st and fill whole weeks to the end of the month.
+    var gridStart = first.AddDays(-(int)first.DayOfWeek);
+    var last = first.AddMonths(1).AddDays(-1);
+    var gridEnd = last.AddDays(6 - (int)last.DayOfWeek);
+
+    // Events grouped by start date, earliest first within a day. Events with no start date are left out.
+    var byDay = Model.Events
+        .Where(e => e.StartsAt is not null)
+        .OrderBy(e => e.StartsAt)
+        .GroupBy(e => DateOnly.FromDateTime(e.StartsAt!.Value))
+        .ToDictionary(g => g.Key, g => g.ToList());
+
+    var weekdays = text.Weekdays.Count == 7 ? text.Weekdays : new EventsText().Weekdays;
+}
+<section class="calendar" aria-labelledby="calendar-month">
+    <div class="calendar-head">
+        <h2 id="calendar-month" class="calendar-month">@first.ToString("MMMM yyyy", culture)</h2>
+        <div class="calendar-nav">
+            <a class="calendar-nav-button" asp-action="Index" asp-all-route-data="@Model.RouteValues(month: first.AddMonths(-1))" aria-label="@text.CalendarPrevious" title="@text.CalendarPrevious">&lsaquo;</a>
+            <a class="calendar-today" asp-action="Index" asp-all-route-data="@Model.RouteValues(month: new DateOnly(today.Year, today.Month, 1))">@text.CalendarToday</a>
+            <a class="calendar-nav-button" asp-action="Index" asp-all-route-data="@Model.RouteValues(month: first.AddMonths(1))" aria-label="@text.CalendarNext" title="@text.CalendarNext">&rsaquo;</a>
+        </div>
+    </div>
+
+    <div class="calendar-grid">
+        @foreach (var day in weekdays)
+        {
+            <div class="calendar-weekday" aria-hidden="true">@day</div>
+        }
+        @for (var date = gridStart; date <= gridEnd; date = date.AddDays(1))
+        {
+            var events = byDay.GetValueOrDefault(date) ?? [];
+            var outside = date.Month != first.Month;
+            <div class="calendar-day@(outside ? " is-outside" : "")@(date == today ? " is-today" : "")">
+                <time class="calendar-date" datetime="@date.ToString("yyyy-MM-dd", culture)" aria-label="@date.ToString("dddd, MMMM d", culture)">@date.Day</time>
+                @if (events.Count > 0)
+                {
+                    <ul class="calendar-events">
+                        @foreach (var item in events.Take(perDay))
+                        {
+                            var time = item.StartsAt!.Value.ToString("h:mm tt", culture);
+                            <li class="@(item.IsCancelled ? "is-cancelled" : "")">
+                                @if (!string.IsNullOrWhiteSpace(item.DetailsUrl))
+                                {
+                                    <a href="@item.DetailsUrl"><span class="calendar-time">@time</span> <span class="calendar-title">@item.Title</span></a>
+                                }
+                                else
+                                {
+                                    <a asp-action="Details" asp-route-id="@item.Id"><span class="calendar-time">@time</span> <span class="calendar-title">@item.Title</span></a>
+                                }
+                            </li>
+                        }
+                    </ul>
+                    @if (events.Count > perDay)
+                    {
+                        <p class="calendar-more">@EventsText.Format(text.CalendarMore, events.Count - perDay)</p>
+                    }
+                }
+            </div>
+        }
+    </div>
+
+    @if (Model.Events.Count == 0)
+    {
+        <p class="calendar-empty">@text.EmptyCalendar</p>
+    }
+</section>

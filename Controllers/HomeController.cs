@@ -14,6 +14,9 @@ public class HomeController : Controller
     private const int FIRSTPAGESIZE = 20;
     private const int NEXTPAGESIZE = 10;
     private const int YOURCOMMUNITIESSHOWN = 3;
+    private const string ALLFILTER = "all";
+    private const string FRIENDSFILTER = "friends";
+    private const string COMMUNITIESFILTER = "communities";
 
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
@@ -24,29 +27,123 @@ public class HomeController : Controller
         _userManager = userManager;
     }
 
-    public async Task<IActionResult> Index()
+    /// <summary>
+    /// Description: Displays the Home feed using the selected source and tag filters.
+    /// Author: Livjot Mahendru
+    /// Last Revised: November 18, 2026
+    /// </summary>
+    /// <param name="filter">
+    /// the selected feed source, supported values are all, friends, and communities.
+    /// </param>
+    /// <param name="tagId">
+    /// The optional ID of the tag used to filter posts.
+    /// </param>
+    /// <returns>
+    /// The Home view containing the filtered posts and Home page data.
+    /// </returns>
+    public async Task<IActionResult> Index(
+        string filter = ALLFILTER,
+        int? tagId = null)
     {
-        var userId = _userManager.GetUserId(User);
-        var (posts, hasMore) = await LoadFeedAsync(null, null, FIRSTPAGESIZE);
+        filter = NormalizeFeedFilter(filter);
+        tagId = await NormalizeTagIdAsync(tagId);
+
+        string? userId = _userManager.GetUserId(User);
+
+        var (posts, hasMore) = await LoadFeedAsync(
+            null,
+            null,
+            FIRSTPAGESIZE,
+            filter,
+            tagId,
+            userId);
+
+        var availableTags = await _context.Tags
+            .AsNoTracking()
+            .OrderBy(tag => tag.Name)
+            .Select(tag => new TagFilterViewModel
+            {
+                Id = tag.Id,
+                Name = tag.Name
+            })
+            .ToListAsync();
+
+        var currentUserProfilePhoto = userId == null
+            ? null
+            : await _context.Profiles
+            .AsNoTracking()
+            .Where(profile => profile.UserId == userId)
+            .Select(profile => new
+            {
+                profile.ProfilePhotoStorageKey,
+                profile.ProfilePhotoOriginalFileName
+            })
+            .FirstOrDefaultAsync();
 
         return View(new HomeViewModel
         {
             Posts = posts,
             HasMore = hasMore,
+
             YourCommunities = userId is null
                 ? []
-                : await _context.YourCommunitiesAsync(userId, YOURCOMMUNITIESSHOWN),
+                : await _context.YourCommunitiesAsync(
+                    userId,
+                    YOURCOMMUNITIESSHOWN),
+
             CurrentUserInitials = await CurrentUserInitialsAsync(userId),
+            CurrentUserId = userId,
+            HasCurrentUserProfilePhoto = !string.IsNullOrWhiteSpace(currentUserProfilePhoto?.ProfilePhotoStorageKey),
+            CurrentUserProfilePhotoOriginalFileName = currentUserProfilePhoto?.ProfilePhotoOriginalFileName,
+            CurrentFilter = filter,
+            CurrentTagId = tagId,
+            AvailableTags = availableTags
         });
     }
 
-    // Returns the next cards older than the given post, for infinite scroll.
-    // beforeTicks and beforeId come from the last card already on the page.
+    /// <summary>
+    /// Description: loads the next group of Home feed posts using the selected source and tag filters.
+    /// Author: Livjot Mahendru
+    /// Last Revised: November 18, 2026
+    /// </summary>
+    /// <param name="beforeTicks">
+    /// the creation time of the last post displayed
+    /// </param>
+    /// <param name="beforeId">
+    /// the ID of the last post currently displayed
+    /// </param>
+    /// <param name="filter">
+    /// The selected feed source supported values are all, friends, and communities.
+    /// </param>
+    /// <param name="tagId">
+    /// The optional ID of the selected tag.
+    /// </param>
+    /// <returns>
+    /// A partial view containing the next group of filtered post cards.
+    /// </returns>
     [HttpGet]
-    public async Task<IActionResult> Feed(long beforeTicks, int beforeId)
+    public async Task<IActionResult> Feed(
+        long beforeTicks,
+        int beforeId,
+        string filter = ALLFILTER,
+        int? tagId = null)
     {
-        var (posts, hasMore) = await LoadFeedAsync(new DateTime(beforeTicks), beforeId, NEXTPAGESIZE);
-        Response.Headers["X-Feed-Has-More"] = hasMore ? "true" : "false";
+        filter = NormalizeFeedFilter(filter);
+        tagId = await NormalizeTagIdAsync(tagId);
+
+        string? userId = _userManager.GetUserId(User);
+
+        var (posts, hasMore) = await LoadFeedAsync(
+            new DateTime(beforeTicks),
+            beforeId,
+            NEXTPAGESIZE,
+            filter,
+            tagId,
+            userId);
+
+        Response.Headers["X-Feed-Has-More"] =
+            hasMore ? "true" : "false";
+
         return PartialView("_PostCards", posts);
     }
 
@@ -91,13 +188,74 @@ public class HomeController : Controller
     // Paging continues from the last card's (CreatedAt, Id), so new posts don't shift or repeat cards.
     // TODO: limit to posts in the Home community once the DB team adds it.
     private async Task<(IReadOnlyList<PostCardViewModel> Posts, bool HasMore)> LoadFeedAsync(
-        DateTime? beforeCreatedAt, int? beforeId, int take)
+    DateTime? beforeCreatedAt,
+    int? beforeId,
+    int take,
+    string filter,
+    int? tagId,
+    string? userId)
     {
-        var query = _context.Posts.Where(post => post.DateOfDel == null);
+        var query = _context.Posts
+            .Where(post => post.DateOfDel == null);
+
+        // tag filtering
+        if (tagId.HasValue)
+        {
+            query = query.Where(post =>
+                post.PostTags.Any(postTag =>
+                    postTag.TagId == tagId.Value));
+        }
+
+        // Friends feed:
+        // Only posts authored by users who have an accepted friendship
+        // with the currently signed-in user.
+        if (filter == FRIENDSFILTER)
+        {
+            if (userId == null)
+            {
+                query = query.Where(post => false);
+            }
+            else
+            {
+                query = query.Where(post =>
+                    _context.FriendRelationships.Any(friendship =>
+                        friendship.Status == "Accepted"
+                        && friendship.DeactivatedAt == null
+                        &&
+                        (
+                            friendship.RequesterId == userId
+                            && friendship.RecipientId == post.AuthorId
+
+                            ||
+
+                            friendship.RecipientId == userId
+                            && friendship.RequesterId == post.AuthorId
+                        )));
+            }
+        }
+
+        // Communities feed:
+        // Only posts belonging to communities the current user has joined.
+        else if (filter == COMMUNITIESFILTER)
+        {
+            if (userId == null)
+            {
+                query = query.Where(post => false);
+            }
+            else
+            {
+                query = query.Where(post =>
+                    post.CommunityId.HasValue
+                    && _context.CommunityMembers.Any(member =>
+                        member.UserId == userId
+                        && member.CommunityId == post.CommunityId.Value));
+            }
+        }
 
         if (beforeCreatedAt is { } before && beforeId is { } id)
         {
-            query = query.Where(post => post.CreatedAt < before
+            query = query.Where(post =>
+                post.CreatedAt < before
                 || (post.CreatedAt == before && post.Id < id));
         }
 
@@ -105,9 +263,12 @@ public class HomeController : Controller
             .OrderByDescending(post => post.CreatedAt)
             .ThenByDescending(post => post.Id)
             .Take(take + 1);
-        var posts = await ProjectCards(ordered, _userManager.GetUserId(User)).ToListAsync();
+
+        var posts = await ProjectCards(ordered, userId)
+            .ToListAsync();
 
         var hasMore = posts.Count > take;
+
         return (posts.Take(take).ToList(), hasMore);
     }
 
@@ -123,6 +284,12 @@ public class HomeController : Controller
                 .Where(profile => profile.UserId == post.AuthorId)
                 .Select(profile => profile.DisplayName)
                 .FirstOrDefault() ?? post.Author.UserName ?? "",
+            AuthorHasProfilePhoto = _context.Profiles
+                .Any(profile => profile.UserId == post.AuthorId && profile.ProfilePhotoStorageKey != null),
+            AuthorProfilePhotoOriginalFileName = _context.Profiles
+                .Where(profile => profile.UserId == post.AuthorId)
+                .Select(profile => profile.ProfilePhotoOriginalFileName)
+                .FirstOrDefault(),
             Photos = post.Photos.OrderBy(photo => photo.DisplayOrder).ToList(),
             CommunityName = post.Community != null ? post.Community.Name : null,
             CreatedAt = post.CreatedAt,
@@ -190,5 +357,39 @@ public class HomeController : Controller
             .Select(profile => profile.DisplayName)
             .FirstOrDefaultAsync() ?? User.Identity?.Name ?? "";
         return DisplayFormat.Initials(name);
+    }
+
+    private static string NormalizeFeedFilter(string? filter)
+    {
+        return filter?.ToLowerInvariant() switch
+        {
+            FRIENDSFILTER => FRIENDSFILTER,
+            COMMUNITIESFILTER => COMMUNITIESFILTER,
+            _ => ALLFILTER
+        };
+    }
+
+    /// <summary>
+    /// Description: Validates the requested Home feed tag
+    /// Author: Livjot Mahendru
+    /// Last Revised: November 18, 2026
+    /// </summary>
+    /// <param name="tagId">The requested tag ID</param>
+    /// <returns>
+    /// The tag ID when it exists, otherwise null to rep all tags
+    /// </returns>
+    private async Task<int?> NormalizeTagIdAsync(int? tagId)
+    {
+        if (!tagId.HasValue)
+        {
+            return null;
+        }
+
+        bool tagExists = await _context.Tags
+            .AnyAsync(tag => tag.Id == tagId.Value);
+
+        return tagExists
+            ? tagId
+            : null;
     }
 }

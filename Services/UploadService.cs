@@ -35,6 +35,10 @@ public class UploadService
     private const int MIN_IMAGE_WIDTH = 300;
     private const int MIN_IMAGE_HEIGHT = 300;
 
+    private const int COMMUNITY_MIN_IMAGE_WIDTH = 800;
+    private const int COMMUNITY_MIN_IMAGE_HEIGHT = 200;
+
+
     private readonly string _containerName;
     private readonly BlobServiceClient _blobServiceClient;
 
@@ -210,7 +214,7 @@ public class UploadService
         return purpose.ToLowerInvariant() switch
         {
             "profile" => new MinimumImageDimensions(MIN_IMAGE_WIDTH, MIN_IMAGE_HEIGHT),
-            "community" => new MinimumImageDimensions(MIN_IMAGE_WIDTH, MIN_IMAGE_HEIGHT),
+            "community" => new MinimumImageDimensions(COMMUNITY_MIN_IMAGE_WIDTH, COMMUNITY_MIN_IMAGE_HEIGHT),
             "post" => new MinimumImageDimensions(MIN_IMAGE_WIDTH, MIN_IMAGE_HEIGHT),
             _ => throw new ArgumentException("Unknown upload purpose.", nameof(purpose))
         };
