@@ -497,7 +497,7 @@
     line-height: 1.3;
     margin: 0;
     color: var(--text-primary);
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
 
 .card-clickable-link {
@@ -537,7 +537,8 @@
     -webkit-line-clamp: 2;
     line-clamp: 2;
     overflow: hidden;
-  
+}
+
 .badge-row {
     display: flex;
     flex-wrap: wrap;
@@ -616,6 +617,14 @@
 
 .btn-joined[aria-expanded="true"] .menu-chevron {
     transform: rotate(180deg);
+}
+
+/* On the cards, "Joined" shows as a compact check + arrow pill (the label stays for screen readers
+   via aria-label), so it is about as wide as "Join" and the community name keeps its room. */
+.community-card .btn-joined {
+    font-size: 0;
+    gap: 0.25rem;
+    padding: 0.35rem 0.7rem;
 }
 
 /* Dropdown menu (Facebook style: View / Settings / Leave) */
@@ -1255,61 +1264,7 @@ a.btn-cancel {
 .delete-summary .delete-summary-count {
     margin: 0;
 }
-/* Community card layout: picture slot left, name + tags on one line, members and campus under the name,
-   description below, Join at the top right. */
-.browse-grid .community-card {
-    display: grid;
-    grid-template-columns: 56px minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 0 1rem;
-    padding: 1.1rem 1.25rem;
-}
-
-.community-card-pic {
-    display: grid;
-    place-items: center;
-    width: 56px;
-    height: 56px;
-    border-radius: var(--radius-sm);
-    background-color: var(--avatar-box-bg);
-    color: var(--text-primary);
-    font-size: 1.05rem;
-    font-weight: 700;
-}
-
-.community-card-body {
-    min-width: 0;
-}
-
-.community-card-top {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem 0.6rem;
-    margin-bottom: 0.25rem;
-}
-
-.community-card-top .community-card-title {
-    margin: 0;
-}
-
-.community-card-top .badge-row {
-    margin: 0;
-}
-
-.browse-grid .member-count {
-    margin-bottom: 0.4rem;
-}
-
-.browse-grid .community-desc {
-    margin: 0;
-}
-
-.browse-grid .card-actions {
-    margin-top: 0;
-}
-
-/* Phone layout: less padding, a smaller picture slot, and the filters fill the width. */
+/* Phone layout: less padding, and the filters fill the width. */
 @media (max-width: 640px) {
     .communities-wrapper {
         padding: 0.9rem 0.75rem;
@@ -1318,18 +1273,6 @@ a.btn-cancel {
     .communities-header {
         flex-wrap: wrap;
         gap: 0.75rem;
-    }
-
-    .browse-grid .community-card {
-        grid-template-columns: 44px minmax(0, 1fr) auto;
-        gap: 0 0.75rem;
-        padding: 0.9rem;
-    }
-
-    .community-card-pic {
-        width: 44px;
-        height: 44px;
-        font-size: 0.9rem;
     }
 
     .filter-selects {
