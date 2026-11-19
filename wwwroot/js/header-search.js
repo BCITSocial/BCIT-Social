@@ -63,15 +63,14 @@
             const content = clean(card.querySelector(".post-content")?.textContent);
             const meta = clean(card.querySelector(".post-meta")?.textContent);
             const tags = [...card.querySelectorAll(".post-tags li")].map(tag => clean(tag.textContent)).join(" ");
-            const author = clean(card.querySelector(".post-author")?.textContent);
-            // Only the title, tags, text and author are searched. The community and date in the
-            // meta line are shown but never matched, so a post isn't found just for its community.
+            // Only the title, tags and text are searched. The author, community and date in the
+            // meta line are shown but never matched.
             return {
                 title,
                 tagLabels: tags ? tags.split(" ").map(tag => `#${tag}`).join(" ") : "",
                 meta,
                 href: `/Home/Post/${card.dataset.postId}`,
-                fields: { title, tags, body: `${content} ${author}` },
+                fields: { title, tags, body: content },
             };
         }));
 
