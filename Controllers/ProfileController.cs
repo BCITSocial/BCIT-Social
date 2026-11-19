@@ -385,6 +385,12 @@ public class ProfileController : Controller
                 .Where(profile => profile.UserId == post.AuthorId)
                 .Select(profile => profile.DisplayName)
                 .FirstOrDefault() ?? post.Author.UserName ?? "",
+            AuthorHasProfilePhoto = _context.Profiles
+                .Any(profile => profile.UserId == post.AuthorId && profile.ProfilePhotoStorageKey != null),
+            AuthorProfilePhotoOriginalFileName = _context.Profiles
+                .Where(profile => profile.UserId == post.AuthorId)
+                .Select(profile => profile.ProfilePhotoOriginalFileName)
+                .FirstOrDefault(),
             Photos = post.Photos.OrderBy(photo => photo.DisplayOrder).ToList(),
             CommunityName = post.Community != null ? post.Community.Name : null,
             CreatedAt = post.CreatedAt,
@@ -470,23 +476,14 @@ public class ProfileController : Controller
             _context.Add(profile);
             await _context.SaveChangesAsync();
         }
-        catch (ArgumentException exception)
-        {
-            if (uploadedPhoto != null)
-            {
-                await _uploadService.DeleteAsync(uploadedPhoto.StorageKey, CancellationToken.None);
-            }
-
-            ModelState.AddModelError(nameof(viewModel.ProfilePhoto), exception.Message);
-            return View(viewModel);
-        }
         catch
         {
             if (uploadedPhoto != null)
             {
                 await _uploadService.DeleteAsync(uploadedPhoto.StorageKey, CancellationToken.None);
             }
-
+            ModelState.AddModelError(nameof(viewModel.ProfilePhoto), "An error occurred while uploading the profile photo.");
+            return View(viewModel);
             throw;
         }
 
@@ -504,16 +501,13 @@ public class ProfileController : Controller
     [HttpGet]
     public async Task<IActionResult> Photo(string? id, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(id))
-        {
-            return NotFound();
-        }
-
         var profile = await _context.Profiles
-            .AsNoTracking()
-            .FirstOrDefaultAsync(profile => profile.UserId == id, cancellationToken);
+        .AsNoTracking()
+        .FirstOrDefaultAsync(profile => profile.UserId == id, cancellationToken);
 
-        if (profile?.ProfilePhotoStorageKey == null || profile.ProfilePhotoContentType == null)
+        if (string.IsNullOrWhiteSpace(id) || 
+            profile?.ProfilePhotoStorageKey == null || 
+            profile.ProfilePhotoContentType == null)
         {
             return NotFound();
         }

@@ -36,6 +36,7 @@ p { color: var(--color-muted); }
 .header-icon svg { width: 22px; height: 22px; stroke-width: 1.7; stroke-linejoin: round; }
 .profile-button { display: grid; place-items: center; height: 44px; padding: 0; border: 0; border-radius: 50%; background: var(--color-input); color: var(--color-muted); cursor: pointer; }
 .profile-button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+.profile-button img { width: 24px; height: 24px; border-radius: inherit; object-fit: cover; }
 .profile-button:hover { background: var(--color-border); }
 
 /* Header popups: open below the top-right icons. */
@@ -84,6 +85,7 @@ a.primary-button { display: inline-flex; align-items: center; min-height: 44px; 
 .cta-button { display: inline-flex; flex: none; align-items: center; justify-content: center; min-height: 40px; padding: 8px 20px; border: 0; border-radius: 6px; background: var(--color-cta); color: var(--color-cta-text); font-size: 0.875rem; text-decoration: none; white-space: nowrap; cursor: pointer; }
 .cta-button:hover { filter: brightness(0.96); }
 .avatar { display: grid; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--color-avatar); color: var(--color-avatar-text); font-size: 0.875rem; font-weight: var(--font-weight-bold); }
+.avatar img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
 .avatar-large { width: 52px; height: 52px; font-size: 1rem; }
 .icon-button { display: grid; place-items: center; width: 44px; padding: 0; border: 0; background: var(--color-transparent); color: var(--color-text); cursor: pointer; }
 .icon-button:hover { background: var(--color-input); }
@@ -132,6 +134,7 @@ a.primary-button { display: inline-flex; align-items: center; min-height: 44px; 
 .feed-list { display: grid; gap: 10px; }
 .post-card { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; padding: 16px 20px 8px 12px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); }
 .post-avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--color-avatar); color: var(--color-avatar-text); font-size: 0.875rem; font-weight: var(--font-weight-bold); }
+.post-avatar img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
 .post-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px; font-size: 0.8125rem; }
 .post-author { color: var(--color-text); font-size: 0.9375rem; font-weight: var(--font-weight-bold); }
 .post-title { margin: 8px 0 6px; font-size: 1.125rem; line-height: var(--line-height-heading); }

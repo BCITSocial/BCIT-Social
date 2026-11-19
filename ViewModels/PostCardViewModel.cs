@@ -24,7 +24,8 @@ public class PostCardViewModel
 
     // Id of the user who created the post
     public string AuthorId { get; init; } = "";
-
+    public bool AuthorHasProfilePhoto { get; init; }
+    public string? AuthorProfilePhotoOriginalFileName { get; init; }
     public string AuthorInitials => DisplayFormat.Initials(AuthorName);
 
     public string TimeAgo(DateTime utcNow) => DisplayFormat.TimeAgo(CreatedAt, utcNow);

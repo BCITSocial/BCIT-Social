@@ -22,8 +22,7 @@
                     @if (!string.IsNullOrEmpty(Model.ProfilePhotoStorageKey))
                     {
                         <img style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
-                            src="@Url.Action("Photo", "Profile", new { id = Model.UserId })"
-                            alt="@Model.ProfilePhotoOriginalFileName"/>
+                            src="@Url.Action("Photo", "Profile", new { id = Model.UserId })"/>
                     }
                     else
                     {

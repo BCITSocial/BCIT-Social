@@ -28,6 +28,17 @@ public class HomeController : Controller
     {
         var userId = _userManager.GetUserId(User);
         var (posts, hasMore) = await LoadFeedAsync(null, null, FIRSTPAGESIZE);
+        var currentUserProfilePhoto = userId == null
+            ? null
+            : await _context.Profiles
+                .AsNoTracking()
+                .Where(profile => profile.UserId == userId)
+                .Select(profile => new
+                {
+                    profile.ProfilePhotoStorageKey,
+                    profile.ProfilePhotoOriginalFileName
+                })
+                .FirstOrDefaultAsync();
 
         return View(new HomeViewModel
         {
@@ -37,6 +48,9 @@ public class HomeController : Controller
                 ? []
                 : await _context.YourCommunitiesAsync(userId, YOURCOMMUNITIESSHOWN),
             CurrentUserInitials = await CurrentUserInitialsAsync(userId),
+            CurrentUserId = userId,
+            HasCurrentUserProfilePhoto = !string.IsNullOrWhiteSpace(currentUserProfilePhoto?.ProfilePhotoStorageKey),
+            CurrentUserProfilePhotoOriginalFileName = currentUserProfilePhoto?.ProfilePhotoOriginalFileName
         });
     }
 
@@ -123,6 +137,12 @@ public class HomeController : Controller
                 .Where(profile => profile.UserId == post.AuthorId)
                 .Select(profile => profile.DisplayName)
                 .FirstOrDefault() ?? post.Author.UserName ?? "",
+            AuthorHasProfilePhoto = _context.Profiles
+                .Any(profile => profile.UserId == post.AuthorId && profile.ProfilePhotoStorageKey != null),
+            AuthorProfilePhotoOriginalFileName = _context.Profiles
+                .Where(profile => profile.UserId == post.AuthorId)
+                .Select(profile => profile.ProfilePhotoOriginalFileName)
+                .FirstOrDefault(),
             Photos = post.Photos.OrderBy(photo => photo.DisplayOrder).ToList(),
             CommunityName = post.Community != null ? post.Community.Name : null,
             CreatedAt = post.CreatedAt,

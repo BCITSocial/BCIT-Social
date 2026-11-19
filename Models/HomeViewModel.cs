@@ -16,4 +16,7 @@ public class HomeViewModel
     public IReadOnlyList<CommunityLinkViewModel> YourCommunities { get; init; } = [];
     // Initials for the signed-in user's avatar in the share box. Empty when signed out.
     public string CurrentUserInitials { get; init; } = "";
+    public string? CurrentUserId { get; init; }
+    public bool HasCurrentUserProfilePhoto { get; init; }
+    public string? CurrentUserProfilePhotoOriginalFileName { get; init; }
 }
