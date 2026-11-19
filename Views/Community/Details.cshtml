@@ -26,13 +26,15 @@
                  src="@Url.Action("Photo", "Community", new { id = Model.Id })"
                  alt="@Model.Name cover photo" />
         }
-        @* <div>
+        else {
+        <div>
             <div class="banner-pre">@text.Banner.Subtitle</div>
             <h1>@text.Banner.Title</h1>
             <p>@text.Banner.Caption</p>
             <div class="banner-code">@text.Banner.CodeBadge</div>
         </div>
-        <div class="banner-solid-accent">BCIT</div> *@
+        <div class="banner-solid-accent">BCIT</div>
+        }
     </div>
 
     <!-- Community Header -->
