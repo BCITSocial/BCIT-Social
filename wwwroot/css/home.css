@@ -851,6 +851,7 @@ a.primary-button {
     font-weight: var(--font-weight-bold);
 }
 
+/* community and time */
 .post-meta {
     display: flex;
     flex-wrap: wrap;
@@ -2036,3 +2037,98 @@ body:has(.create-dialog[open]) {
     text-decoration: none;
     font-weight: 600;
 }
+
+/* Home feed post cards */
+/* there are lowkey 2 other .post-card's and I do not want to touch either incase something breaks*/
+.feed-list .post-card {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 14px;
+    min-width: 0;
+    padding: 16px 20px 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+}
+
+.feed-list .post-body {
+    min-width: 0;
+}
+
+.post-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 40px;
+}
+
+    .post-card-top .post-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 5px;
+        min-height: 40px;
+        margin: 0;
+    }
+
+    .post-card-top .post-tags {
+        flex: none;
+        justify-content: flex-end;
+        margin: 0 0 0 auto;
+    }
+
+/* title probably */
+.feed-list .post-title {
+    margin: 14px 0 6px;
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-heading);
+}
+
+/* username probably */
+.feed-list .post-author {
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+}
+
+.post-content-container {
+    min-width: 0;
+}
+
+.feed-list .post-content {
+    margin: 0;
+    padding: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+    /* Keep long posts from taking over the entire feed. */
+    .feed-list .post-content.is-collapsed {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+
+        /* change this number btw if you want bigger posts, it is # of lines allowed */
+        -webkit-line-clamp: 4;
+    }
+
+.post-show-more {
+    margin-top: 4px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-accent);
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+}
+
+    .post-show-more:hover {
+        text-decoration: underline;
+    }
+
+    .post-show-more[hidden] {
+        display: none !important;
+    }
