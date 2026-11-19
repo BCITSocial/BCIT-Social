@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using BCIT_Social.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using System.Data;
 using System.Text.Json;
 
 public class CommunityController : Controller
@@ -93,7 +94,8 @@ public class CommunityController : Controller
     }
 
     // GET: COMMUNITY/Members/5
-    public async Task<IActionResult> Members(int? id)
+    [HttpGet]
+    public async Task<IActionResult> Members(int? id, [FromQuery] bool popup = false)
     {
         if (id == null)
         {
@@ -107,6 +109,12 @@ public class CommunityController : Controller
             return NotFound();
         }
         CommunityMembersViewModel viewModel = await MembersViewModelFromCommunity(community);
+        Response.Headers.CacheControl = "no-store";
+        if (popup)
+        {
+            ViewData["MembersPopup"] = true;
+            return PartialView("_MemberList", viewModel);
+        }
         return View(viewModel);
     }
 
@@ -656,37 +664,43 @@ public class CommunityController : Controller
     [Route("Community/Kick/{id}/{userid}")]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> KickConfirmed(int? id, string? userid, CommunityMemberDetailsViewModel viewModel)
+    public async Task<IActionResult> KickConfirmed(int? id, string? userid, [FromForm] bool returnToDetails = false)
     {
+        string? currentUserId = _userManager.GetUserId(User);
+        if (currentUserId == null)
+        {
+            return Challenge();
+        }
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
         var community = await _context.Communities.FindAsync(id);
         var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
-        string? currentUserId = _userManager.GetUserId(User);
 
         if (community == null || communityMember == null || community.DateOfDel != null)
         {
             return NotFound();
         }
-        if (currentUserId == null)
+        if (communityMember.UserId == community.CreatorId)
         {
-            return Challenge();
+            return Forbid();
         }
-        // checks if community member is even in the community
-        if (communityMember.CommunityId != id)
+        if (currentUserId != community.CreatorId)
         {
-            return RedirectToAction(nameof(Index));
+            var moderator = await _context.CommunityMembers.FindAsync(currentUserId, id);
+            if (moderator?.IsModerator != true || communityMember.IsModerator)
+            {
+                return Forbid();
+            }
         }
-        if (ModelState.IsValid)
-        {
-            community.Members.Remove(communityMember);
-            _context.Remove(communityMember);
-            _context.Update(community);
 
-            await _context.SaveChangesAsync();
-        }
-        return RedirectToAction(nameof(Members), new
-        {
-            community.Id
-        });
+        _context.CommunityMembers.Remove(communityMember);
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+        return ReturnToMembers(community.Id, returnToDetails);
     }
 
     /// <summary>
@@ -752,35 +766,35 @@ public class CommunityController : Controller
     [Route("Community/EditStatus/{id}/{userid}")]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> EditStatusConfirm(int? id, string? userid, CommunityMemberDetailsViewModel viewModel)
+    public async Task<IActionResult> EditStatusConfirm(int? id, string? userid,
+        [FromForm] bool? isModerator, [FromForm] bool returnToDetails = false)
     {
-        var community = await _context.Communities.FindAsync(id);
-        var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
         string? currentUserId = _userManager.GetUserId(User);
-        if (community == null || communityMember == null || community.DateOfDel != null)
-        {
-            return NotFound();
-        }
         if (currentUserId == null)
         {
             return Challenge();
         }
-
-        if (communityMember.CommunityId != id)
+        if (!ModelState.IsValid || isModerator == null)
         {
-            return RedirectToAction(nameof(Index));
+            return BadRequest();
         }
 
-        if (ModelState.IsValid)
+        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        var community = await _context.Communities.FindAsync(id);
+        var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
+        if (community == null || communityMember == null || community.DateOfDel != null)
         {
-            communityMember.IsModerator = viewModel.IsModerator;
-            _context.Update(communityMember);
-            await _context.SaveChangesAsync();
+            return NotFound();
         }
-        return RedirectToAction(nameof(Members), new
+        if (currentUserId != community.CreatorId || communityMember.UserId == community.CreatorId)
         {
-            community.Id
-        });
+            return Forbid();
+        }
+
+        communityMember.IsModerator = isModerator.Value;
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+        return ReturnToMembers(community.Id, returnToDetails);
     }
 
     /// <summary>
@@ -797,8 +811,14 @@ public class CommunityController : Controller
     [Route("Community/PassCreator/{id}/{userid}")]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> PassCreator(int? id, string? userid)
+    public async Task<IActionResult> PassCreator(int? id, string? userid, [FromForm] bool returnToDetails = false)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
         var community = await _context.Communities.FindAsync(id);
         var communityMember = await _context.CommunityMembers.FindAsync(userid, id);
         string? currentUserId = _userManager.GetUserId(User);
@@ -807,28 +827,22 @@ public class CommunityController : Controller
             return NotFound();
         }
 
-        if (currentUserId == null || community.CreatorId != currentUserId)
+        if (currentUserId != community.CreatorId || communityMember.UserId == community.CreatorId)
         {
             return Forbid();
         }
 
-        if (communityMember.CommunityId != id)
-        {
-            return RedirectToAction(nameof(Index));
-        }
-
-        if (ModelState.IsValid)
-        {
-            community.CreatorId = communityMember.UserId;
-            communityMember.IsModerator = true;
-            _context.Update(communityMember);
-            await _context.SaveChangesAsync();
-        }
-        return RedirectToAction(nameof(Members), new
-        {
-            community.Id
-        });
+        community.CreatorId = communityMember.UserId;
+        communityMember.IsModerator = true;
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+        return ReturnToMembers(community.Id, returnToDetails);
     }
+
+    private IActionResult ReturnToMembers(int id, bool returnToDetails) =>
+        returnToDetails
+            ? RedirectToAction(nameof(Details), controllerName: null, routeValues: new { id }, fragment: "members")
+            : RedirectToAction(nameof(Members), new { id });
 
     // GET: COMMUNITY/Delete/5
     [Authorize]

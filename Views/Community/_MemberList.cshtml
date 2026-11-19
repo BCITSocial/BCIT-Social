@@ -1,0 +1,87 @@
+@using System.Globalization
+@model BCIT_Social.ViewModels.CommunityMembersViewModel
+
+@{
+    var inPopup = ViewData["MembersPopup"] is true;
+    var members = Model.Members
+        .OrderByDescending(member => member.UserId == Model.CreatorId)
+        .ThenByDescending(member => member.IsModerator)
+        .ThenBy(member => member.User?.UserName, StringComparer.CurrentCultureIgnoreCase);
+}
+
+@if (Model.Members.Count == 0)
+{
+    <p class="community-members-status">This community has no members yet.</p>
+}
+else
+{
+    <ul class="community-members-list" role="list">
+        @foreach (var member in members)
+        {
+            var isOwner = member.UserId == Model.CreatorId;
+            var canManageRoles = Model.IsCreator && !isOwner;
+            var canRemove = !isOwner && (Model.IsCreator || (Model.IsMod && !member.IsModerator));
+            var username = member.User?.UserName;
+            var name = string.IsNullOrWhiteSpace(username) ? "Unknown member" : username;
+            var role = isOwner ? "Owner" : member.IsModerator ? "Moderator" : "Member";
+            var initials = StringInfo.GetNextTextElement(name).ToUpperInvariant();
+
+            <li class="community-members-row">
+                <div class="community-members-person">
+                    <span class="community-members-avatar avatar" aria-hidden="true">@initials</span>
+                    <div class="community-members-person-details">
+                        <div class="community-members-identity">
+                            <a asp-controller="Profile" asp-action="Details" asp-route-id="@member.UserId">@name</a>
+                            <span class="community-members-role @(isOwner || member.IsModerator ? "community-members-role-staff" : "")">@role</span>
+                        </div>
+                        <span class="community-members-date">
+                            Joined <time datetime="@member.JoinedAt.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">@member.JoinedAt.ToString("D")</time>
+                        </span>
+                    </div>
+                </div>
+                @if (canRemove || canManageRoles)
+                {
+                    var actions = new List<(string Route, string Label, string Prompt, bool Destructive)>();
+                    if (canManageRoles)
+                    {
+                        actions.Add(member.IsModerator
+                            ? ("EditStatus", "Remove moderator role", $"Change {name}’s role to Member?", false)
+                            : ("EditStatus", "Make moderator", $"Give {name} permission to remove regular members?", false));
+                        actions.Add(("PassCreator", "Transfer ownership", $"Make {name} the owner of {Model.Name}? You’ll give up ownership.", true));
+                    }
+                    if (canRemove)
+                    {
+                        actions.Add(("Kick", "Remove member", $"Remove {name} from {Model.Name}?", true));
+                    }
+
+                    <details class="community-members-manage" name="community-members-manage">
+                        <summary class="community-members-button">Manage<span class="visually-hidden"> @name</span></summary>
+                        <form class="community-members-actions" method="post" asp-antiforgery="true">
+                            @if (inPopup)
+                            {
+                                <input type="hidden" name="returnToDetails" value="true" />
+                            }
+                            @if (canManageRoles)
+                            {
+                                <input type="hidden" name="isModerator" value="@(!member.IsModerator ? "true" : "false")" />
+                            }
+                            @foreach (var action in actions)
+                            {
+                                <details class="community-members-action" name="community-member-actions-@member.UserId">
+                                    <summary>@action.Label</summary>
+                                    <p>@action.Prompt</p>
+                                    <button type="submit" asp-action="@action.Route" asp-controller="Community"
+                                            asp-route-id="@Model.Id" asp-route-userid="@member.UserId"
+                                            class="community-members-button @(action.Destructive ? "community-members-button-danger" : "community-members-button-primary")">
+                                        Confirm
+                                        <span class="visually-hidden"> @action.Label.ToLowerInvariant()</span>
+                                    </button>
+                                </details>
+                            }
+                        </form>
+                    </details>
+                }
+            </li>
+        }
+    </ul>
+}

@@ -15,6 +15,7 @@
 <!-- Included communities.css for shared modal styling and badges -->
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/community-details.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/community-members.css" asp-append-version="true" />
 
 <div class="details-wrapper">
     <!-- Hero Banner -->
@@ -53,7 +54,8 @@
                     }
                     <span>@meta.Privacy</span>
                     <span>&bull;</span>
-                    <a asp-action="Members" asp-route-id="@Model.Id">
+                    <a asp-action="Members" asp-route-id="@Model.Id" class="community-members-trigger"
+                       data-open-members aria-haspopup="dialog" aria-controls="community-members-dialog">
                         <span>@Model.Members.Count @meta.MembersLabel</span>
                     </a>
                     <span>&bull;</span>
@@ -126,10 +128,28 @@
 <!-- Modular Modal Partial Inclusion -->
 <partial name="_CreateCommunityModal" model="Model.CreateForm" />
 
+<dialog class="community-members-dialog" id="community-members-dialog" aria-labelledby="community-members-title">
+    <header class="community-members-header">
+        <div>
+            <h2 id="community-members-title">Members</h2>
+            <p>@Model.Name</p>
+        </div>
+        <form method="dialog">
+            <button type="submit" class="community-members-close" aria-label="Close members" autofocus>&times;</button>
+        </form>
+    </header>
+    <div class="community-members-body">
+        <p class="community-members-status" data-members-status role="status"></p>
+        <a asp-action="Members" asp-route-id="@Model.Id" data-members-fallback hidden>Open members page</a>
+        <div data-members-content></div>
+    </div>
+</dialog>
+
 @section Scripts {
     <!-- communities.js opens and closes the modal.
          community-form.js fills in its tags -->
     <script src="~/js/communities.js" asp-append-version="true"></script>
     <script src="~/js/community-form.js" asp-append-version="true"></script>
     <script src="~/js/community-details.js" asp-append-version="true"></script>
+    <script src="~/js/community-members.js" asp-append-version="true" defer></script>
 }
