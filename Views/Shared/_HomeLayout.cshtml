@@ -20,14 +20,22 @@ Provides the shared page structure, styles, header, navigation, and script secti
     <script src="~/js/profile-theme.js" asp-append-version="true"></script>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <partial name="_Header" />
+    @* Three columns: the nav pinned to the left edge, the page centred, and a right column pinned to the right
+       edge. A page fills the right column with @section RightPanel { ... }. *@
     <div class="app-shell">
         <partial name="_Navigation" />
         <main id="main-content" tabindex="-1">
             @RenderBody()
         </main>
+        <div class="shell-right">
+            @await RenderSectionAsync("RightPanel", required: false)
+        </div>
     </div>
-    @await Component.InvokeAsync("CreatePostDialog")
-    <script src="~/js/create-post.js" asp-append-version="true" defer></script>
+    @if (ViewData["UseMinimalSiteShell"] as bool? != true)
+    {
+        @await Component.InvokeAsync("CreatePostDialog")
+        <script src="~/js/create-post.js" asp-append-version="true" defer></script>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

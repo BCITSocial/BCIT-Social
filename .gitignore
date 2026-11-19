@@ -484,3 +484,6 @@ bin/
 obj/
 .vs/
 *.user
+
+# Community cover images saved locally when Azure Blob storage isn't set up
+App_Data/

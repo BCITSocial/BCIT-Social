@@ -1,0 +1,15 @@
+@model BCIT_Social.ViewModels.TagPickerViewModel
+@* A "Tags" field: chips the user ticks, up to Model.Max. tag-picker.js stops extra ticks and
+   asks for Model.Min ticks before the form submits. Chip styles are .post-type-option in home.css. *@
+<fieldset class="create-field tag-picker" data-tag-picker data-max="@Model.Max" data-min="@Model.Min" id="@Model.Id">
+    <legend>@Model.Legend <span class="tag-picker-count">(choose up to @Model.Max)</span></legend>
+    <div class="post-type-options">
+        @foreach (var option in Model.Options)
+        {
+            <label class="post-type-option">
+                <input type="checkbox" name="@Model.Name" value="@option.Value" checked="@option.Selected" />
+                <span>@option.Text</span>
+            </label>
+        }
+    </div>
+</fieldset>

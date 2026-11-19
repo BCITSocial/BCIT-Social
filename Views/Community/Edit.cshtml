@@ -18,7 +18,7 @@
             <h1 class="modal-title">@Model.Text.Title</h1>
             <p class="modal-subtitle">@Model.Text.Subtitle</p>
 
-            <form asp-action="Edit" asp-route-id="@Model.Id" method="post" data-community-form>
+            <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" data-community-form>
                 @if (!ViewData.ModelState.IsValid)
                 {
                     <div asp-validation-summary="All" class="text-danger form-errors"></div>
