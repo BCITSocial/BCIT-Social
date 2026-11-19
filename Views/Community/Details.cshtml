@@ -18,7 +18,15 @@
 
 <div class="details-wrapper">
     <!-- Hero Banner -->
-    <div class="details-hero-banner">
+    <div class="details-hero-banner @(Model.BannerPhotoStorageKey == null ? "" : "has-cover-photo")">
+        @if (Model.BannerPhotoStorageKey != null)
+        {
+            <img class="details-cover-photo"
+                style= "width: 100%; max-width: 1600px; max-height: 400px; object-fit: fill;"
+                 src="@Url.Action("Photo", "Community", new { id = Model.Id })"
+                 alt="@Model.Name cover photo" />
+        }
+        else {
         <div>
             <div class="banner-pre">@text.Banner.Subtitle</div>
             <h1>@text.Banner.Title</h1>
@@ -26,6 +34,7 @@
             <div class="banner-code">@text.Banner.CodeBadge</div>
         </div>
         <div class="banner-solid-accent">BCIT</div>
+        }
     </div>
 
     <!-- Community Header -->

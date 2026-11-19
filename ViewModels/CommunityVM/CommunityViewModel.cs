@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BCIT_Social.ViewModels;
@@ -22,6 +23,7 @@ public class CommunityViewModel
     public string? Description { get; set; }
     public bool IsJoined { get; set; }
     public int MembersCount { get; set; }
+    public IFormFile? BannerPhoto { get; set; }
 
     public CommunityViewModel()
     {

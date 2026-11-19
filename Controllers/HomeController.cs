@@ -68,6 +68,18 @@ public class HomeController : Controller
             })
             .ToListAsync();
 
+        var currentUserProfilePhoto = userId == null
+            ? null
+            : await _context.Profiles
+            .AsNoTracking()
+            .Where(profile => profile.UserId == userId)
+            .Select(profile => new
+            {
+                profile.ProfilePhotoStorageKey,
+                profile.ProfilePhotoOriginalFileName
+            })
+            .FirstOrDefaultAsync();
+
         return View(new HomeViewModel
         {
             Posts = posts,
@@ -80,7 +92,9 @@ public class HomeController : Controller
                     YOURCOMMUNITIESSHOWN),
 
             CurrentUserInitials = await CurrentUserInitialsAsync(userId),
-
+            CurrentUserId = userId,
+            HasCurrentUserProfilePhoto = !string.IsNullOrWhiteSpace(currentUserProfilePhoto?.ProfilePhotoStorageKey),
+            CurrentUserProfilePhotoOriginalFileName = currentUserProfilePhoto?.ProfilePhotoOriginalFileName,
             CurrentFilter = filter,
             CurrentTagId = tagId,
             AvailableTags = availableTags
@@ -270,6 +284,12 @@ public class HomeController : Controller
                 .Where(profile => profile.UserId == post.AuthorId)
                 .Select(profile => profile.DisplayName)
                 .FirstOrDefault() ?? post.Author.UserName ?? "",
+            AuthorHasProfilePhoto = _context.Profiles
+                .Any(profile => profile.UserId == post.AuthorId && profile.ProfilePhotoStorageKey != null),
+            AuthorProfilePhotoOriginalFileName = _context.Profiles
+                .Where(profile => profile.UserId == post.AuthorId)
+                .Select(profile => profile.ProfilePhotoOriginalFileName)
+                .FirstOrDefault(),
             Photos = post.Photos.OrderBy(photo => photo.DisplayOrder).ToList(),
             CommunityName = post.Community != null ? post.Community.Name : null,
             CreatedAt = post.CreatedAt,

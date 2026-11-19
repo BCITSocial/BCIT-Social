@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BCIT_Social.Models;
+using BCIT_Social.Services;
 using BCIT_Social.Data;
 using Microsoft.AspNetCore.Identity;
 using BCIT_Social.ViewModels;
@@ -10,6 +11,7 @@ public class ProfileController : Controller
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly UploadService _uploadService;
 
     /// <summary>
     /// Added userManager to scaffolded code for checking user and database connections.
@@ -18,11 +20,12 @@ public class ProfileController : Controller
     /// <param name="userManager"></param>
     /// <param name="signInManager"></param>
     public ProfileController(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager)
+        SignInManager<ApplicationUser> signInManager, UploadService uploadService)
     {
         _context = context;
         _userManager = userManager;
         _signInManager = signInManager;
+        _uploadService = uploadService;
     }
 
     // GET: PROFILES
@@ -82,6 +85,7 @@ public class ProfileController : Controller
         var communities = await _context.CommunityMembers
             .AsNoTracking()
             .Where(member => member.UserId == profileUserId)
+            .Where(m => m.Community.DateOfDel == null)
             .OrderBy(member => member.Community.Name)
             .Select(member => new CommunityLinkViewModel
             {
@@ -148,7 +152,10 @@ public class ProfileController : Controller
                 .OrderBy(p => p.DisplayName).ThenBy(p => p.UserId)
                 .Select(p => new FriendSearchResultViewModel
                 {
-                    UserId = p.UserId, DisplayName = p.DisplayName, Program = p.Program, Campus = p.Campus,
+                    UserId = p.UserId,
+                    DisplayName = p.DisplayName,
+                    Program = p.Program,
+                    Campus = p.Campus,
                     RelationshipStatus = _context.FriendRelationships
                         .Where(r => (r.RequesterId == profileUserId && r.RecipientId == p.UserId) ||
                                     (r.RecipientId == profileUserId && r.RequesterId == p.UserId))
@@ -181,7 +188,7 @@ public class ProfileController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddFriend(string userId, string? friendSearch = null, string? section = null)
+    public async Task<IActionResult> AddFriend(string userId, string? friendSearch = null, string? section = null, bool fromFriends = false, string? q = null)
     {
         var requesterId = _userManager.GetUserId(User);
         if (requesterId == null)
@@ -238,6 +245,11 @@ public class ProfileController : Controller
             TempData["FriendRequestMessage"] = "Friend request sent.";
         }
 
+        if (fromFriends)
+        {
+            return RedirectToAction("Index", "Friends", new { q });
+        }
+
         return friendSearch is not null
             ? RedirectToAction(nameof(Index), new { section, friendSearch })
             : RedirectToAction(nameof(Details), new { userid = recipient.Id });
@@ -274,6 +286,34 @@ public class ProfileController : Controller
         return RedirectToAction(nameof(Index), new { section = "friends" });
     }
 
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CancelFriendRequest(int relationshipId)
+    {
+        var userId = _userManager.GetUserId(User);
+        if (userId == null)
+        {
+            return Challenge();
+        }
+
+        var now = DateTime.UtcNow;
+        var updated = await _context.FriendRelationships
+            .Where(request => request.Id == relationshipId
+                && request.RequesterId == userId && request.Status == "Pending")
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(request => request.Status, "Cancelled")
+                .SetProperty(request => request.UpdatedAt, now)
+                .SetProperty(request => request.DeactivatedAt, now));
+
+        if (updated == 0)
+        {
+            return NotFound();
+        }
+
+        TempData["FriendRequestMessage"] = "Friend request cancelled.";
+        return RedirectToAction("Index", "Friends");
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -331,6 +371,12 @@ public class ProfileController : Controller
                 .Where(profile => profile.UserId == post.AuthorId)
                 .Select(profile => profile.DisplayName)
                 .FirstOrDefault() ?? post.Author.UserName ?? "",
+            AuthorHasProfilePhoto = _context.Profiles
+                .Any(profile => profile.UserId == post.AuthorId && profile.ProfilePhotoStorageKey != null),
+            AuthorProfilePhotoOriginalFileName = _context.Profiles
+                .Where(profile => profile.UserId == post.AuthorId)
+                .Select(profile => profile.ProfilePhotoOriginalFileName)
+                .FirstOrDefault(),
             Photos = post.Photos.OrderBy(photo => photo.DisplayOrder).ToList(),
             CommunityName = post.Community != null ? post.Community.Name : null,
             CreatedAt = post.CreatedAt,
@@ -380,28 +426,80 @@ public class ProfileController : Controller
     /// <returns></returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(ProfileViewModel viewModel)
+    public async Task<IActionResult> Create(ProfileViewModel viewModel, CancellationToken cancellationToken)
     {
         string? userID = _userManager.GetUserId(User);
         if (userID == null)
         {
             return Challenge();
         }
+        if (!ModelState.IsValid)
+        {
+            return View(viewModel);
+        }
+
         var profile = new Profile
         {
             UserId = userID,
             DisplayName = viewModel.DisplayName,
             Bio = viewModel.Bio,
             Program = viewModel.Program,
-            Campus = viewModel.Campus,
+            Campus = viewModel.Campus
         };
-        if (ModelState.IsValid)
+
+        UploadedFile? uploadedPhoto = null;
+        try
         {
+            if (viewModel.ProfilePhoto is { Length: > 0 })
+            {
+                uploadedPhoto = await _uploadService.UploadAsync(
+                    viewModel.ProfilePhoto,
+                    "profile",
+                    cancellationToken);
+                SetProfilePhoto(profile, uploadedPhoto);
+            }
+
             _context.Add(profile);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
         }
-        return View(viewModel);
+        catch
+        {
+            if (uploadedPhoto != null)
+            {
+                await _uploadService.DeleteAsync(uploadedPhoto.StorageKey, CancellationToken.None);
+            }
+            ModelState.AddModelError(nameof(viewModel.ProfilePhoto), "An error occurred while uploading the profile photo.");
+            return View(viewModel);
+            throw;
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    // GET: PROFILES/Photo/user-id
+    /// <summary>
+    /// Description: Streams a profile photo from Blob Storage for display.
+    /// Author: Justin Chik
+    /// </summary>
+    /// <param name="id">The ID of the profile owner.</param>
+    /// <param name="cancellationToken">A token that can cancel the download operation.</param>
+    /// <returns>The profile photo file, or a not found result if no photo exists.</returns>
+    [HttpGet]
+    public async Task<IActionResult> Photo(string? id, CancellationToken cancellationToken)
+    {
+        var profile = await _context.Profiles
+        .AsNoTracking()
+        .FirstOrDefaultAsync(profile => profile.UserId == id, cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(id) || 
+            profile?.ProfilePhotoStorageKey == null || 
+            profile.ProfilePhotoContentType == null)
+        {
+            return NotFound();
+        }
+
+        var image = await _uploadService.DownloadAsync(profile.ProfilePhotoStorageKey, cancellationToken);
+        return File(image.Content, profile.ProfilePhotoContentType);
     }
 
     // GET: PROFILES/Edit/5
@@ -440,7 +538,7 @@ public class ProfileController : Controller
     /// <param name="viewModel">The view model for the profile</param>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(ProfileViewModel viewModel)
+    public async Task<IActionResult> Edit(ProfileViewModel viewModel, CancellationToken cancellationToken)
     {
         string? userID = _userManager.GetUserId(User);
         var profile = await _context.Profiles.FindAsync(userID);
@@ -452,27 +550,83 @@ public class ProfileController : Controller
         profile.Bio = viewModel.Bio;
         profile.Program = viewModel.Program;
         profile.Campus = viewModel.Campus;
-        if (ModelState.IsValid)
+
+        if (!ModelState.IsValid)
         {
-            try
-            {
-                _context.Update(profile);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProfileExists(userID))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return RedirectToAction(nameof(Index));
+            return View(profile);
         }
-        return View(profile);
+
+        UploadedFile? uploadedPhoto = null;
+        var previousPhotoStorageKey = profile.ProfilePhotoStorageKey;
+        try
+        {
+            if (viewModel.ProfilePhoto is { Length: > 0 })
+            {
+                uploadedPhoto = await _uploadService.UploadAsync(
+                    viewModel.ProfilePhoto,
+                    "profile",
+                    cancellationToken);
+                SetProfilePhoto(profile, uploadedPhoto);
+            }
+
+            _context.Update(profile);
+            await _context.SaveChangesAsync();
+        }
+        catch (ArgumentException exception)
+        {
+            if (uploadedPhoto != null)
+            {
+                await _uploadService.DeleteAsync(uploadedPhoto.StorageKey, CancellationToken.None);
+            }
+
+            ModelState.AddModelError(nameof(viewModel.ProfilePhoto), exception.Message);
+            return View(profile);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (uploadedPhoto != null)
+            {
+                await _uploadService.DeleteAsync(uploadedPhoto.StorageKey, CancellationToken.None);
+            }
+
+            if (!ProfileExists(userID))
+            {
+                return NotFound();
+            }
+
+            throw;
+        }
+        catch
+        {
+            if (uploadedPhoto != null)
+            {
+                await _uploadService.DeleteAsync(uploadedPhoto.StorageKey, CancellationToken.None);
+            }
+
+            throw;
+        }
+
+        if (uploadedPhoto != null && previousPhotoStorageKey != null)
+        {
+            await _uploadService.DeleteAsync(previousPhotoStorageKey, cancellationToken);
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    /// <summary>
+    /// Description: Copies uploaded photo metadata to a profile.
+    /// Author: Justin Chik
+    /// </summary>
+    /// <param name="profile">The profile receiving the photo metadata.</param>
+    /// <param name="uploadedPhoto">The metadata returned by Blob Storage upload.</param>
+    private static void SetProfilePhoto(Profile profile, UploadedFile uploadedPhoto)
+    {
+        profile.ProfilePhotoStorageKey = uploadedPhoto.StorageKey;
+        profile.ProfilePhotoOriginalFileName = uploadedPhoto.OriginalFileName;
+        profile.ProfilePhotoContentType = uploadedPhoto.ContentType;
+        profile.ProfilePhotoFileSizeBytes = uploadedPhoto.FileSizeBytes;
+        profile.ProfilePhotoUpdatedAt = DateTime.UtcNow;
     }
 
     // GET: PROFILES/Delete/5
