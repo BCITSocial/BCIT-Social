@@ -1063,18 +1063,20 @@ public class CommunityController : Controller
             return NotFound();
         }
         string? bannerKey = null;
-        if (community != null)
+        if (community == null || community.DateOfDel != null)
         {
-            // Author: Jay - only the creator can delete (the check's result was ignored before).
-            if (!CommunityAccessChecker(true, community))
-            {
-                return Forbid();
-            }
-            bannerKey = community.BannerPhotoStorageKey;
-            community.DateOfDel = DateTime.Now.AddDays(7);
-            _context.Communities.Update(community);
-            await _context.SaveChangesAsync();
+            return NotFound();
         }
+        // Author: Jay - only the creator can delete (the check's result was ignored before).
+        if (!CommunityAccessChecker(true, community))
+        {
+            return Forbid();
+        }
+        bannerKey = community.BannerPhotoStorageKey;
+        community.DateOfDel = DateTime.Now.AddDays(7);
+        _context.Communities.Update(community);
+        await _context.SaveChangesAsync();
+
         // Author: Jay
         await DeleteBannerAsync(bannerKey);
         return RedirectToAction(nameof(Index));
