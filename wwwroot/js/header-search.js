@@ -178,7 +178,11 @@
             total += best;
         }
         // Small bonus when the title contains the query as typed, for example "soccer club".
-        if (lower(item.fields?.title).includes(queryWords.join(" "))) total += 5;
+        const title = lower(item.fields?.title);
+        const phrase = queryWords.join(" ");
+        if (title.includes(phrase)) total += 5;
+        // And a little more when the title starts with it, so "ma" lists Maya Chen before Isabella Martin.
+        if (title.startsWith(phrase)) total += 2;
         return total;
     }
 
