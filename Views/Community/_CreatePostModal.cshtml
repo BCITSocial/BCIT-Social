@@ -20,22 +20,6 @@
         <p class="modal-subtitle">@text.Subtitle.Replace("{name}", Model.Name)</p>
 
         <form asp-action="CreatePost" asp-route-id="@Model.Id" method="post">
-            @* post type: one tag, like the Home create post pop-up *@
-            @if (Model.PostTypes.Count > 0)
-            {
-                <fieldset class="post-type-field">
-                    <legend class="modal-label">@text.TypeLabel</legend>
-                    <div class="post-type-choices">
-                        @foreach (var type in Model.PostTypes)
-                        {
-                            <label class="post-type-choice">
-                                <input type="radio" name="TagId" value="@type.Value" required />
-                                <span>@type.Text</span>
-                            </label>
-                        }
-                    </div>
-                </fieldset>
-            }
 
             <div class="modal-field">
                 <label for="community-post-title" class="modal-label">@text.TitleLabel</label>
@@ -45,9 +29,34 @@
 
             <div class="modal-field">
                 <label for="community-post-content" class="modal-label">@text.ContentLabel</label>
-                <textarea id="community-post-content" name="Content" rows="5" class="modal-input" required
+                <textarea id="community-post-content" name="Content" rows="15" class="modal-input" required
                           placeholder="@text.ContentPlaceholder"></textarea>
             </div>
+
+            @* post type: one tag, like the Home create post pop-up *@
+            @if (Model.PostTypes.Count > 0)
+            {
+                <fieldset class="post-type-field">
+                    <legend class="modal-label">@text.TypeLabel</legend>
+                    @* one row of pills; "Show all" opens the rest (community-details.js) *@
+                    <div class="post-type-row" data-collapsible-choices>
+                        <div class="post-type-choices" id="post-type-choices">
+                            @foreach (var type in Model.PostTypes)
+                            {
+                                <label class="post-type-choice">
+                                    <input type="radio" name="TagId" value="@type.Value" required />
+                                    <span>@type.Text</span>
+                                </label>
+                            }
+                        </div>
+                        <button type="button" class="link-action-btn post-type-toggle" hidden aria-expanded="false"
+                                aria-controls="post-type-choices" data-show-all="@text.ShowAllTypes"
+                                data-show-less="@text.ShowLessTypes">
+                            @text.ShowAllTypes
+                        </button>
+                    </div>
+                </fieldset>
+            }
 
             <div class="modal-footer-actions">
                 <button type="reset" class="btn-cancel" data-close-modal>@text.CancelButton</button>
