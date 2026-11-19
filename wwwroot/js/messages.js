@@ -1,6 +1,6 @@
-// Messages page: sending, conversation list search, the details panel, mute, and search in conversation.
+// Messages page: live messages, typing indicator, sending, conversation list search, the details panel, mute, and search in conversation.
 // Without JavaScript the page still works through links; this script updates it in place.
-// Message sending posts to the backend; display-only controls remain client-side for now.
+// Messages are sent through the SignalR hub when connected, and post to the backend otherwise; display-only controls remain client-side for now.
 (() => {
     const page = document.querySelector("[data-messages]");
     if (!page) return;
@@ -45,10 +45,11 @@
         log.insertBefore(divider, typingRow);
     }
 
-    // message: { text, sentAt (Date), isMine }
+    // message: { id, text, sentAt (Date), isMine }
     function addMessage(message) {
         ensureDay(message.sentAt);
         const row = fromTemplate(message.isMine ? "mine" : "theirs");
+        if (message.id) row.dataset.messageId = message.id;
         row.querySelector("[data-text]").textContent = message.text;
         const time = row.querySelector("time");
         time.dateTime = isoLocal(message.sentAt);
@@ -59,9 +60,9 @@
 
     // ---- Conversation list ----
 
-    // Shows the latest message in the open conversation's row and moves the row to the top.
+    // Shows the latest message in its conversation's row and moves the row to the top.
     function updateListRow(message) {
-        const link = page.querySelector(`.msg-conversation[data-conversation-id="${activeId}"]`);
+        const link = page.querySelector(`.msg-conversation[data-conversation-id="${message.chatboxId ?? activeId}"]`);
         if (!link) return;
         link.querySelector(".msg-preview").textContent = (message.isMine ? "You: " : "") + message.text;
         let time = link.querySelector(".msg-conversation-top time");
@@ -74,6 +75,62 @@
         const item = link.closest("li");
         item.parentElement.prepend(item);
     }
+
+    // ---- Live messages (SignalR) ----
+
+    const myId = document.body.dataset.profileUserId;
+    const hubUrl = page.dataset.hubUrl;
+    let connection = null;
+    let typingHideTimer;
+
+    function hideTyping() {
+        clearTimeout(typingHideTimer);
+        if (typingRow) typingRow.hidden = true;
+    }
+
+    // Shows "is typing..." and hides it again if no new signal arrives for 4 seconds.
+    function showTyping() {
+        if (!typingRow) return;
+        const wasHidden = typingRow.hidden;
+        typingRow.hidden = false;
+        // Only follow the new row down if the reader is already at the bottom.
+        if (wasHidden && Math.abs(scroller.scrollTop) < 40) scrollToBottom();
+        clearTimeout(typingHideTimer);
+        typingHideTimer = setTimeout(hideTyping, 4000);
+    }
+
+    if (hubUrl && window.signalR) {
+        connection = new signalR.HubConnectionBuilder()
+            .withUrl(hubUrl)
+            .withAutomaticReconnect()
+            .build();
+
+        // Every member of the chatbox, including the sender, receives each saved message.
+        connection.on("ReceiveMessage", (payload) => {
+            const message = {
+                id: payload.id,
+                chatboxId: String(payload.chatboxId),
+                text: payload.text,
+                sentAt: new Date(payload.createdAt),
+                isMine: payload.senderId === myId,
+            };
+            const isOpenChat = log && message.chatboxId === activeId;
+            if (isOpenChat && !message.isMine) hideTyping();
+            if (isOpenChat && !log.querySelector(`[data-message-id="${message.id}"]`)) {
+                addMessage(message);
+            }
+            updateListRow(message);
+        });
+
+        // Another member of the open conversation is typing.
+        connection.on("UserTyping", (payload) => {
+            if (String(payload.chatboxId) === activeId && payload.userId !== myId) showTyping();
+        });
+
+        connection.start().catch((error) => console.error("Live messages unavailable:", error));
+    }
+
+    const isConnected = () => connection !== null && connection.state === signalR.HubConnectionState.Connected;
 
     // ---- Sending ----
 
@@ -88,6 +145,15 @@
         };
         const updateButton = () => { sendButton.disabled = input.value.trim() === ""; };
 
+        // Tell the other members you are typing, at most once every 2 seconds.
+        let lastTypingSent = 0;
+        const notifyTyping = () => {
+            const now = Date.now();
+            if (!isConnected() || input.value.trim() === "" || now - lastTypingSent < 2000) return;
+            lastTypingSent = now;
+            connection.invoke("Typing", Number(activeId)).catch(() => { });
+        };
+
         // Enter sends, Shift+Enter adds a new line. isComposing skips Enter that confirms an IME word.
         input.addEventListener("keydown", (event) => {
             if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
@@ -97,13 +163,33 @@
         });
 
         input.addEventListener("input", () => {
+            notifyTyping();
             resize();
+            updateButton();
+        });
+
+        // Send through the hub when connected; otherwise the form posts normally.
+        form.addEventListener("submit", async (event) => {
+            if (!isConnected()) return;
+            event.preventDefault();
+            const text = input.value.trim();
+            if (!text) return;
+            sendButton.disabled = true;
+            try {
+                await connection.invoke("SendMessage", Number(activeId), text);
+                input.value = "";
+                resize();
+            } catch (error) {
+                console.error("Send failed, using the normal form:", error);
+                form.submit();
+                return;
+            }
             updateButton();
         });
 
         updateButton();
     }
-    
+
     // @author Asher
     // ---- Start a conversation ----
 
