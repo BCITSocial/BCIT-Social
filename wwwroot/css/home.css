@@ -57,8 +57,12 @@ p { color: var(--color-muted); }
 .profile-menu-item:hover { background: var(--color-input); }
 
 /* Shell and sidebar */
-.app-shell { display: grid; grid-template-columns: 215px minmax(0, 1fr); min-height: calc(100dvh - 69px); }
-.sidebar { padding: 16px; background: var(--color-surface); border-right: 1px solid var(--color-border); }
+/* Page shell: nav pinned to the left edge, page centred, right column (.shell-right) pinned to the right edge.
+   Both side columns are the same width, so the page sits in the exact centre of the window. */
+.app-shell { --shell-side: 240px; display: grid; grid-template-columns: var(--shell-side) minmax(0, 1fr) var(--shell-side); width: 100%; min-height: calc(100dvh - 69px); }
+/* The nav stays in place while the page scrolls. It is one window tall and scrolls on its own
+   if its list of communities is longer than that. */
+.sidebar { position: sticky; top: 0; align-self: start; height: 100dvh; overflow-y: auto; padding: 16px; background: var(--color-surface); border-right: 1px solid var(--color-border); }
 .sidebar ul { margin: 0; padding: 0; list-style: none; }
 .sidebar-links { display: grid; gap: 2px; }
 .sidebar-links a, .sidebar-links button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 40px; padding: 8px 16px; border: 0; border-radius: 8px; background: var(--color-transparent); color: var(--color-text); font-size: 0.9375rem; text-align: left; text-decoration: none; }
@@ -73,7 +77,11 @@ p { color: var(--color-muted); }
 .sidebar-community-badge { display: grid; flex: none; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--color-avatar); color: var(--color-avatar-text); font-size: 0.6875rem; font-weight: var(--font-weight-bold); }
 .sidebar-community-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-main { min-width: 0; padding: 12px 16px 28px; }
+main { width: 100%; max-width: 940px; min-width: 0; justify-self: center; padding: 12px 16px 28px; }
+/* Home reads like a feed, so its column is narrower than other pages. */
+main:has(.home-feed-layout) { max-width: 760px; }
+.shell-right { min-width: 0; padding: 12px 16px 28px 0; }
+.shell-right:not(:has(*)) { display: none; }
 .page-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
 .panel { padding: 24px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); overflow-wrap: anywhere; }
 .empty-state { display: grid; place-items: center; min-height: 280px; text-align: center; }
@@ -107,9 +115,24 @@ a.primary-button { display: inline-flex; align-items: center; min-height: 44px; 
 .share-prompt { display: flex; align-items: center; min-height: 48px; padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-muted); font-size: 1rem; text-decoration: none; }
 .share-prompt:hover { border-color: var(--color-accent); }
 .share-hint { grid-column: 2 / -1; font-size: 0.875rem; }
+/* Signed-out visitors: sign-up prompt in place of the share box. */
+.share-box-guest { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.share-guest-text h2 { margin: 0 0 4px; font-size: 1.125rem; }
+.share-guest-text p { margin: 0; font-size: 0.875rem; color: var(--color-muted); }
+.share-guest-actions { display: flex; gap: 8px; }
+/* Guest buttons use the gold call-to-action colour and navy so they stand out from the blue header buttons. */
+.guest-login { border-color: var(--color-text); background: var(--color-surface); color: var(--color-text); }
+.guest-login:hover { background: var(--color-text); color: var(--color-surface); }
+.guest-signup { border-color: var(--color-cta); background: var(--color-cta); color: var(--color-cta-text); }
+.guest-signup:hover { border-color: #f5c63c; background: #f5c63c; color: var(--color-cta-text); }
+/* Signed-out visitors: call to action in place of the Events/Communities box. */
+.guest-cta-panel { position: sticky; top: 12px; }
+.guest-cta-panel h2 { margin: 0 0 6px; font-size: 1.125rem; }
+.guest-cta-panel p { margin: 0; font-size: 0.875rem; color: var(--color-muted); }
+.guest-cta-list { display: grid; gap: 6px; margin: 14px 0 0; padding-left: 18px; font-size: 0.875rem; }
 
 /* @author Asher. Feed layout and the Events/Communities discovery panel. */
-.home-feed-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 320px); align-items: start; gap: 12px; }
+.home-feed-layout { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; }
 .home-feed-layout > .home-section { min-width: 0; }
 .discovery-panel { position: sticky; top: 12px; }
 .discovery-tabs { display: flex; gap: 20px; margin: 0 -4px 16px; border-bottom: 1px solid var(--color-border); }
@@ -150,9 +173,13 @@ a.primary-button { display: inline-flex; align-items: center; min-height: 44px; 
 .feed-status { display: grid; justify-items: center; gap: 12px; margin-top: 20px; text-align: center; }
 .feed-status p:empty { display: none; }
 
-@media (max-width: 900px) {
-    .home-feed-layout { grid-template-columns: minmax(0, 1fr); }
-    .discovery-panel { position: static; }
+/* Below 1200px there is no room for a right column: it moves above the page content instead. */
+@media (max-width: 1200px) {
+    .app-shell { grid-template-columns: var(--shell-side) minmax(0, 1fr); }
+    .shell-right { grid-column: 2; grid-row: 1; padding: 12px 16px 0; }
+    main { grid-column: 2; grid-row: 2; }
+    .sidebar { grid-row: 1 / span 2; }
+    .discovery-panel, .guest-cta-panel { position: static; }
 }
 
 /* Post details: modal on Home, full page at /Home/Post/{id} */
@@ -253,7 +280,10 @@ body:has(.create-dialog[open]) { overflow: hidden; }
     .create-footer { padding: 12px 16px 16px; }
     .publish-button { min-width: 0; flex: 1; }
     .app-shell { grid-template-columns: minmax(0, 1fr); }
-    .sidebar { padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--color-border); }
+    .sidebar, .shell-right, main { grid-column: 1; grid-row: auto; }
+    .shell-right { order: 1; padding: 12px 16px 0; }
+    main { order: 2; }
+    .sidebar { position: static; height: auto; overflow: visible; padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--color-border); }
     .sidebar-links { display: flex; flex-wrap: wrap; gap: 4px; }
     .sidebar-links a, .sidebar-links button { width: auto; padding: 8px 10px; }
     .sidebar-communities { display: none; }
@@ -262,7 +292,7 @@ body:has(.create-dialog[open]) { overflow: hidden; }
     .home-section { padding: 12px; }
     .share-box { grid-template-columns: minmax(0, 1fr) auto; }
     .home-feed-layout { grid-template-columns: minmax(0, 1fr); }
-    .discovery-panel { position: static; }
+    .discovery-panel, .guest-cta-panel { position: static; }
     .share-box .avatar { display: none; }
     .share-hint { grid-column: 1 / -1; }
     .post-card { grid-template-columns: minmax(0, 1fr); padding: 14px 12px 6px; }

@@ -16,6 +16,8 @@ public class CommunityFormViewModel
     // The dropdowns' selected values. Empty is "None".
     public string Category { get; init; } = "";
     public string Tag { get; init; } = "";
+    public string Status { get; init; } = "";
+    public string Time { get; init; } = "";
     public string Campus { get; init; } = "";
 
     // Hidden Type value.

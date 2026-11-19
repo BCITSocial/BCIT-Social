@@ -5,6 +5,7 @@ Renders sidebar navigation, marks the active controller route, and lists the use
 
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var signedIn = User.Identity?.IsAuthenticated == true;
 }
 <nav class="sidebar" aria-label="Main navigation">
     <ul class="sidebar-links">
@@ -26,13 +27,16 @@ Renders sidebar navigation, marks the active controller route, and lists the use
                 Events
             </a>
         </li>
-        @* Replace disabled controls with route links as the team adds each screen. *@
-        <li>
-            <a asp-controller="Messages" asp-action="Index" aria-current="@(currentController == "Messages" ? "page" : null)">
-                <svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg>
-                Messages
-            </a>
-        </li>
+        @* Messages needs an account, so signed-out visitors don't see it. *@
+        @if (signedIn)
+        {
+            <li>
+                <a asp-controller="Messages" asp-action="Index" aria-current="@(currentController == "Messages" ? "page" : null)">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg>
+                    Messages
+                </a>
+            </li>
+        }
     </ul>
     @await Component.InvokeAsync("SidebarCommunities")
 </nav>
