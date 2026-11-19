@@ -41,7 +41,8 @@ p { color: var(--color-muted); }
 .search-result-body { display: grid; min-width: 0; }
 .search-result-title, .search-result-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .search-result-title { font-size: 0.9375rem; font-weight: var(--font-weight-bold); }
-.search-result-title mark { padding: 0; background: none; color: var(--color-accent); }
+.search-result mark { padding: 0; background: none; color: var(--color-accent); }
+.search-result-meta mark { font-weight: var(--font-weight-bold); }
 .search-result-meta { color: var(--color-muted); font-size: 0.8125rem; }
 .search-empty { padding: 12px 16px; font-size: 0.875rem; }
 .header-actions { display: flex; align-items: center; justify-self: end; gap: 12px; }

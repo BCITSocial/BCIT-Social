@@ -1,5 +1,6 @@
 // Header search: as the user types, a dropdown under the search box shows matches
-// grouped as Posts, Events, Communities, then People.
+// grouped as Posts, Events, Communities, then People. Each word typed is matched on its own
+// (word starts and small typos count), and title matches are listed first (see "Matching and ranking").
 //
 // There is no site-wide search endpoint yet, so each group uses what already exists:
 // - Posts: the newest posts on the home feed ("/"), loaded once and filtered here.
@@ -31,7 +32,7 @@
         title: event.title,
         meta: `${event.host} · ${event.when} · ${event.campus}`,
         href: `/Events?q=${encodeURIComponent(event.title)}`,
-        text: `${event.title} ${event.host} ${event.campus}`,
+        fields: { title: event.title, tags: `${event.host} ${event.campus}` },
     }));
 
     const groups = [
@@ -62,11 +63,12 @@
             const content = clean(card.querySelector(".post-content")?.textContent);
             const meta = clean(card.querySelector(".post-meta")?.textContent);
             const tags = [...card.querySelectorAll(".post-tags li")].map(tag => clean(tag.textContent)).join(" ");
+            const tagLabels = tags ? tags.split(" ").map(tag => `#${tag}`).join(" ") : "";
             return {
                 title,
-                meta,
+                meta: tagLabels ? `${tagLabels} · ${meta}` : meta,
                 href: `/Home/Post/${card.dataset.postId}`,
-                text: `${title} ${content} ${tags} ${meta}`,
+                fields: { title, tags, body: `${content} ${meta}` },
             };
         }));
 
@@ -85,13 +87,24 @@
                 title: name,
                 meta: members,
                 href,
-                text: `${name} ${card.dataset.topics ?? ""} ${card.dataset.campus ?? ""}`,
+                fields: {
+                    title: name,
+                    tags: `${card.dataset.topics ?? ""} ${card.dataset.campus ?? ""}`,
+                    body: clean(card.querySelector(".community-desc")?.textContent),
+                },
             });
         }
         return results;
     });
 
-    async function searchPeople(query, signal) {
+    // FindUsers only matches the whole text inside a name, so ask it for the longest word
+    // and let rank() check the other words and order the results.
+    function peopleQuery(words) {
+        return words.reduce((longest, word) => (word.length > longest.length ? word : longest), "");
+    }
+
+    async function searchPeople(words, signal) {
+        const query = peopleQuery(words);
         if (!signedIn || query.length < MIN_PEOPLE_QUERY) return [];
         const url = new URL("/Messages/FindUsers", window.location.origin);
         url.searchParams.set("q", query);
@@ -103,10 +116,77 @@
             meta: person.program ?? "",
             href: `/Profile/Details?userid=${encodeURIComponent(person.id)}`,
             initials: initialsOf(person.name),
+            fields: { title: person.name, tags: person.program ?? "" },
         }));
     }
 
-    const matches = (items, query) => items.filter(item => lower(item.text).includes(query)).slice(0, MAX_PER_GROUP);
+    // ---- Matching and ranking ----
+    //
+    // The query is split into words, and every word has to be found somewhere in the item,
+    // in any order. A word can match a whole word ("coding"), the start of a word ("cod"),
+    // the middle of a word ("ode"), or, for words of 4+ letters, a word with one typo ("codng").
+    // Matches in the title count most, then tags/topics, then the rest of the text.
+    // Ties keep the original order, which is newest first for posts.
+
+    const FIELD_WEIGHTS = { title: 3, tags: 2, body: 1 };
+    const MATCH_SCORES = { exact: 4, prefix: 3, inside: 2, typo: 1 };
+
+    const wordsOf = value => lower(value).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+
+    // True when a and b differ by at most one inserted, deleted, changed, or swapped letter.
+    function withinOneEdit(a, b) {
+        if (Math.abs(a.length - b.length) > 1) return false;
+        let i = 0;
+        while (i < a.length && i < b.length && a[i] === b[i]) i++;
+        if (i === a.length && i === b.length) return true;
+        const swapped = a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2);
+        return swapped
+            || a.slice(i + 1) === b.slice(i + 1)   // one letter changed
+            || a.slice(i) === b.slice(i + 1)       // one letter missing from a
+            || a.slice(i + 1) === b.slice(i);      // one extra letter in a
+    }
+
+    // How well one query word matches one word of the item (0 = no match).
+    function wordScore(queryWord, word) {
+        if (word === queryWord) return MATCH_SCORES.exact;
+        if (word.startsWith(queryWord)) return MATCH_SCORES.prefix;
+        if (word.includes(queryWord)) return MATCH_SCORES.inside;
+        if (queryWord.length >= 4) {
+            // Compare with the whole word, and with its start so "progam" still finds "programming".
+            if (withinOneEdit(queryWord, word)) return MATCH_SCORES.typo;
+            for (const length of [queryWord.length - 1, queryWord.length, queryWord.length + 1]) {
+                if (length < word.length && withinOneEdit(queryWord, word.slice(0, length))) return MATCH_SCORES.typo;
+            }
+        }
+        return 0;
+    }
+
+    // The item's score for the whole query, or 0 when any query word is missing.
+    function itemScore(item, queryWords) {
+        let total = 0;
+        for (const queryWord of queryWords) {
+            let best = 0;
+            for (const [field, weight] of Object.entries(FIELD_WEIGHTS)) {
+                for (const word of wordsOf(item.fields?.[field])) {
+                    best = Math.max(best, wordScore(queryWord, word) * weight);
+                }
+            }
+            if (best === 0) return 0;
+            total += best;
+        }
+        // Small bonus when the title contains the query as typed, for example "soccer club".
+        if (lower(item.fields?.title).includes(queryWords.join(" "))) total += 5;
+        return total;
+    }
+
+    function rank(items, queryWords) {
+        return items
+            .map((item, index) => ({ item, index, score: itemScore(item, queryWords) }))
+            .filter(result => result.score > 0)
+            .sort((a, b) => b.score - a.score || a.index - b.index)
+            .slice(0, MAX_PER_GROUP)
+            .map(result => result.item);
+    }
 
     function initialsOf(name) {
         return clean(name).split(" ").filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join("");
@@ -114,21 +194,33 @@
 
     // ---- Rendering ----
 
-    // Wraps the first match of the query in <mark>, built with text nodes so nothing is parsed as HTML.
-    function highlighted(text, query) {
+    // Wraps every place a query word appears in <mark>, built with text nodes so nothing is parsed as HTML.
+    function highlighted(text, queryWords) {
         const fragment = document.createDocumentFragment();
-        const index = text.toLowerCase().indexOf(query);
-        if (!query || index < 0) {
-            fragment.append(text);
-            return fragment;
+        const lowerText = text.toLowerCase();
+        const marked = new Array(text.length).fill(false);
+        for (const word of queryWords) {
+            for (let index = lowerText.indexOf(word); index >= 0; index = lowerText.indexOf(word, index + 1)) {
+                marked.fill(true, index, index + word.length);
+            }
         }
-        const mark = document.createElement("mark");
-        mark.textContent = text.slice(index, index + query.length);
-        fragment.append(text.slice(0, index), mark, text.slice(index + query.length));
+        let start = 0;
+        while (start < text.length) {
+            let end = start;
+            while (end < text.length && marked[end] === marked[start]) end++;
+            if (marked[start]) {
+                const mark = document.createElement("mark");
+                mark.textContent = text.slice(start, end);
+                fragment.append(mark);
+            } else {
+                fragment.append(text.slice(start, end));
+            }
+            start = end;
+        }
         return fragment;
     }
 
-    function resultItem(group, item, query, id) {
+    function resultItem(group, item, queryWords, id) {
         const link = document.createElement("a");
         link.className = "search-result";
         link.href = item.href;
@@ -146,19 +238,19 @@
         body.className = "search-result-body";
         const title = document.createElement("span");
         title.className = "search-result-title";
-        title.append(highlighted(item.title, query));
+        title.append(highlighted(item.title, queryWords));
         body.append(title);
         if (item.meta) {
             const meta = document.createElement("span");
             meta.className = "search-result-meta";
-            meta.textContent = item.meta;
+            meta.append(highlighted(item.meta, queryWords));
             body.append(meta);
         }
         link.append(body);
         return link;
     }
 
-    function render(query, results, { loading = false } = {}) {
+    function render(queryWords, results, { loading = false } = {}) {
         panel.replaceChildren();
         let count = 0;
         for (const group of groups) {
@@ -174,7 +266,7 @@
             section.setAttribute("aria-labelledby", heading.id);
             section.append(heading);
             items.forEach((item, index) => {
-                section.append(resultItem(group.key, item, query, `header-search-${group.key}-${index}`));
+                section.append(resultItem(group.key, item, queryWords, `header-search-${group.key}-${index}`));
                 count++;
             });
             panel.append(section);
@@ -226,12 +318,12 @@
     let peopleRequest;
 
     async function search() {
-        const query = lower(input.value);
+        const queryWords = wordsOf(input.value);
         const current = ++version;
         clearTimeout(peopleTimer);
         peopleRequest?.abort();
 
-        if (!query) {
+        if (queryWords.length === 0) {
             close();
             return;
         }
@@ -240,24 +332,24 @@
         if (current !== version) return;
 
         const results = {
-            posts: matches(posts, query),
-            events: matches(SAMPLE_EVENTS, query),
-            communities: matches(communities, query),
+            posts: rank(posts, queryWords),
+            events: rank(SAMPLE_EVENTS, queryWords),
+            communities: rank(communities, queryWords),
             people: [],
         };
-        const waitingForPeople = signedIn && query.length >= MIN_PEOPLE_QUERY;
-        render(query, results, { loading: waitingForPeople });
+        const waitingForPeople = signedIn && peopleQuery(queryWords).length >= MIN_PEOPLE_QUERY;
+        render(queryWords, results, { loading: waitingForPeople });
         if (!waitingForPeople) return;
 
         // People come from the server, so wait until typing pauses.
         peopleTimer = setTimeout(async () => {
             peopleRequest = new AbortController();
             try {
-                results.people = (await searchPeople(query, peopleRequest.signal)).slice(0, MAX_PER_GROUP);
+                results.people = rank(await searchPeople(queryWords, peopleRequest.signal), queryWords);
             } catch {
                 return; // Aborted by newer typing, or the request failed: keep the other groups.
             }
-            if (current === version) render(query, results);
+            if (current === version) render(queryWords, results);
         }, PEOPLE_DELAY_MS);
     }
 
