@@ -44,7 +44,6 @@ public static class SeedData
 
         var communities = await SeedCommunitiesAsync(db, users);
         await SeedCommunityMembersAsync(db, users, communities);
-        await SeedCommunityEventsAsync(db, users, communities);
         await SeedCommunityMessagesAsync(db, users, communities);
 
         var tags = await SeedTagsAsync(db);
@@ -178,31 +177,6 @@ public static class SeedData
             IsModerator = isModerator,
             JoinedAt = DateTime.UtcNow.AddDays(-14)
         });
-        await db.SaveChangesAsync();
-    }
-
-    private static async Task SeedCommunityEventsAsync(
-        ApplicationDbContext db,
-        IReadOnlyList<ApplicationUser> users,
-        IReadOnlyList<Community> communities)
-    {
-        for (var i = 0; i < SampleCount; i++)
-        {
-            var title = $"BCIT Sample Event {i + 1:00}";
-            if (await db.CommunityEvents.AnyAsync(item => item.Title == title))
-            {
-                continue;
-            }
-
-            db.CommunityEvents.Add(new CommunityEvent
-            {
-                Title = title,
-                CreatorId = users[i].Id,
-                CommunityId = communities[i].Id,
-                EventDate = DateTime.UtcNow.AddDays(i + 1)
-            });
-        }
-
         await db.SaveChangesAsync();
     }
 

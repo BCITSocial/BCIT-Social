@@ -5,6 +5,7 @@ public class EventCardViewModel
 {
     // Used later for the "View event" and "Manage event" links.
     public int Id { get; init; }
+    public bool IsOwner { get; init; }
     // Link to the event's detail page. Leave null until that page exists; the calendar then shows the title as plain text.
     public string? DetailsUrl { get; init; }
     public string Title { get; init; } = "";

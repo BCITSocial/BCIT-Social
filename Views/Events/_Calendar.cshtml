@@ -59,7 +59,7 @@
                                 }
                                 else
                                 {
-                                    <span><span class="calendar-time">@time</span> <span class="calendar-title">@item.Title</span></span>
+                                    <a asp-action="Details" asp-route-id="@item.Id"><span class="calendar-time">@time</span> <span class="calendar-title">@item.Title</span></a>
                                 }
                             </li>
                         }

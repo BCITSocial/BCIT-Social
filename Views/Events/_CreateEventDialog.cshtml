@@ -2,13 +2,10 @@
 @model EventsViewModel
 @* "Create event" pop-up on the Events page. It reuses the create dialog styles from home.css.
    All wording comes from Model.Text.CreateEvent ("text" > "createEvent" in events-text.json).
-   events.js opens and closes it, checks the fields, and shows the errors and the "Creating..." state.
-   TODO(BE): add a POST action (e.g. EventsController.Create, with [Authorize] and [ValidateAntiForgeryToken]) that saves the event
-   and redirects back to /Events with TempData["EventCreated"] = true; then set asp-action on the form below and
-   remove data-not-ready so the form is really sent. *@
+   events.js opens and closes it, checks the fields, and shows the errors and the "Creating..." state. *@
 @{
     var text = Model.Text.CreateEvent;
-    var hasCommunities = Model.Communities.Count > 0;
+    var hasCommunities = Model.OwnedCommunities.Count > 0;
 }
 <dialog class="create-dialog create-event-dialog" id="create-event-dialog" aria-labelledby="create-event-title">
     <div class="create-dialog-top">
@@ -21,7 +18,7 @@
         </button>
     </div>
 
-    <form class="create-form" method="post" enctype="multipart/form-data" novalidate data-create-event data-not-ready>
+    <form class="create-form" method="post" asp-action="CreateFromIndex" data-create-event data-event-date-range>
         <div class="create-form-body">
             @* Filled in by events.js: the error summary, or the "not available yet" note. *@
             <p class="form-message" role="alert" data-form-message hidden></p>
@@ -35,12 +32,12 @@
 
             <div class="create-field">
                 <label for="event-community">@text.LabelCommunity</label>
-                <select id="event-community" name="Community" required disabled="@(!hasCommunities)"
+                <select id="event-community" name="CommunityId" required disabled="@(!hasCommunities)"
                         aria-describedby="event-community-error event-community-help" data-error="@text.ErrorCommunity">
                     <option value="">@text.ChooseCommunity</option>
-                    @foreach (var community in Model.Communities)
+                    @foreach (var community in Model.OwnedCommunities)
                     {
-                        <option value="@community">@community</option>
+                        <option value="@community.Id">@community.Name</option>
                     }
                 </select>
                 @if (!hasCommunities)
@@ -53,7 +50,7 @@
             <div class="create-field-row">
                 <div class="create-field">
                     <label for="event-start">@text.LabelStart</label>
-                    <input id="event-start" name="StartsAt" type="datetime-local" required
+                    <input id="event-start" name="EventDate" type="datetime-local" min="@Model.MinimumEventDate.ToString("yyyy-MM-dd'T'HH:mm")" required
                            aria-describedby="event-start-error" data-error="@text.ErrorStart" data-error-past="@text.ErrorStartPast" />
                     <p class="field-error" id="event-start-error" hidden></p>
                 </div>
@@ -70,7 +67,7 @@
                     <label for="event-campus">@text.LabelCampus</label>
                     <select id="event-campus" name="Campus" required aria-describedby="event-campus-error" data-error="@text.ErrorCampus">
                         <option value="">@text.ChooseCampus</option>
-                        @foreach (var campus in EventsViewModel.Campuses)
+                        @foreach (var campus in EventsViewModel.campuses)
                         {
                             <option value="@campus">@campus</option>
                         }
@@ -102,16 +99,11 @@
                 </fieldset>
             }
 
-            <div class="create-field">
-                <label for="event-cover">@text.LabelCover</label>
-                <input id="event-cover" name="CoverImage" type="file" accept="image/*" aria-describedby="event-cover-help" />
-                <p class="create-help" id="event-cover-help">@text.CoverHelp</p>
-            </div>
         </div>
 
         <div class="create-footer">
             <button class="secondary-button" type="button" data-close-event>@text.Cancel</button>
-            <button class="cta-button" type="submit" data-submitting-text="@text.Submitting" data-not-ready-text="@text.NotReady"
+            <button class="cta-button" type="submit" disabled="@(!hasCommunities)" data-submitting-text="@text.Submitting"
                     data-error-summary="@text.ErrorSummary">@text.Submit</button>
         </div>
     </form>

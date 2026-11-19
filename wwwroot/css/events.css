@@ -44,6 +44,8 @@
    A dark fade along the top keeps the date tile and badge readable on bright photos. */
 .event-cover { position: relative; aspect-ratio: 2 / 1; overflow: hidden; background: var(--color-cover); }
 .event-cover img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.event-details .event-cover { aspect-ratio: auto; height: clamp(120px, 18vw, 180px); }
+.event-details .event-cover.no-image { height: 96px; }
 .event-cover:not(.no-image)::after { content: ""; position: absolute; inset: 0 0 auto; height: 45%; background: linear-gradient(rgb(0 0 0 / 28%), rgb(0 0 0 / 0%)); pointer-events: none; }
 .event-cover-placeholder { display: grid; place-items: center; height: 100%; color: var(--color-muted); opacity: 0.5; }
 .event-cover-placeholder .icon { width: 2.5rem; height: 2.5rem; stroke-width: 1.4; }
@@ -60,6 +62,8 @@
 /* Card body: title, host/time/location rows, description. */
 .event-body { display: flex; flex: 1; flex-direction: column; gap: 8px; padding: 16px; overflow-wrap: anywhere; }
 .event-title { margin: 0; font-size: 1.125rem; font-weight: var(--font-weight-bold); line-height: var(--line-height-heading); }
+.event-title a { color: inherit; text-decoration: none; }
+.event-title a:hover, .event-title a:focus-visible { text-decoration: underline; }
 .event-meta { display: grid; gap: 6px; margin: 0; }
 .event-meta dd { display: flex; align-items: center; gap: 8px; min-height: 1.5rem; margin: 0; color: var(--color-muted); }
 .icon { flex: none; width: 1.125rem; height: 1.125rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -80,8 +84,12 @@
 .avatar-stack { display: inline-flex; }
 .avatar { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; overflow: hidden; border: 2px solid var(--color-surface); border-radius: 50%; background: var(--color-selected); color: var(--color-accent); font-size: 0.75rem; font-weight: var(--font-weight-bold); object-fit: cover; }
 .avatar + .avatar { margin-left: -8px; }
-.event-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.event-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .action-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); }
+.event-actions form { margin: 0; }
+.event-actions .action-button { gap: 3px; padding: 6px 5px; font-size: 0.8rem; white-space: nowrap; }
+.event-actions .action-button .icon { width: 0.85rem; height: 0.85rem; }
+.event-actions .action-view { flex: 1 0 auto; padding: 7px 7px; font-size: 0.85rem; font-weight: var(--font-weight-bold); }
 .event-card .action-interested.is-selected { border-color: var(--color-accent); background: var(--color-selected); color: var(--color-accent); }
 .event-card .action-going.is-selected { border-color: var(--color-going-text); background: var(--color-going); color: var(--color-going-text); }
 .event-card .action-hosting { border-color: var(--color-hosting); background: var(--color-hosting); color: var(--color-hosting-text); font-weight: var(--font-weight-bold); }

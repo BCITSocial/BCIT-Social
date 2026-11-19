@@ -280,6 +280,10 @@ namespace BCIT_Social.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Campus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("CommunityId")
                         .HasColumnType("int");
 
@@ -289,8 +293,19 @@ namespace BCIT_Social.Data.Migrations
                     b.Property<DateTime?>("DateOfDel")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EndsAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("EventDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -354,6 +369,24 @@ namespace BCIT_Social.Data.Migrations
                     b.HasIndex("SenderId");
 
                     b.ToTable("CommunityMessages");
+                });
+
+            modelBuilder.Entity("BCIT_Social.Models.EventRsvp", b =>
+                {
+                    b.Property<int>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("Going")
+                        .HasColumnType("bit");
+
+                    b.HasKey("EventId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("EventRsvps");
                 });
 
             modelBuilder.Entity("BCIT_Social.Models.FriendRelationship", b =>
@@ -893,6 +926,25 @@ namespace BCIT_Social.Data.Migrations
                     b.Navigation("Community");
 
                     b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("BCIT_Social.Models.EventRsvp", b =>
+                {
+                    b.HasOne("BCIT_Social.Models.CommunityEvent", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BCIT_Social.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BCIT_Social.Models.FriendRelationship", b =>

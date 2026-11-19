@@ -1,0 +1,15 @@
+@using BCIT_Social.ViewModels
+@model EventCardViewModel
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = "_HomeLayout";
+}
+
+<link rel="stylesheet" href="~/css/events.css" asp-append-version="true" />
+
+<section class="panel events-panel event-details">
+    <div class="events-panel-head">
+        <a asp-action="Index" class="action-button">Back to events</a>
+    </div>
+    <partial name="_EventCard" model="Model" />
+</section>
