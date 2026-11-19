@@ -34,6 +34,8 @@
         "title": "Create post",
         "subtitle": "Share something with {name}.",
         "typeLabel": "Post type",
+        "showAllTypes": "Show all",
+        "showLessTypes": "Show less",
         "titleLabel": "Title",
         "titlePlaceholder": "How are you organizing your MVC controllers?",
         "contentLabel": "Content",

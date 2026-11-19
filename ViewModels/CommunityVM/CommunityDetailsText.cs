@@ -62,6 +62,8 @@ public class CommunityPostFormText
     // {name} is replaced with the community name.
     public string Subtitle { get; init; } = "Share something with {name}.";
     public string TypeLabel { get; init; } = "Post type";
+    public string ShowAllTypes { get; init; } = "Show all";
+    public string ShowLessTypes { get; init; } = "Show less";
     public string TitleLabel { get; init; } = "Title";
     public string TitlePlaceholder { get; init; } = "";
     public string ContentLabel { get; init; } = "Content";

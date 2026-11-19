@@ -67,6 +67,22 @@ This view renders the user's profile page, including their profile information, 
                                         type="button" data-open-profile-customizer>
                                     Customize
                                 </button>
+                                <div class="profile-card-button-group">
+                                    <a class="profile-button profile-button-outline"
+                                    asp-controller="Profile"
+                                    asp-action="Edit"
+                                    asp-route-userid="@profile.UserId">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                            <path d="m14 5 5 5M4 20l4.2-.8L19 8.4a2.1 2.1 0 0 0-3-3L5.2 16.2Z" />
+                                        </svg>
+                                        Edit profile
+                                    </a>
+                                    <a class="profile-button profile-button-outline"
+                                        asp-controller="Profile"
+                                        asp-action="Settings">
+                                            Settings
+                                    </a>
+                                </div>
                             }
                             else if (Model.CanSendFriendRequest)
                             {
