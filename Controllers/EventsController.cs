@@ -48,7 +48,7 @@ public class EventsController : Controller
             .Where(c => c.DateOfDel == null && userId != null && (c.CreatorId == userId || c.Members.Any(m => m.UserId == userId)))
             .OrderBy(c => c.Name).ToListAsync();
         model.Communities = communities.Select(c => c.Name).Distinct().ToList();
-        model.OwnedCommunities = communities.Where(c => c.CreatorId == userId).ToList();
+        model.OwnedCommunities = communities.Where(c => c.CreatorId == userId).Select(c => (c.Id, c.Name)).ToList();
         model.MinimumEventDate = EventToday.AddDays(1);
         var events = _context.CommunityEvents.AsNoTracking().Where(e => e.DateOfDel == null);
         var rsvps = _context.EventRsvps;

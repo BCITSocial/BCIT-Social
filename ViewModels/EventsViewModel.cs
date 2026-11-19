@@ -70,7 +70,7 @@ public class EventsViewModel
     public EventsText Text { get; set; } = new();
     // Options for the Community dropdown. Backend fills this in.
     public IReadOnlyList<string> Communities { get; set; } = [];
-    public IReadOnlyList<BCIT_Social.Models.Community> OwnedCommunities { get; set; } = [];
+    public IReadOnlyList<(int Id, string Name)> OwnedCommunities { get; set; } = [];
     public DateTime MinimumEventDate { get; set; }
     // Tag chips above the cards. Backend fills this in.
     public IReadOnlyList<string> Tags { get; set; } = [];
