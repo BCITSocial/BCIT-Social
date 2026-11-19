@@ -93,6 +93,7 @@ p { color: var(--color-muted); }
 .sidebar-label { margin: 0 0 8px 8px; color: var(--color-muted); font-size: 0.75rem; font-weight: var(--font-weight-normal); letter-spacing: 0.04em; text-transform: uppercase; }
 .sidebar-communities a { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 4px 8px; border-radius: 8px; color: var(--color-text); font-size: 0.875rem; text-decoration: none; }
 .sidebar-communities a:hover { background: var(--color-input); }
+.sidebar-communities [aria-current="page"] { background: var(--color-selected); color: var(--color-accent); font-weight: var(--font-weight-bold); }
 .sidebar-community-badge { display: grid; flex: none; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--color-avatar); color: var(--color-avatar-text); font-size: 0.6875rem; font-weight: var(--font-weight-bold); }
 .sidebar-community-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -138,10 +139,13 @@ a.primary-button { display: inline-flex; align-items: center; min-height: 44px; 
 .community-card-text strong { font-size: 0.9375rem; }
 .community-card-text span { color: var(--color-muted); font-size: 0.75rem; }
 .community-chevron { flex: none; width: 18px; height: 18px; fill: none; stroke: var(--color-muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.share-box { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 20px; row-gap: 8px; }
-.share-prompt { display: flex; align-items: center; min-height: 48px; padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-muted); font-size: 1rem; text-decoration: none; }
+/* Kept compact so the feed starts higher up. */
+.share-box { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 12px; row-gap: 4px; padding-block: 10px; }
+.share-box .avatar { width: 32px; height: 32px; font-size: 0.75rem; }
+.share-box .cta-button { min-height: 36px; padding-block: 6px; }
+.share-prompt { display: flex; align-items: center; min-height: 36px; padding: 6px 14px; border: 1px solid var(--color-border); border-radius: 8px; color: var(--color-muted); font-size: 0.875rem; text-decoration: none; }
 .share-prompt:hover { border-color: var(--color-accent); }
-.share-hint { grid-column: 2 / -1; font-size: 0.875rem; }
+.share-hint { grid-column: 2 / -1; font-size: 0.8125rem; }
 /* Signed-out visitors: sign-up prompt in place of the share box. */
 .share-box-guest { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
 .share-guest-text h2 { margin: 0 0 4px; font-size: 1.125rem; }
@@ -502,4 +506,105 @@ body:has(.create-dialog[open]) { overflow: hidden; }
     color: white;
     text-decoration: none;
     font-weight: 600;
+}
+
+/* Feed filter chips beside "All" (Views/Home/Index.cshtml). */
+.feed-heading { flex-wrap: wrap; gap: 12px 20px; }
+.feed-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.feed-filter { display: inline-flex; align-items: center; min-height: 32px; padding: 4px 14px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-surface); color: var(--color-text); font-size: 0.875rem; text-decoration: none; white-space: nowrap; }
+.feed-filter[aria-current="true"] { border-color: var(--color-accent); background: var(--color-selected); color: var(--color-accent); font-weight: var(--font-weight-bold); }
+button.feed-filter:disabled { color: var(--color-muted); cursor: default; }
+
+/* Post card (Views/Home/_PostCards.cshtml). Uses .feed-card so the older .post-card rules above don't apply.
+   Top row: avatar, name, community, date and tags. The whole card is clickable (post-details.js). */
+.post-card.feed-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 14px 16px 4px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); cursor: pointer; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.post-card.feed-card:hover { border-color: var(--color-muted); box-shadow: 0 4px 14px rgb(16 29 67 / 8%); }
+.feed-card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; font-size: 0.8125rem; }
+.feed-card .post-avatar { display: grid; width: 32px; height: 32px; margin-right: 4px; font-size: 0.75rem; }
+.feed-card .post-author { font-size: 0.9375rem; }
+.feed-card-meta { color: var(--color-muted); white-space: nowrap; }
+.feed-card .post-tags { margin: 0 0 0 4px; gap: 6px; }
+.feed-card .post-tags li { padding: 2px 10px; }
+.feed-card .post-title { margin: 2px 0 0; font-size: 1.375rem; font-weight: var(--font-weight-bold); line-height: 1.25; }
+.feed-card .post-title a, .feed-card .post-title a:hover { color: var(--color-text); text-decoration: none; }
+.feed-card .post-content { display: -webkit-box; overflow: hidden; margin: 0; color: var(--color-muted); font-size: 0.9375rem; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; }
+.feed-card .post-actions { margin-top: 0; }
+
+
+/* Header pieces that only show on small screens. */
+.header-start { display: flex; align-items: center; gap: 4px; justify-self: start; min-width: 0; }
+.nav-toggle, .header-search-toggle { display: none; }
+.nav-backdrop[hidden] { display: none; }
+
+/* ===== Phone layout (Reddit as the reference) =====
+   Up to 900px: the left nav becomes a slide-out menu behind the header's menu button, and the right column is
+   hidden (the nav already links to Events). Up to 640px: the header search folds into an icon, and the feed runs
+   edge to edge with thin separators instead of floating cards. */
+@media (max-width: 900px) {
+    .site-header { position: sticky; top: 0; z-index: 30; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; padding: 8px 12px 8px 4px; }
+    .nav-toggle { display: grid; }
+    .app-shell { display: block; min-height: 0; }
+    .shell-right { display: none; }
+    main { max-width: none; margin-inline: auto; }
+    main:has(.home-feed-layout) { max-width: 760px; }
+
+    .sidebar { position: fixed; z-index: 50; inset: 0 auto 0 0; width: min(290px, 85vw); height: 100dvh; padding: 16px 12px; overflow-y: auto; border-right: 1px solid var(--color-border); border-bottom: 0; box-shadow: 0 16px 40px rgb(16 29 67 / 18%); transform: translateX(-100%); visibility: hidden; transition: transform 0.2s ease, visibility 0.2s ease; }
+    body.nav-open .sidebar { transform: none; visibility: visible; }
+    body.nav-open { overflow: hidden; }
+    .sidebar-links { display: grid; gap: 2px; }
+    .sidebar-links a, .sidebar-links button { width: 100%; padding: 8px 16px; }
+    .sidebar-communities { display: block; }
+    .nav-backdrop { position: fixed; z-index: 40; inset: 0; background: var(--color-overlay); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar { transition: none; }
+}
+
+@media (max-width: 640px) {
+    /* Header: menu, logo, then icons. Search is one tap away. */
+    .site-header { grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; padding: 6px 8px 6px 2px; }
+    .brand { gap: 8px; font-size: 1.0625rem; }
+    .header-actions { gap: 4px; }
+    .header-search-toggle { display: grid; }
+    .header-search { display: none; grid-column: 1 / -1; grid-row: 2; }
+    body.search-open .header-search { display: block; }
+    .header-auth-actions { gap: 6px; }
+    .header-auth-button { min-height: 36px; padding: 6px 12px; font-size: 0.8125rem; }
+    .profile-button { width: 40px; height: 40px; }
+    .header-popover { inset: 56px 8px auto 8px; width: auto; }
+
+    /* Page column: less padding so content gets the width. */
+    main { padding: 8px 8px 20px; }
+    .panel { padding: 16px; }
+
+    /* Home: banner, share box and feed run edge to edge, like Reddit's mobile feed. */
+    main:has(.home-feed-layout) { padding: 0 0 20px; }
+    .home-banner { border-radius: 0; min-height: 72px; }
+    .home-section { margin-top: 8px; border-radius: 0; border-inline: 0; }
+    .share-box { grid-template-columns: auto minmax(0, 1fr) auto; padding: 8px 12px; }
+    .share-box .avatar { display: grid; }
+    .share-hint { display: none; }
+    .share-box-guest { padding: 12px; }
+    .share-guest-actions { width: 100%; }
+    .share-guest-actions .header-auth-button { flex: 1; }
+    .feed.home-section { padding: 0; background: var(--color-transparent); border: 0; }
+    .feed-heading { flex-wrap: nowrap; gap: 12px; margin: 0; padding: 10px 12px; background: var(--color-surface); border-block: 1px solid var(--color-border); }
+    .feed-heading h2 { flex: none; font-size: 1.0625rem; }
+    /* The chips scroll sideways instead of wrapping onto a second line. */
+    .feed-filters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .feed-filters::-webkit-scrollbar { display: none; }
+    .feed-list { gap: 0; }
+    .post-card.feed-card { gap: 4px; padding: 10px 12px 2px; border-width: 0 0 1px; border-radius: 0; box-shadow: none; }
+    .post-card.feed-card:hover { border-color: var(--color-border); box-shadow: none; background: var(--color-input); }
+    .feed-card .post-avatar { display: grid; width: 24px; height: 24px; margin-right: 2px; font-size: 0.625rem; }
+    .feed-card-head { font-size: 0.75rem; }
+    .feed-card .post-author { font-size: 0.8125rem; }
+    .feed-card .post-title { font-size: 1.0625rem; }
+    .feed-card .post-content { font-size: 0.875rem; -webkit-line-clamp: 3; }
+    .feed-card .post-tags li { padding: 1px 8px; font-size: 0.6875rem; }
+    .post-actions { gap: 4px; }
+    .post-action { min-height: 40px; padding: 0 8px; font-size: 0.8125rem; }
+    .feed-status { padding: 0 12px; }
+    .feed .empty-state { min-height: 200px; padding: 16px; background: var(--color-surface); }
 }
