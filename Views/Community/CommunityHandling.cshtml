@@ -1,0 +1,43 @@
+@model BCIT_Social.ViewModels.CommunityHandlingViewModel
+
+@{
+    ViewData["Title"] = "Leave";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<h3>Delete or Transfer Ownership of the Communites you Own</h3>
+
+<div>
+    
+    @foreach (var community in Model.Communities)
+    {
+        <hr />
+        <h4>@community.Name</h4>
+        @if (community.Members.Count == 1)
+        {
+            <p>This Community has no Members.</p>
+            <form asp-action="LeaveCreatorSolo" asp-route-id="@community.Id" asp-route-returnToHandling="true">
+                <input type="submit" value="Delete" class="btn btn-primary" />
+            </form>
+        }
+        else
+        {
+            <form asp-action="LeaveCreatorMulti" asp-route-id="@community.Id" asp-route-returnToHandling="true">
+                <p>Assign the new Owner of the Community.</p>
+                <select name="creatorId">
+                    @foreach (var member in community.Members)
+                    {
+                        if (member.UserId != community.CreatorId)
+                        {
+                            <option value="@member.UserId">@member.User.UserName</option>
+                        }
+                    }
+                </select>
+                <input type="submit" value="Assign" class="btn btn-primary" />
+            </form>
+            <a asp-action="Delete" asp-route-id="@community.Id">Or Delete the Community</a>
+        }
+        <br>
+    }
+</div>

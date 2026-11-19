@@ -4,7 +4,6 @@ using BCIT_Social.Models;
 using BCIT_Social.Data;
 using Microsoft.AspNetCore.Identity;
 using BCIT_Social.ViewModels;
-
 public class ProfileController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -538,6 +537,7 @@ public class ProfileController : Controller
                             .ToListAsync();
         if (communities.Count > 0)
         {
+            
             /*
             Logic
             1. Redirect to community handling page
@@ -546,8 +546,9 @@ public class ProfileController : Controller
             4. are you sure you want to delete your account page
             5. mark for deletion.
             */
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(CommunityController.CommunityHandling), "Community");
         }
+        
         if (profile != null && account != null && communities.Count == 0)
         {
             account.DateOfDel = DateTime.Now.AddDays(7);
