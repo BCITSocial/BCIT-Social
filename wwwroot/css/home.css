@@ -193,7 +193,7 @@ p {
     stroke-linejoin: round;
 }
 
-.profile-button {
+.profile-button, .profile-button > * {
     display: grid;
     place-items: center;
     height: 44px;
@@ -839,7 +839,7 @@ a.primary-button {
     background: var(--color-surface);
 }
 
-.post-avatar {
+.post-avatar, .post-avatar > * {
     display: grid;
     place-items: center;
     width: 40px;
