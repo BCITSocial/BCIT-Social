@@ -11,14 +11,20 @@ Renders the shared brand, centered search placeholder, notifications popup, and 
         </span>BCIT Social
     </a>
 
-    <label class="header-search">
-        <span class="visually-hidden">Search BCIT Social (unavailable)</span>
+    @* Typing shows a dropdown of matches grouped as Posts, Events, Communities, People (header-search.js). *@
+    <div class="header-search" role="search" data-header-search
+         data-signed-in="@(User.Identity?.IsAuthenticated == true ? "true" : "false")">
+        <label class="visually-hidden" for="header-search-input">Search BCIT Social</label>
         <svg class="header-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <circle cx="11" cy="11" r="6.5" />
             <path d="m16 16 4 4" />
         </svg>
-        <input type="search" placeholder="Search posts, communities, people..." disabled />
-    </label>
+        <input id="header-search-input" type="search" placeholder="Search posts, events, communities, people..."
+               autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false"
+               aria-controls="header-search-panel" data-header-search-input />
+        <div class="header-search-panel" id="header-search-panel" role="listbox" aria-label="Search results"
+             data-header-search-panel hidden></div>
+    </div>
 
     @if (User.Identity?.IsAuthenticated == true)
     {
