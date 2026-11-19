@@ -15,8 +15,8 @@ This view renders the user's profile page, including their profile information, 
     var profile = Model.Profile;
     ViewData["Title"] = profile?.DisplayName ?? "My Profile";
     var activeSection = Context.Request.Query["section"].ToString();
-    if (activeSection is not ("communities" or "bookmarks" or "friends")
-        || (!Model.IsOwnProfile && activeSection is ("bookmarks" or "friends")))
+    if (activeSection is not ("communities" or "bookmarks")
+        || (!Model.IsOwnProfile && activeSection == "bookmarks"))
     {
         activeSection = "posts";
     }
@@ -34,6 +34,14 @@ This view renders the user's profile page, including their profile information, 
 }
 
 <div class="profile-page" data-profile-user-id="@currentUserId">
+    @if ((Model.IsOwnProfile || profile == null) && TempData["FriendRequestMessage"] is string requestMessage)
+    {
+        <p class="profile-friend-status" role="status">@requestMessage <a asp-controller="Friends" asp-action="Index">Back to friends</a></p>
+    }
+    @if ((Model.IsOwnProfile || profile == null) && TempData["FriendRequestError"] is string requestError)
+    {
+        <p class="profile-friend-status profile-friend-error" role="alert">@requestError <a asp-controller="Friends" asp-action="Index">Back to friends</a></p>
+    }
     @if (profile == null)
     {
         <section class="profile-empty panel" aria-labelledby="profile-empty-heading">
@@ -90,7 +98,7 @@ This view renders the user's profile page, including their profile information, 
                                 }
                                 else if (Model.FriendRelationshipStatus == "PendingReceived")
                                 {
-                                    <span class="profile-friend-inline-status">They sent you a request. Respond from your profile.</span>
+                                    <span class="profile-friend-inline-status">They sent you a request.</span>
                                 }
                                 else
                                 {
@@ -142,9 +150,6 @@ This view renders the user's profile page, including their profile information, 
                                 tabindex="@(activeSection == "communities" ? "0" : "-1")" data-profile-tab="communities">Communities</button>
                         @if (Model.IsOwnProfile)
                         {
-                            <button class="profile-tab" id="profile-friends-tab" type="button" role="tab"
-                                    aria-controls="profile-friends" aria-selected="@(activeSection == "friends")"
-                                    tabindex="@(activeSection == "friends" ? "0" : "-1")" data-profile-tab="friends">Friends (@Model.FriendCount)</button>
                             <button class="profile-tab" id="profile-bookmarks-tab" type="button" role="tab"
                                     aria-controls="profile-bookmarks" aria-selected="@(activeSection == "bookmarks")"
                                     tabindex="@(activeSection == "bookmarks" ? "0" : "-1")" data-profile-tab="bookmarks">Bookmarks</button>
@@ -243,46 +248,6 @@ This view renders the user's profile page, including their profile information, 
 
                 @if (Model.IsOwnProfile)
                 {
-                    <section class="profile-posts profile-content-panel" id="profile-friends" role="tabpanel"
-                             aria-labelledby="profile-friends-tab" data-profile-panel="friends" hidden="@(activeSection != "friends")">
-                        @if (TempData["FriendListMessage"] is string friendListMessage)
-                        {
-                            <p class="profile-friend-status" role="status">@friendListMessage</p>
-                        }
-                        @if (Model.Friends.Count == 0)
-                        {
-                            <div class="profile-section-empty">
-                                <h2>No friends yet</h2>
-                                <p>When you accept a friend request, that person will appear here.</p>
-                            </div>
-                        }
-                        else
-                        {
-                            <ul class="profile-community-list profile-friend-list">
-                                @foreach (var friend in Model.Friends)
-                                {
-                                    <li class="profile-friend-list-item">
-                                        <a class="profile-community-item profile-friend-profile-link"
-                                           asp-action="Details"
-                                           asp-route-userid="@friend.UserId">
-                                            <span class="profile-community-avatar" aria-hidden="true">
-                                                @string.Concat(friend.DisplayName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(part => char.ToUpperInvariant(part[0])))
-                                            </span>
-                                            <span class="profile-community-copy">
-                                                <strong>@friend.DisplayName</strong>
-                                                <span>View profile</span>
-                                            </span>
-                                        </a>
-                                        <form asp-action="RemoveFriend" method="post">
-                                            <input type="hidden" name="relationshipId" value="@friend.RelationshipId" />
-                                            <button class="profile-button profile-button-outline" type="submit">Remove friend</button>
-                                        </form>
-                                    </li>
-                                }
-                            </ul>
-                        }
-                    </section>
-
                     <section class="profile-posts profile-content-panel" id="profile-bookmarks" role="tabpanel"
                              aria-labelledby="profile-bookmarks-tab" data-profile-panel="bookmarks" hidden="@(activeSection != "bookmarks")">
                         @if (Model.Bookmarks.Count == 0)
@@ -350,100 +315,6 @@ This view renders the user's profile page, including their profile information, 
 
                 @if (Model.IsOwnProfile)
                 {
-                    <section class="profile-side-card profile-friends" aria-labelledby="profile-friends-heading">
-                        <h2 id="profile-friends-heading">Friends</h2>
-                        @if (TempData["FriendRequestMessage"] is string friendRequestMessage)
-                        {
-                            <p class="profile-friend-status" role="status">@friendRequestMessage</p>
-                        }
-                        @if (TempData["FriendRequestError"] is string friendRequestError)
-                        {
-                            <p class="profile-friend-status profile-friend-error" role="alert">@friendRequestError</p>
-                        }
-
-                        <form asp-action="Index" method="get" class="profile-friend-form">
-                            <input type="hidden" name="section" value="@activeSection" data-preserve-profile-section />
-                            <label for="friend-search">Find friends by display name</label>
-                            <input id="friend-search" name="friendSearch" type="search" value="@Model.FriendSearch"
-                                   placeholder="Enter a display name" required />
-                            <button class="profile-button profile-button-primary" type="submit">Search</button>
-                        </form>
-
-                        @if (!string.IsNullOrWhiteSpace(Model.FriendSearch))
-                        {
-                            @if (Model.FriendSearchResults.Count == 0)
-                            {
-                                <p class="profile-info-empty">No matching users found.</p>
-                            }
-                            else
-                            {
-                                <ul class="profile-friend-request-list">
-                                    @foreach (var result in Model.FriendSearchResults)
-                                    {
-                                        <li class="profile-friend-request profile-friend-search-result">
-                                            <div>
-                                                <a class="profile-friend-request-name" asp-action="Details" asp-route-userid="@result.UserId">@result.DisplayName</a>
-                                                <small>@string.Join(" · ", new[] { result.Program, result.Campus }.Where(s => !string.IsNullOrWhiteSpace(s)))</small>
-                                            </div>
-                                            @if (result.RelationshipStatus == "Accepted")
-                                            {
-                                                <small>Already friends</small>
-                                            }
-                                            else if (result.RelationshipStatus == "PendingSent")
-                                            {
-                                                <small>Request sent</small>
-                                            }
-                                            else if (result.RelationshipStatus == "PendingReceived")
-                                            {
-                                                <small>Incoming request</small>
-                                            }
-                                            else
-                                            {
-                                                <form asp-action="AddFriend" method="post">
-                                                    <input type="hidden" name="userId" value="@result.UserId" />
-                                                    <input type="hidden" name="friendSearch" value="@Model.FriendSearch" />
-                                                    <input type="hidden" name="section" value="@activeSection" data-preserve-profile-section />
-                                                    <button class="profile-button profile-button-primary" type="submit">Add friend</button>
-                                                </form>
-                                            }
-                                        </li>
-                                    }
-                                </ul>
-                            }
-                        }
-
-                        <div class="profile-incoming-requests">
-                            <h3>Incoming requests (@Model.IncomingFriendRequests.Count)</h3>
-                            @if (Model.IncomingFriendRequests.Count == 0)
-                            {
-                                <p class="profile-info-empty">You don’t have any incoming requests.</p>
-                            }
-                            else
-                            {
-                                <ul class="profile-friend-request-list">
-                                    @foreach (var request in Model.IncomingFriendRequests)
-                                    {
-                                        <li class="profile-friend-request">
-                                            <span class="profile-friend-request-name">@request.RequesterDisplayName</span>
-                                            <div class="profile-friend-request-actions">
-                                                <form asp-action="RespondToFriendRequest" method="post">
-                                                    <input type="hidden" name="requestId" value="@request.Id" />
-                                                    <input type="hidden" name="decision" value="accept" />
-                                                    <button class="profile-button profile-button-primary" type="submit">Accept</button>
-                                                </form>
-                                                <form asp-action="RespondToFriendRequest" method="post">
-                                                    <input type="hidden" name="requestId" value="@request.Id" />
-                                                    <input type="hidden" name="decision" value="deny" />
-                                                    <button class="profile-button profile-button-outline" type="submit">Deny</button>
-                                                </form>
-                                            </div>
-                                        </li>
-                                    }
-                                </ul>
-                            }
-                        </div>
-                    </section>
-
                     <section class="profile-side-card profile-quick-info" aria-labelledby="profile-themes-heading">
                         <div class="profile-themes" aria-labelledby="profile-themes-heading">
                         <h3 id="profile-themes-heading">Profile themes</h3>
