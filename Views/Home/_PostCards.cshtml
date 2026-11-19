@@ -13,7 +13,8 @@
             @if (post.AuthorHasProfilePhoto)
             {
                 <img src="@Url.Action("Photo", "Profile", new { id = post.AuthorId })"
-                     alt="@post.AuthorProfilePhotoOriginalFileName" />
+                     alt="@post.AuthorProfilePhotoOriginalFileName"
+                     style="max-width: 100%; width: auto; height: auto;" />
             }
             else
             {
