@@ -30,12 +30,7 @@ Renders the shared brand, centered search placeholder, notifications popup, and 
                     <path d="M10 20.5a2 2 0 0 0 4 0" />
                 </svg>
             </button>
-            <button class="profile-button" type="button" popovertarget="profile-menu" aria-label="Account menu">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <circle cx="12" cy="9" r="3.6" />
-                    <path d="M5.5 19.5c.8-3.3 3.4-5.5 6.5-5.5s5.7 2.2 6.5 5.5" />
-                </svg>
-            </button>
+            @await Component.InvokeAsync("ProfileAvatar")
         </div>
         @* No notifications backend exists yet, so the panel shows its empty state. *@
         <div class="header-popover notifications-panel" id="notifications-panel" popover role="dialog"

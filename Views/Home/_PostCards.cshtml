@@ -9,7 +9,18 @@
 {
     <article class="post-card" data-post-id="@post.Id" data-created-ticks="@post.CreatedAt.Ticks" aria-labelledby="post-title-@post.Id">
         <a class="post-avatar" aria-hidden="true" asp-controller="Profile" asp-action="Details"
-         asp-route-userId="@post.AuthorId">@post.AuthorInitials</a>
+         asp-route-userId="@post.AuthorId">
+            @if (post.AuthorHasProfilePhoto)
+            {
+                <img src="@Url.Action("Photo", "Profile", new { id = post.AuthorId })"
+                     alt="@post.AuthorProfilePhotoOriginalFileName"
+                     style="max-width: 100%; width: auto; height: auto;" />
+            }
+            else
+            {
+                @post.AuthorInitials
+            }
+         </a>
         <div class="post-body">
             <p class="post-meta">
                 <a class="post-author" asp-controller="Profile" asp-action="Details"

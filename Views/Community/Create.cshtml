@@ -18,13 +18,19 @@
             <h1 class="modal-title">@Model.Text.Title</h1>
             <p class="modal-subtitle">@Model.Text.Subtitle</p>
 
-            <form asp-action="Create" method="post" data-community-form>
+            <form asp-action="Create" method="post" enctype="multipart/form-data" data-community-form>
                 @if (!ViewData.ModelState.IsValid)
                 {
                     <div asp-validation-summary="All" class="text-danger form-errors"></div>
                 }
 
                 <partial name="_CommunityFormFields" model="Model" />
+
+                <div class="modal-field">
+                    <label for="community-banner-photo">Cover photo</label>
+                    <input id="community-banner-photo" type="file" name="BannerPhoto"
+                           accept=".png,.jpg,.jpeg,.webp" />
+                </div>
 
                 <div class="modal-footer-actions form-page-actions">
                     <a asp-action="Index" class="btn-cancel">@Model.Text.CancelButton</a>

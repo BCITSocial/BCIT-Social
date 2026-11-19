@@ -50,7 +50,18 @@ This view renders the user's profile page, including their profile information, 
                     <div class="profile-cover" aria-hidden="true"></div>
                     <div class="profile-card-content">
                         <div class="profile-card-actions">
-                            <div class="profile-avatar" aria-hidden="true">@avatarInitials</div>
+                            <div class="profile-avatar">
+                                @if (!string.IsNullOrWhiteSpace(profile.ProfilePhotoStorageKey))
+                                {
+                                    <img style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
+                                         src="@Url.Action("Photo", "Profile", new { id = profile.UserId })"
+                                         alt="@($"{profile.DisplayName}'s profile photo")" />
+                                }
+                                else
+                                {
+                                    <span aria-hidden="true">@avatarInitials</span>
+                                }
+                            </div>
                             @if (Model.IsOwnProfile)
                             {
                                 <a class="profile-button profile-button-outline"

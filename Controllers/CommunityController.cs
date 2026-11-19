@@ -5,6 +5,7 @@ using BCIT_Social.Models;
 using BCIT_Social.Data;
 using Microsoft.AspNetCore.Authorization;
 using BCIT_Social.ViewModels;
+using BCIT_Social.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
@@ -19,6 +20,7 @@ public class CommunityController : Controller
 
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly UploadService _uploadService;
     // Author: Jay
     // env used for loading from wwwroot
     // logger used for warnings
@@ -26,10 +28,11 @@ public class CommunityController : Controller
     private readonly ILogger<CommunityController> _logger;
     // -------------
 
-    public CommunityController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment env, ILogger<CommunityController> logger)
+    public CommunityController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment env, ILogger<CommunityController> logger, UploadService uploadService)
     {
         _context = context;
         _userManager = userManager;
+        _uploadService = uploadService;
         // Author: Jay
         _env = env;
         _logger = logger;
@@ -135,13 +138,19 @@ public class CommunityController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Create(CommunityViewModel viewModel)
+    public async Task<IActionResult> Create(CommunityViewModel viewModel, CancellationToken cancellationToken)
     {
         string? creatorId = _userManager.GetUserId(User);
 
         if (creatorId == null)
         {
             return Challenge();
+        }
+        var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
+        if (!ModelState.IsValid)
+        {
+            return View(BuildCommunityForm(text.CreateForm, text.Options,
+                name: viewModel.Name, description: viewModel.Description, type: viewModel.Type));
         }
 
         var community = new Community
@@ -168,20 +177,75 @@ public class CommunityController : Controller
         }
         community.Members.Add(communityMember);
 
-        if (ModelState.IsValid)
+        UploadedFile? uploadedBannerPhoto = null;
+        try
         {
+            if (viewModel.BannerPhoto is { Length: > 0 })
+            {
+                uploadedBannerPhoto = await _uploadService.UploadAsync(
+                    viewModel.BannerPhoto,
+                    "community",
+                    cancellationToken);
+                community.BannerPhotoStorageKey = uploadedBannerPhoto.StorageKey;
+                community.BannerPhotoOriginalFileName = uploadedBannerPhoto.OriginalFileName;
+                community.BannerPhotoContentType = uploadedBannerPhoto.ContentType;
+                community.BannerPhotoFileSizeBytes = uploadedBannerPhoto.FileSizeBytes;
+                community.BannerPhotoUpdatedAt = DateTime.UtcNow;
+            }
+
             _context.Add(community);
             _context.Add(communityMember);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Details), new
-            {
-                community.Id
-            });
+            await _context.SaveChangesAsync(cancellationToken);
         }
-        // Show Create page again with what was typed and validation errors.
-        var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
-        return View(BuildCommunityForm(text.CreateForm, text.Options,
-            name: viewModel.Name, description: viewModel.Description, type: viewModel.Type));
+        catch (ArgumentException exception)
+        {
+            if (uploadedBannerPhoto != null)
+            {
+                await _uploadService.DeleteAsync(uploadedBannerPhoto.StorageKey, CancellationToken.None);
+            }
+
+            ModelState.AddModelError(nameof(viewModel.BannerPhoto), exception.Message);
+            return View(BuildCommunityForm(text.CreateForm, text.Options,
+                name: viewModel.Name, description: viewModel.Description, type: viewModel.Type));
+        }
+        catch
+        {
+            if (uploadedBannerPhoto != null)
+            {
+                await _uploadService.DeleteAsync(uploadedBannerPhoto.StorageKey, CancellationToken.None);
+            }
+
+            throw;
+        }
+
+        return RedirectToAction(nameof(Details), new
+        {
+            community.Id
+        });
+    }
+
+    // GET: COMMUNITY/Photo/5
+    /// <summary>
+    /// Description: Streams a community cover photo from Blob Storage.
+    /// Author: Justin Chik
+    /// </summary>
+    /// <param name="id">The ID of the community.</param>
+    /// <param name="cancellationToken">A token that can cancel the download operation.</param>
+    /// <returns>The cover photo file, or a not found result if the community has no cover photo.</returns>
+    [HttpGet]
+    public async Task<IActionResult> Photo(int id, CancellationToken cancellationToken)
+    {
+        var community = await _context.Communities
+            .AsNoTracking()
+            .FirstOrDefaultAsync(community => community.Id == id, cancellationToken);
+
+        if (community?.BannerPhotoStorageKey == null || community.BannerPhotoContentType == null)
+        {
+            return NotFound();
+        }
+
+        var image = await _uploadService.DownloadAsync(community.BannerPhotoStorageKey, cancellationToken);
+        return File(image.Content, community.BannerPhotoContentType);
     }
 
     // GET: COMMUNITY/Edit/5
@@ -1026,6 +1090,7 @@ public class CommunityController : Controller
             Name = community.Name,
             Type = community.Type,
             Description = community.Description,
+            BannerPhotoStorageKey = community.BannerPhotoStorageKey,
             Creator = creatorName ?? "Not Found",
             Members = members,
             IsMod = isMod,
