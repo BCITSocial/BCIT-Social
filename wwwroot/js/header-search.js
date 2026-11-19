@@ -63,12 +63,15 @@
             const content = clean(card.querySelector(".post-content")?.textContent);
             const meta = clean(card.querySelector(".post-meta")?.textContent);
             const tags = [...card.querySelectorAll(".post-tags li")].map(tag => clean(tag.textContent)).join(" ");
-            const tagLabels = tags ? tags.split(" ").map(tag => `#${tag}`).join(" ") : "";
+            const author = clean(card.querySelector(".post-author")?.textContent);
+            // Only the title, tags, text and author are searched. The community and date in the
+            // meta line are shown but never matched, so a post isn't found just for its community.
             return {
                 title,
-                meta: tagLabels ? `${tagLabels} · ${meta}` : meta,
+                tagLabels: tags ? tags.split(" ").map(tag => `#${tag}`).join(" ") : "",
+                meta,
                 href: `/Home/Post/${card.dataset.postId}`,
-                fields: { title, tags, body: `${content} ${meta}` },
+                fields: { title, tags, body: `${content} ${author}` },
             };
         }));
 
@@ -243,7 +246,12 @@
         if (item.meta) {
             const meta = document.createElement("span");
             meta.className = "search-result-meta";
-            meta.append(highlighted(item.meta, queryWords));
+            if (item.tagLabels) {
+                // Post tags are searched, so highlight them; the rest of a post's meta line is not.
+                meta.append(highlighted(item.tagLabels, queryWords), ` · ${item.meta}`);
+            } else {
+                meta.append(highlighted(item.meta, queryWords));
+            }
             body.append(meta);
         }
         link.append(body);
