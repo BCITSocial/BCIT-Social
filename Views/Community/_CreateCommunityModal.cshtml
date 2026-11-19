@@ -17,17 +17,19 @@
         <p class="modal-subtitle">@Model.Text.Subtitle</p>
 
         <!-- Form posts to CommunityController.Create -->
-        <form asp-action="Create" method="post" data-community-form>
+        <form asp-action="Create" method="post" enctype="multipart/form-data" data-community-form>
             <!-- Cover Image Placeholder Box -->
             @if (!string.IsNullOrEmpty(Model.Text.CoverTitle))
             {
-                <div class="cover-upload-box">
+                <label class="cover-upload-box" for="community-banner-photo">
                     <div class="cover-text-group">
                         <span class="cover-title">@Model.Text.CoverTitle</span>
                         <span class="cover-sub">@Model.Text.CoverSubtitle</span>
                     </div>
                     <div class="avatar-upload-box">+</div>
-                </div>
+                    <input id="community-banner-photo" type="file" name="BannerPhoto"
+                           accept=".png,.jpg,.jpeg,.webp" aria-label="Choose community cover photo" />
+                </label>
             }
 
             <partial name="_CommunityFormFields" model="Model" />
