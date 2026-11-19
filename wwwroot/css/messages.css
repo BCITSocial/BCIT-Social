@@ -49,10 +49,10 @@ Styles the Messages page: conversation list, chat header, message bubbles, and c
 .msg-conversation[aria-current="page"]::before, li:has([aria-current="page"]) + li .msg-conversation::before { display: none; }
 .msg-conversation:focus-visible { outline-offset: -3px; }
 .msg-conversation-text { display: grid; flex: 1; gap: 2px; min-width: 0; }
-.msg-conversation-top, .msg-conversation-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.msg-conversation-top, .msg-conversation-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .msg-conversation-top strong { overflow: hidden; font-size: 0.9375rem; text-overflow: ellipsis; white-space: nowrap; }
 .msg-conversation-top time { flex: none; color: var(--color-muted); font-size: 0.75rem; }
-.msg-preview { min-width: 0; overflow: hidden; color: var(--color-muted); font-size: 0.8125rem; text-overflow: ellipsis; white-space: nowrap; }
+.msg-preview { flex: 1 1 0; min-width: 0; overflow: hidden; color: var(--color-muted); font-size: 0.8125rem; text-overflow: ellipsis; white-space: nowrap; }
 .msg-conversation.is-unread .msg-preview { color: var(--color-text); }
 .msg-unread-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--color-accent); }
 
