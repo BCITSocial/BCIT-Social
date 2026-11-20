@@ -5,10 +5,14 @@ using BCIT_Social.Models;
 using BCIT_Social.Data;
 using Microsoft.AspNetCore.Authorization;
 using BCIT_Social.ViewModels;
+using BCIT_Social.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 public class CommunityController : Controller
 {
@@ -16,10 +20,25 @@ public class CommunityController : Controller
     private const string COMMUNITIES_TEXT_FILE = "communities-text.json";
     private const string DETAILS_TEXT_FILE = "community-details-text.json";
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
+
+    // Cover images: saved to Azure Blob storage when it's set up (AzureStorage:ConnectionString),
+    // otherwise to App_Data/community-banners. Served by the Banner action.
+    private const string BANNER_FOLDER = "community-banners";
+    private const long MAX_BANNER_BYTES = 15 * 1024 * 1024;
+    private static readonly Dictionary<string, string> _bannerExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["image/jpeg"] = ".jpg",
+        ["image/png"] = ".png",
+        ["image/webp"] = ".webp",
+        ["image/gif"] = ".gif",
+    };
+    // Most posts a community page loads.
+    private const int MAX_POSTS_SHOWN = 50;
     // --------------
 
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly UploadService _uploadService;
     // Author: Jay
     // env used for loading from wwwroot
     // logger used for warnings
@@ -27,10 +46,11 @@ public class CommunityController : Controller
     private readonly ILogger<CommunityController> _logger;
     // -------------
 
-    public CommunityController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment env, ILogger<CommunityController> logger)
+    public CommunityController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment env, ILogger<CommunityController> logger, UploadService uploadService)
     {
         _context = context;
         _userManager = userManager;
+        _uploadService = uploadService;
         // Author: Jay
         _env = env;
         _logger = logger;
@@ -67,6 +87,7 @@ public class CommunityController : Controller
             Text = text,
             Communities = cards,
             CreateForm = BuildCommunityForm(text.CreateForm, text.Options),
+            IsSignedIn = _userManager.GetUserId(User) != null,
         });
     }
 
@@ -136,13 +157,19 @@ public class CommunityController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Create(CommunityViewModel viewModel)
+    public async Task<IActionResult> Create(CommunityViewModel viewModel, CancellationToken cancellationToken)
     {
         string? creatorId = _userManager.GetUserId(User);
 
         if (creatorId == null)
         {
             return Challenge();
+        }
+        var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
+        if (!ModelState.IsValid)
+        {
+            return View(BuildCommunityForm(text.CreateForm, text.Options,
+                name: viewModel.Name, description: viewModel.Description, type: viewModel.Type));
         }
 
         var community = new Community
@@ -169,20 +196,82 @@ public class CommunityController : Controller
         }
         community.Members.Add(communityMember);
 
-        if (ModelState.IsValid)
+        // Author: Jay
+        AddBannerErrors(viewModel.BannerImage, text.CreateForm);
+        // -------------
+
+        UploadedFile? uploadedBannerPhoto = null;
+        try
         {
+            if (viewModel.BannerPhoto is { Length: > 0 })
+            {
+                uploadedBannerPhoto = await _uploadService.UploadAsync(
+                    viewModel.BannerPhoto,
+                    "community",
+                    cancellationToken);
+                community.BannerPhotoStorageKey = uploadedBannerPhoto.StorageKey;
+                community.BannerPhotoOriginalFileName = uploadedBannerPhoto.OriginalFileName;
+                community.BannerPhotoContentType = uploadedBannerPhoto.ContentType;
+                community.BannerPhotoFileSizeBytes = uploadedBannerPhoto.FileSizeBytes;
+                community.BannerPhotoUpdatedAt = DateTime.UtcNow;
+            }
+
+            // Author: Jay
+            await TrySaveBannerAsync(community, viewModel.BannerImage);
+            // -------------
             _context.Add(community);
             _context.Add(communityMember);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Details), new
-            {
-                community.Id
-            });
+            await _context.SaveChangesAsync(cancellationToken);
         }
-        // Show Create page again with what was typed and validation errors.
-        var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
-        return View(BuildCommunityForm(text.CreateForm, text.Options,
-            name: viewModel.Name, description: viewModel.Description, type: viewModel.Type));
+        catch (ArgumentException exception)
+        {
+            if (uploadedBannerPhoto != null)
+            {
+                await _uploadService.DeleteAsync(uploadedBannerPhoto.StorageKey, CancellationToken.None);
+            }
+
+            ModelState.AddModelError(nameof(viewModel.BannerPhoto), exception.Message);
+            return View(BuildCommunityForm(text.CreateForm, text.Options,
+                name: viewModel.Name, description: viewModel.Description, type: viewModel.Type));
+        }
+        catch
+        {
+            if (uploadedBannerPhoto != null)
+            {
+                await _uploadService.DeleteAsync(uploadedBannerPhoto.StorageKey, CancellationToken.None);
+            }
+
+            throw;
+        }
+
+        return RedirectToAction(nameof(Details), new
+        {
+            community.Id
+        });
+    }
+
+    // GET: COMMUNITY/Photo/5
+    /// <summary>
+    /// Description: Streams a community cover photo from Blob Storage.
+    /// Author: Justin Chik
+    /// </summary>
+    /// <param name="id">The ID of the community.</param>
+    /// <param name="cancellationToken">A token that can cancel the download operation.</param>
+    /// <returns>The cover photo file, or a not found result if the community has no cover photo.</returns>
+    [HttpGet]
+    public async Task<IActionResult> Photo(int id, CancellationToken cancellationToken)
+    {
+        var community = await _context.Communities
+            .AsNoTracking()
+            .FirstOrDefaultAsync(community => community.Id == id, cancellationToken);
+
+        if (community?.BannerPhotoStorageKey == null || community.BannerPhotoContentType == null)
+        {
+            return NotFound();
+        }
+
+        var image = await _uploadService.DownloadAsync(community.BannerPhotoStorageKey, cancellationToken);
+        return File(image.Content, community.BannerPhotoContentType);
     }
 
     // GET: COMMUNITY/Edit/5
@@ -224,16 +313,24 @@ public class CommunityController : Controller
             return Forbid();
         }
 
+        // Author: Jay
+        var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
+        AddBannerErrors(viewModel.BannerImage, text.EditForm);
+        // -------------
+
         if (ModelState.IsValid)
         {
             community.Name = viewModel.Name;
             community.Type = viewModel.Type;
             // Author: Jaspreet Bath
             community.Description = viewModel.Description;
+            // Author: Jay - old cover image is removed only after the new one is saved.
+            var replacedBannerKey = await TrySaveBannerAsync(community, viewModel.BannerImage);
             try
             {
                 _context.Update(community);
                 await _context.SaveChangesAsync();
+                await DeleteBannerAsync(replacedBannerKey);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -253,10 +350,110 @@ public class CommunityController : Controller
         }
         // Author: Jay
         // Show the Edit page again with what was typed and the validation errors.
-        var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
         return View(BuildCommunityForm(text.EditForm, text.Options, community.Id,
-            viewModel.Name, viewModel.Description, viewModel.Type));
+            viewModel.Name, viewModel.Description, viewModel.Type, BannerUrlFor(community)));
         // ----------------
+    }
+
+    /// Author: Jay
+    /// Description: Streams a community's cover image .
+    /// (blob storage(cloud), used first, fallback is local App_Data).
+    ///
+    /// <param name="id">community id</param>
+    // GET: COMMUNITY/Banner/5
+    [HttpGet]
+    public async Task<IActionResult> Banner(int? id)
+    {
+        var banner = await _context.Communities
+            .AsNoTracking()
+            .Where(community => community.Id == id)
+            .Select(community => new { community.BannerPhotoStorageKey, community.BannerPhotoContentType })
+            .FirstOrDefaultAsync();
+        if (banner?.BannerPhotoStorageKey is not { } key
+            || banner.BannerPhotoContentType is not { } contentType
+            || !_bannerExtensions.ContainsKey(contentType))
+        {
+            return NotFound();
+        }
+
+        Response.Headers.XContentTypeOptions = "nosniff";
+        // Changes URL (?v=) when new image is uploaded.
+        // Makes it so it's cached.
+        Response.Headers.CacheControl = "public, max-age=604800";
+
+        var container = BannerContainer();
+        if (container != null)
+        {
+            try
+            {
+                var download = await container.GetBlobClient(key).DownloadStreamingAsync();
+                return File(download.Value.Content, contentType);
+            }
+            catch (Azure.RequestFailedException ex) when (ex.Status == StatusCodes.Status404NotFound)
+            {
+                // Not in blob storage, so it was saved locally.
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not read cover image {Key} from blob storage.", key);
+            }
+        }
+
+        // App_Data/community-banners/<file name>
+        var path = LocalBannerPath(key);
+        return System.IO.File.Exists(path) ? PhysicalFile(path, contentType) : NotFound();
+    }
+
+    /// Author: Jay
+    /// Description: Creates a post inside a community from with 
+    /// "+ Post" pop-up on its page.
+    /// Only members can post.
+    ///
+    /// <param name="id">community id</param>
+    /// <param name="form">title, content and post type</param>
+    // POST: COMMUNITY/CreatePost/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> CreatePost(int? id, CommunityPostFormViewModel form)
+    {
+        string? currentUserId = _userManager.GetUserId(User);
+        if (currentUserId == null)
+        {
+            // back to login page of not signed in.
+            return Challenge();
+        }
+        var community = await _context.Communities.FindAsync(id);
+        if (community == null)
+        {
+            return NotFound();
+        }
+        if (!await MemberExistsAsync(currentUserId, community))
+        {
+            return Forbid();
+        }
+
+        if (ModelState.IsValid)
+        {
+            var post = new Post
+            {
+                AuthorId = currentUserId,
+                CommunityId = community.Id,
+                Title = form.Title.Trim(),
+                Content = form.Content.Trim(),
+                CreatedAt = DateTime.UtcNow,
+            };
+            if (form.TagId is int tagId && await _context.Tags.AnyAsync(tag => tag.Id == tagId))
+            {
+                post.PostTags.Add(new PostTags { TagId = tagId });
+            }
+
+            _context.Posts.Add(post);
+            await _context.SaveChangesAsync();
+        }
+
+        // Back to the community, scrolled to its posts.
+        return RedirectToAction(nameof(Details), null, new { community.Id }, "posts");
     }
 
     /// <summary>
@@ -920,22 +1117,26 @@ public class CommunityController : Controller
     public async Task<IActionResult> DeleteConfirmed(int? id, bool returnToHandling = false)
     {
         var community = await _context.Communities.FindAsync(id);
+        string? bannerKey = null;
         if (community == null || community.DateOfDel != null)
         {
             return NotFound();
         }
-        if (community != null)
+        // Author: Jay - only the creator can delete (the check's result was ignored before).
+        if (!CommunityAccessChecker(true, community))
         {
-            CommunityAccessChecker(true, community);
-            community.DateOfDel = DateTime.Now.AddDays(7);
-            _context.Communities.Update(community);
+            return Forbid();
         }
-
+        bannerKey = community.BannerPhotoStorageKey;
+        community.DateOfDel = DateTime.Now.AddDays(7);
+        _context.Communities.Update(community);
         await _context.SaveChangesAsync();
         if (returnToHandling)
         {
             return RedirectToAction(nameof(CommunityHandling));
         }
+        // Author: Jay
+        await DeleteBannerAsync(bannerKey);
         return RedirectToAction(nameof(Index));
     }
 
@@ -963,6 +1164,9 @@ public class CommunityController : Controller
                 MemberCount = community.Members.Count,
                 IsJoined = currentUserId != null
                     && community.Members.Any(member => member.UserId == currentUserId),
+                IsCreator = currentUserId != null && community.CreatorId == currentUserId,
+                HasBanner = community.BannerPhotoStorageKey != null,
+                community.BannerPhotoUpdatedAt,
             })
             .ToListAsync();
 
@@ -980,6 +1184,8 @@ public class CommunityController : Controller
                 Location = tags.Campus ?? text.DefaultCampus,
                 MemberCount = community.MemberCount,
                 IsJoined = community.IsJoined,
+                IsCreator = community.IsCreator,
+                BannerUrl = community.HasBanner ? BannerUrl(community.Id, community.BannerPhotoUpdatedAt) : null,
                 Topics = tags.Topics,
                 Status = tags.Status,
             };
@@ -998,19 +1204,21 @@ public class CommunityController : Controller
         // Author: Jay
         var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
         return BuildCommunityForm(text.EditForm, text.Options, community.Id,
-            community.Name, community.Description, community.Type);
+            community.Name, community.Description, community.Type, BannerUrlFor(community));
     }
 
 
     /// Author: Jay
-    /// Description: Creates the community form (create pop-up, Create page, Edit page).
+    /// Description: Creates the community form (create pop-up, Settings pop-up, Create page, Edit page).
     /// Dropdowns preselected from the saved Type.
     /// 
     /// <param name="text">labels for the create or edit form</param>
     /// <param name="options">dropdown choices</param>
     /// <param name="id">community id when editing, else null</param>
+    /// <param name="bannerUrl">current cover image when editing, else null</param>
     private static CommunityFormViewModel BuildCommunityForm(CommunityFormText text, CommunityOptions options,
-        int? id = null, string? name = null, string? description = null, string? type = null)
+        int? id = null, string? name = null, string? description = null, string? type = null,
+        string? bannerUrl = null)
     {
         var tags = CommunityTags.Parse(type, options);
         return new CommunityFormViewModel
@@ -1022,9 +1230,9 @@ public class CommunityController : Controller
             Description = description ?? "",
             Category = tags.Category ?? "",
             Tag = tags.Tag ?? "",
-            Status = tags.Status ?? "",
-            Time = tags.Time ?? "",
             Campus = tags.Campus ?? "",
+            BannerUrl = bannerUrl,
+            MaxBannerBytes = MAX_BANNER_BYTES,
 
             Type = string.IsNullOrWhiteSpace(type) ? options.Categories.FirstOrDefault() ?? "" : type,
         };
@@ -1082,6 +1290,39 @@ public class CommunityController : Controller
         var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
         var detailsText = LoadText<CommunityDetailsText>(DETAILS_TEXT_FILE);
         var tags = CommunityTags.Parse(community.Type, text.Options);
+        bool isCreator = currentUserId != null && currentUserId == community.CreatorId;
+        var bannerUrl = BannerUrlFor(community);
+
+        var posts = await _context.Posts
+            .AsNoTracking()
+            .Where(post => post.CommunityId == community.Id && post.DateOfDel == null)
+            .OrderByDescending(post => post.CreatedAt)
+            .ThenByDescending(post => post.Id)
+            .Take(MAX_POSTS_SHOWN)
+            .Select(post => new PostCardViewModel
+            {
+                Id = post.Id,
+                Title = post.Title,
+                Content = post.Content,
+                AuthorName = _context.Profiles
+                    .Where(profile => profile.UserId == post.AuthorId)
+                    .Select(profile => profile.DisplayName)
+                    .FirstOrDefault() ?? post.Author.UserName ?? "",
+                CreatedAt = post.CreatedAt,
+                Tags = post.PostTags.Select(postTag => postTag.Tag.Name).ToList(),
+                CommentCount = _context.Comments.Count(comment => comment.PostId == post.Id),
+                IsAuthor = currentUserId != null && post.AuthorId == currentUserId,
+            })
+            .ToListAsync();
+
+        // Post types for the create post pop-up; only members can post.
+        IReadOnlyList<SelectListItem> postTypes = isMember
+            ? await _context.Tags
+                .AsNoTracking()
+                .OrderBy(tag => tag.Name)
+                .Select(tag => new SelectListItem { Value = tag.Id.ToString(), Text = tag.Name })
+                .ToListAsync()
+            : [];
         // -------------
 
         var viewModel = new CommunityDetailsViewModel
@@ -1090,6 +1331,7 @@ public class CommunityController : Controller
             Name = community.Name,
             Type = community.Type,
             Description = community.Description,
+            BannerPhotoStorageKey = community.BannerPhotoStorageKey,
             Creator = creatorName ?? "Not Found",
             Members = members,
             IsMod = isMod,
@@ -1101,7 +1343,18 @@ public class CommunityController : Controller
                 : community.Description,
             Badges = tags.Badges,
             Location = tags.Campus ?? detailsText.Meta.Campus,
-            CreateForm = BuildCommunityForm(text.CreateForm, text.Options),
+            // Author: Jay
+            // Uses their first tag first.
+            // "??" fallback to use right side arg.
+            Category = tags.Category ?? tags.Topics.FirstOrDefault(),
+            IsCreator = isCreator,
+            BannerUrl = bannerUrl,
+            SettingsForm = isCreator
+                ? BuildCommunityForm(text.EditForm, text.Options, community.Id,
+                    community.Name, community.Description, community.Type, bannerUrl)
+                : null,
+            Posts = posts,
+            PostTypes = postTypes,
             // -------------
         };
         return viewModel;
@@ -1253,6 +1506,171 @@ public class CommunityController : Controller
         }
     }
 
+
+    // ---------------------
+    // COVER IMAGE HELPERS
+    // Author: Jay
+    // ---------------------
+
+    // URL of the Banner action; ?v= changes after each upload so browsers fetch the new image.
+    private string? BannerUrl(int id, DateTime? updatedAt) =>
+        Url.Action(nameof(Banner), new { id, v = updatedAt?.Ticks ?? 0 });
+
+    private string? BannerUrlFor(Community community) =>
+        community.BannerPhotoStorageKey == null ? null : BannerUrl(community.Id, community.BannerPhotoUpdatedAt);
+
+    // Adds a form error when the picked cover image is too big or not an image.
+    private void AddBannerErrors(IFormFile? file, CommunityFormText text)
+    {
+        // No image picked: nothing to check, the cover is optional.
+        if (file == null || file.Length == 0)
+        {
+            return;
+        }
+        // Too big: fill {size} in the message with the real limit, e.g. "{size} MB".
+        if (file.Length > MAX_BANNER_BYTES)
+        {
+            ModelState.AddModelError(nameof(CommunityViewModel.BannerImage),
+                text.CoverTooLarge.Replace("{size}", CommunityFormViewModel.FormatSize(MAX_BANNER_BYTES)));
+        }
+        // Wrong type, or a renamed file that isn't really an image.
+        else if (!_bannerExtensions.ContainsKey(file.ContentType) || !HasImageSignature(file))
+        {
+            ModelState.AddModelError(nameof(CommunityViewModel.BannerImage), text.CoverInvalid);
+        }
+    }
+
+    // Saves the cover image and points the community at it. Keeps the old image if saving fails.
+    // Returns the replaced image's key, to delete once the community is saved (null if none).
+    private async Task<string?> TrySaveBannerAsync(Community community, IFormFile? file)
+    {
+        if (file == null || file.Length == 0 || !_bannerExtensions.TryGetValue(file.ContentType, out var extension))
+        {
+            return null;
+        }
+
+        var key = $"{BANNER_FOLDER}/{Guid.NewGuid():N}{extension}";
+        var saved = false;
+
+        var container = BannerContainer();
+        if (container != null)
+        {
+            try
+            {
+                await container.CreateIfNotExistsAsync();
+            }
+            catch (Exception ex)
+            {
+                // The container may already exist and the key may not allow creating one.
+                _logger.LogDebug(ex, "Could not create the blob container.");
+            }
+            try
+            {
+                await using var upload = file.OpenReadStream();
+                await container.GetBlobClient(key).UploadAsync(upload, new BlobUploadOptions
+                {
+                    HttpHeaders = new BlobHttpHeaders { ContentType = file.ContentType },
+                });
+                saved = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not upload cover image to blob storage; saving it locally.");
+            }
+        }
+
+        if (!saved)
+        {
+            try
+            {
+                var path = LocalBannerPath(key);
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                await using var input = file.OpenReadStream();
+                await using var output = System.IO.File.Create(path);
+                await input.CopyToAsync(output);
+                saved = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not save cover image for community {Id}.", community.Id);
+            }
+        }
+
+        if (!saved)
+        {
+            return null;
+        }
+
+        var oldKey = community.BannerPhotoStorageKey;
+        community.BannerPhotoStorageKey = key;
+        community.BannerPhotoOriginalFileName = Path.GetFileName(file.FileName);
+        community.BannerPhotoContentType = file.ContentType;
+        community.BannerPhotoFileSizeBytes = file.Length;
+        community.BannerPhotoUpdatedAt = DateTime.UtcNow;
+        return oldKey;
+    }
+
+    // Removes a cover image from blob storage and App_Data. Missing files are fine.
+    // Used for removing an old image.
+    private async Task DeleteBannerAsync(string? key)
+    {
+        if (string.IsNullOrEmpty(key))
+        {
+            return;
+        }
+        try
+        {
+            var container = BannerContainer();
+            if (container != null)
+            {
+                await container.GetBlobClient(key).DeleteIfExistsAsync();
+            }
+            var path = LocalBannerPath(key);
+            if (System.IO.File.Exists(path))
+            {
+                System.IO.File.Delete(path);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not delete old cover image {Key}.", key);
+        }
+    }
+
+    // Blob container for cover images, or null when blob storage
+    // isn't set up (Program.cs).
+    private BlobContainerClient? BannerContainer()
+    {
+        var blobService = HttpContext.RequestServices.GetService<BlobServiceClient>();
+        if (blobService == null)
+        {
+            return null;
+        }
+        var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+        var containerName = configuration["AzureStorage:ContainerName"];
+        return blobService.GetBlobContainerClient(string.IsNullOrWhiteSpace(containerName) ? "media" : containerName);
+    }
+
+    // Local copy: App_Data/community-banners/<file>. Only the file name of the key is used.
+    private string LocalBannerPath(string key) =>
+        Path.Combine(_env.ContentRootPath, "App_Data", BANNER_FOLDER, Path.GetFileName(key));
+
+    // Checks the first bytes so a renamed non-image file can't be saved as a cover.
+    private static bool HasImageSignature(IFormFile file)
+    {
+        var header = new byte[12];
+        using var stream = file.OpenReadStream();
+        var read = stream.ReadAtLeast(header, header.Length, throwOnEndOfStream: false);
+
+        bool Matches(int offset, params byte[] signature) =>
+            read >= offset + signature.Length
+            && header.Skip(offset).Take(signature.Length).SequenceEqual(signature);
+
+        return Matches(0, 0xFF, 0xD8, 0xFF)                                          // JPEG
+            || Matches(0, 0x89, 0x50, 0x4E, 0x47)                                    // PNG
+            || Matches(0, 0x47, 0x49, 0x46, 0x38)                                    // GIF
+            || (Matches(0, 0x52, 0x49, 0x46, 0x46) && Matches(8, 0x57, 0x45, 0x42, 0x50)); // WEBP ("RIFF"/"WEBP")
+    }
 
     private bool CommunityExists(int? id)
     {

@@ -13,6 +13,7 @@ public static class CommunityQueries
         return context.CommunityMembers
             .AsNoTracking()
             .Where(member => member.UserId == userId)
+            .Where(m => m.Community.DateOfDel == null)
             .OrderByDescending(member => member.JoinedAt)
             .Take(take)
             .Select(member => new CommunityLinkViewModel

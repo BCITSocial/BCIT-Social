@@ -193,7 +193,7 @@ p {
     stroke-linejoin: round;
 }
 
-.profile-button {
+.profile-button, .profile-button > * {
     display: grid;
     place-items: center;
     height: 44px;
@@ -839,7 +839,7 @@ a.primary-button {
     background: var(--color-surface);
 }
 
-.post-avatar {
+.post-avatar, .post-avatar > * {
     display: grid;
     place-items: center;
     width: 40px;
@@ -851,6 +851,7 @@ a.primary-button {
     font-weight: var(--font-weight-bold);
 }
 
+/* community and time */
 .post-meta {
     display: flex;
     flex-wrap: wrap;
@@ -1404,6 +1405,52 @@ body:has(.create-dialog[open]) {
     font-size: 0.75rem;
 }
 
+/* Field errors and the message at the top of a create form (create post and create event). */
+.create-field [aria-invalid="true"],
+.create-field[aria-invalid="true"] .post-type-option span {
+    border-color: var(--color-danger);
+}
+
+.field-error {
+    margin: 0;
+    color: var(--color-danger);
+    font-size: 0.75rem;
+}
+
+.form-message {
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+    .form-message.is-error {
+        background: var(--color-danger-surface);
+        color: var(--color-danger);
+    }
+
+    .form-message.is-info {
+        background: var(--color-selected);
+        color: var(--color-accent);
+    }
+
+.create-label-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+    .create-label-row label {
+        font-size: 0.875rem;
+        font-weight: var(--font-weight-bold);
+    }
+
+.create-count {
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+}
+
 .post-type-options {
     display: flex;
     flex-wrap: wrap;
@@ -1501,6 +1548,7 @@ body:has(.create-dialog[open]) {
     border: 1px dashed var(--color-border);
     background: var(--color-input);
     font-size: 0.875rem;
+    cursor: pointer;
 }
 
     .attach-box svg {
@@ -1510,6 +1558,117 @@ body:has(.create-dialog[open]) {
         stroke: currentColor;
         stroke-width: 1.6;
         stroke-linejoin: round;
+    }
+
+    .attach-box:hover {
+        background: var(--color-selected);
+    }
+
+    /* The file input itself is hidden (beats the input rule above), so the box shows its focus and error state. */
+    .create-field > input[type="file"].visually-hidden {
+        width: 1px;
+        min-height: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .create-field:has(> input[type="file"]:focus-visible) .attach-box {
+        outline: 3px solid var(--color-focus);
+        outline-offset: 2px;
+    }
+
+    .create-field:has(> input[type="file"][aria-invalid="true"]) .attach-box {
+        border-color: var(--color-danger);
+    }
+
+/* Previews of the chosen photos, each with a Remove button. */
+.photo-previews {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+    .photo-previews li {
+        position: relative;
+        aspect-ratio: 1;
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        overflow: hidden;
+        background: var(--color-input);
+    }
+
+        .photo-previews li.is-invalid {
+            border: 2px solid var(--color-danger);
+        }
+
+    .photo-previews img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+.photo-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgb(16 29 67 / 70%);
+    color: #fff;
+    cursor: pointer;
+}
+
+    .photo-remove svg {
+        width: 14px;
+        height: 14px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.2;
+        stroke-linecap: round;
+    }
+
+.cta-button:disabled {
+    cursor: progress;
+    opacity: 0.7;
+}
+
+/* Short note after a post is published, shown at the bottom of the page by create-post.js. */
+.post-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: max-content;
+    max-width: calc(100% - 32px);
+    padding: 8px 8px 8px 16px;
+    border-radius: var(--radius);
+    background: var(--color-going);
+    color: var(--color-going-text);
+    box-shadow: 0 12px 30px rgb(16 29 67 / 20%);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-bold);
+    transform: translateX(-50%);
+}
+
+    .post-toast a {
+        color: inherit;
+    }
+
+    .post-toast .icon-button {
+        color: inherit;
     }
 
 .create-footer {
@@ -1878,3 +2037,98 @@ body:has(.create-dialog[open]) {
     text-decoration: none;
     font-weight: 600;
 }
+
+/* Home feed post cards */
+/* there are lowkey 2 other .post-card's and I do not want to touch either incase something breaks*/
+.feed-list .post-card {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 14px;
+    min-width: 0;
+    padding: 16px 20px 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+}
+
+.feed-list .post-body {
+    min-width: 0;
+}
+
+.post-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 40px;
+}
+
+    .post-card-top .post-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 5px;
+        min-height: 40px;
+        margin: 0;
+    }
+
+    .post-card-top .post-tags {
+        flex: none;
+        justify-content: flex-end;
+        margin: 0 0 0 auto;
+    }
+
+/* title probably */
+.feed-list .post-title {
+    margin: 14px 0 6px;
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-heading);
+}
+
+/* username probably */
+.feed-list .post-author {
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+}
+
+.post-content-container {
+    min-width: 0;
+}
+
+.feed-list .post-content {
+    margin: 0;
+    padding: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+    /* Keep long posts from taking over the entire feed. */
+    .feed-list .post-content.is-collapsed {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+
+        /* change this number btw if you want bigger posts, it is # of lines allowed */
+        -webkit-line-clamp: 4;
+    }
+
+.post-show-more {
+    margin-top: 4px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-accent);
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+}
+
+    .post-show-more:hover {
+        text-decoration: underline;
+    }
+
+    .post-show-more[hidden] {
+        display: none !important;
+    }
