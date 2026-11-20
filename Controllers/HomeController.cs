@@ -123,6 +123,7 @@ public class HomeController : Controller
             Id = post.Id,
             Title = post.Title,
             Content = post.Content,
+            AuthorId = post.AuthorId,
             AuthorName = _context.Profiles
                 .Where(profile => profile.UserId == post.AuthorId)
                 .Select(profile => profile.DisplayName)
@@ -131,6 +132,10 @@ public class HomeController : Controller
             CreatedAt = post.CreatedAt,
             Tags = post.PostTags.Select(postTag => postTag.Tag.Name).ToList(),
             CommentCount = _context.Comments.Count(comment => comment.PostId == post.Id),
+            AuthorHasProfilePhoto = _context.Profiles
+                .Where(profile => profile.UserId == post.AuthorId)
+                .Select(profile => profile.ProfilePhotoStorageKey != null)
+                .FirstOrDefault(),
             IsAuthor = userId != null && post.AuthorId == userId,
             IsSaved = userId != null && _context.Bookmarks
                 .Any(bookmark => bookmark.UserId == userId && bookmark.PostId == post.Id),
