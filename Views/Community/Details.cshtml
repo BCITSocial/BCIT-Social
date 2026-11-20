@@ -2,85 +2,124 @@
 @*
 - This is the frontend view for Community Details.
 - Everything comes from CommunityDetailsViewModel.
+- Uses the shared layout so the side nav stays on this page.
 - author: jaspreet bath
 *@
 
 @{
+    Layout = "_HomeLayout";
     var text = Model.Text;
     var meta = text.Meta;
     var discussions = text.Discussions;
     ViewData["Title"] = Model.Name;
+    var hasBanner = !string.IsNullOrEmpty(Model.BannerUrl);
+    var initiallyShown = Math.Max(discussions.InitiallyShown, 1);
+    var now = DateTime.UtcNow;
 }
 
-<!-- Included communities.css for shared modal styling and badges -->
+<!-- Included communities.css for shared modal styling, badges, and the Joined menu -->
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/community-details.css" asp-append-version="true" />
 
 <div class="details-wrapper">
-    <!-- Hero Banner -->
-    <div class="details-hero-banner @(Model.BannerPhotoStorageKey == null ? "" : "has-cover-photo")">
-        @if (Model.BannerPhotoStorageKey != null)
-        {
-            <img class="details-cover-photo"
-                style= "width: 100%; max-width: 1600px; max-height: 400px; object-fit: fill;"
-                 src="@Url.Action("Photo", "Community", new { id = Model.Id })"
-                 alt="@Model.Name cover photo" />
-        }
-        else {
-        <div>
-            <div class="banner-pre">@text.Banner.Subtitle</div>
-            <h1>@text.Banner.Title</h1>
-            <p>@text.Banner.Caption</p>
-            <div class="banner-code">@text.Banner.CodeBadge</div>
+    <!-- Hero Banner: category, community name, and location.
+         The image is from settings when choosing the file. -->
+    <div class="details-hero-banner @(hasBanner ? "has-image" : "")"
+         style="@(hasBanner ? $"background-image: url('{Model.BannerUrl}')" : null)">
+        <div class="banner-text">
+
+            @if (!string.IsNullOrEmpty(Model.Category))
+            {
+                <span class="banner-category">@Model.Category</span>
+            }
+            
+            
+            <h1>@Model.Name</h1>
+
+            <p class="banner-location">
+                
+                @Model.Location
+            </p>
         </div>
-        <div class="banner-solid-accent">BCIT</div>
-        }
     </div>
 
-    <!-- Community Header -->
+    <!-- Community Header: name & tags on left side,and actions(on the right side). -->
     <div class="details-meta-row">
         <div class="meta-left">
-            <div class="community-icon-box">&lt;/&gt;</div>
-            <div>
-                <div class="title-line">
-                    <h2 class="community-main-title">@Model.Name</h2>
-                    @if (Model.IsMember)
-                    {
-                        <span class="pill-joined">@meta.JoinedLabel</span>
-                    }
-                    else
-                    {
-                        <form asp-action="Join" asp-route-id="@Model.Id" method="post" class="inline-join-form">
-                            <button type="submit" class="btn-create btn-join-small">@meta.JoinButton</button>
-                        </form>
-                    }
-                </div>
-                <div class="meta-sub-row">
-                    @foreach (var badge in Model.Badges)
-                    {
-                        <span class="category-badge @badge.CssClass">@badge.Text</span>
-                    }
-                    <span>@meta.Privacy</span>
-                    <span>&bull;</span>
-                    <a asp-action="Members" asp-route-id="@Model.Id">
-                        <span>@Model.Members.Count @meta.MembersLabel</span>
-                    </a>
-                    <span>&bull;</span>
-                    <span>@Model.Location</span>
-                </div>
+            <div class="meta-sub-row">
+                @foreach (var badge in Model.Badges.Where(badge =>
+                    !string.Equals(badge.Text, Model.Category, StringComparison.OrdinalIgnoreCase)))
+                {
+                    <span class="category-badge @badge.CssClass">@badge.Text</span>
+                }
+                <span>@meta.Privacy</span>
             </div>
         </div>
 
         <div class="meta-right-actions">
+            <a asp-action="Members" asp-route-id="@Model.Id" class="btn-settings btn-members">
+                @* This svg is for the members icon. *@
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="9" cy="8" r="3.2" />
+                    <path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+                    <circle cx="17" cy="9" r="2.5" />
+                    <path d="M16 13.2c2.7.3 5 2.4 5 5.3" />
+                </svg>
+                @Model.Members.Count @meta.MembersLabel
+            </a>
+
             @if (Model.IsMember)
             {
-                <a asp-action="Leave" asp-route-id="@Model.Id" class="btn-settings">@meta.LeaveButton</a>
-                @* modal trigger button instead of route link *@
-                <button type="button" id="open-create-modal" class="btn-create">@meta.CreateButton</button>
+                @* "Joined" dropdown: Settings(creator) or Leave(everyone else) *@
+                <div class="action-menu" data-menu>
+                    <button type="button" class="btn-joined btn-joined-lg" aria-expanded="false"
+                            aria-controls="details-menu" aria-label="@meta.JoinedLabel, @meta.MenuLabel" data-menu-toggle>
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M5 12.5l4.5 4.5L19 7.5" />
+                        </svg>
+                        @meta.JoinedLabel
+                        <svg class="menu-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M6 9l6 6 6-6" />
+                        </svg>
+                    </button>
+                    <div id="details-menu" class="action-menu-list" hidden>
+                        @if (Model.IsCreator)
+                        {
+                            <button type="button" class="action-menu-item" data-open-modal="community-settings-modal">
+                                @* This svg is for the settings icon. *@
+                                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <circle cx="12" cy="12" r="3" />
+                                    <path
+                                    d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+                                </svg>
+                                @meta.SettingsButton
+                            </button>
+                        }
+                        else
+                        {
+                            @* "Are you sure?" first(_ConfirmDialog), 
+                                then posts to CommunityController.Leave. *@
+                            <button type="button" class="action-menu-item is-danger"
+                                    data-confirm-action="@Url.Action("Leave", new { id = Model.Id })"
+                                    data-confirm-title="@text.LeaveConfirm.Title"
+                                    data-confirm-message="@text.LeaveConfirm.MessageFor(Model.Name)"
+                                    data-confirm-button="@text.LeaveConfirm.ConfirmButton"
+                                    data-confirm-cancel="@text.LeaveConfirm.CancelButton">
+                                @* Logout svg icon. *@
+                                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+                                </svg>
+                                @meta.LeaveButton
+                            </button>
+                        }
+                    </div>
+                </div>
             }
-            @if (Model.IsMod)
+            else
             {
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-settings">@meta.SettingsButton</a>
+                <form asp-action="Join" asp-route-id="@Model.Id" method="post" class="inline-join-form">
+                    <button type="submit" class="btn-create">@meta.JoinButton</button>
+                </form>
             }
         </div>
     </div>
@@ -99,46 +138,88 @@
         <p class="about-text">@Model.About</p>
     </div>
 
-    <!-- Latest Discussions (placeholder content from the JSON) -->
-    <div class="discussions-section-container">
+    <!-- Posts: "+ Post" sits just above the list -->
+    <section id="posts" class="discussions-section-container" aria-labelledby="posts-heading">
         <div class="section-header-row">
-            <h3 class="section-title">@discussions.Title</h3>
-            <button type="button" id="toggle-discussions-btn" class="link-action-btn"
-                    data-see-all="@discussions.SeeAllText" data-show-less="@discussions.ShowLessText">
-                @discussions.SeeAllText
-            </button>
-        </div>
-        <div id="discussions-list" class="discussions-list">
-            @for (var i = 0; i < discussions.Items.Count; i++)
+            <h3 id="posts-heading" class="section-title">
+                @discussions.Title <span class="section-count">@Model.Posts.Count</span>
+            </h3>
+            @if (Model.IsMember)
             {
-                var discussion = discussions.Items[i];
-                var isHiddenByDefault = i >= discussions.InitiallyShown;
-                <div class="discussion-card @(isHiddenByDefault ? "discussion-extra is-hidden" : "")">
-                    <div class="avatar-initials">@discussion.Initials</div>
-                    <div class="discussion-content">
-                        <div class="discussion-top-row">
-                            <h4 class="discussion-title">@discussion.Title</h4>
-                            <span class="discussion-time">@discussion.Time</span>
-                        </div>
-                        <p>@discussion.Body</p>
-                        <div class="discussion-footer">
-                            <span>@discussion.AuthorMeta</span>
-                            <span>@discussion.RepliesCount</span>
-                        </div>
-                    </div>
-                </div>
+                <button type="button" class="btn-create btn-post"
+                        data-open-modal="community-post-modal">@discussions.PostButton</button>
+            }
+            else
+            {
+                <span class="join-to-post">@discussions.JoinToPost</span>
             }
         </div>
-    </div>
+
+        <div id="discussions-list" class="discussions-list">
+            @if (Model.Posts.Count == 0)
+            {
+                <p class="discussions-empty">@discussions.EmptyText</p>
+            }
+            @for (var i = 0; i < Model.Posts.Count; i++)
+            {
+                var post = Model.Posts[i];
+                var isHiddenByDefault = i >= initiallyShown;
+                <article class="discussion-card @(isHiddenByDefault ? "discussion-extra is-hidden" : "")"
+                         aria-labelledby="post-title-@post.Id">
+                    <div class="avatar-initials" aria-hidden="true">@post.AuthorInitials</div>
+                    <div class="discussion-content">
+                        <div class="discussion-top-row">
+                            <h4 class="discussion-title" id="post-title-@post.Id">
+                                <a asp-controller="Home" asp-action="Post" asp-route-id="@post.Id">@post.Title</a>
+                            </h4>
+                            <time class="discussion-time"
+                                  datetime="@post.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")">@post.TimeAgo(now)</time>
+                        </div>
+                        @if (post.Tags.Count > 0)
+                        {
+                            <div class="badge-row discussion-tags">
+                                @foreach (var tag in post.Tags)
+                                {
+                                    <span class="category-badge">@tag</span>
+                                }
+                            </div>
+                        }
+                        <p>@post.Content</p>
+                        <div class="discussion-footer">
+                            <span>@discussions.PostedBy @post.AuthorName</span>
+                            <span>@post.CommentCount @discussions.CommentsLabel</span>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+
+        @if (Model.Posts.Count > initiallyShown)
+        {
+            <button type="button" id="toggle-discussions-btn" class="link-action-btn discussions-toggle"
+                    aria-expanded="false" aria-controls="discussions-list" data-see-all="@discussions.SeeAllText"
+                    data-show-less="@discussions.ShowLessText">
+                @discussions.SeeAllText
+            </button>
+        }
+    </section>
 </div>
 
-<!-- Modular Modal Partial Inclusion -->
-<partial name="_CreateCommunityModal" model="Model.CreateForm" />
+<!-- Pop-ups: create post (members), Settings with Delete at the bottom (creator), "Are you sure?" -->
+@if (Model.IsMember)
+{
+    <partial name="_CreatePostModal" model="Model" />
+}
+@if (Model.SettingsForm != null)
+{
+    <partial name="_CommunitySettingsModal" model="Model" />
+}
+<partial name="_ConfirmDialog" />
 
 @section Scripts {
-    <!-- communities.js opens and closes the modal.
-         community-form.js fills in its tags -->
-    <script src="~/js/communities.js" asp-append-version="true"></script>
+    <!-- community-actions.js opens the pop-ups and the Joined menu.
+         community-form.js fills in the Settings form's tags and cover preview. -->
+    <script src="~/js/community-actions.js" asp-append-version="true"></script>
     <script src="~/js/community-form.js" asp-append-version="true"></script>
     <script src="~/js/community-details.js" asp-append-version="true"></script>
 }

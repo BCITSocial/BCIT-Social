@@ -1,0 +1,18 @@
+@*
+- Partial View: the "Are you sure?" pop-up for Leave and Delete.
+- Any button with data-confirm-action opens it (community-actions.js), which fills in the
+  title, message, buttons, and where the form posts.
+- author: jaspreet bath
+*@
+
+<dialog id="community-confirm" class="community-dialog confirm-dialog" aria-labelledby="community-confirm-title"
+        aria-describedby="community-confirm-message">
+    <form method="post" asp-antiforgery="true" class="modal-card confirm-card" data-confirm-form>
+        <h2 id="community-confirm-title" class="modal-title" data-confirm-title></h2>
+        <p id="community-confirm-message" class="modal-subtitle" data-confirm-message></p>
+        <div class="modal-footer-actions">
+            <button type="button" class="btn-cancel" data-close-modal data-confirm-cancel></button>
+            <button type="submit" class="btn-danger-confirm" data-confirm-submit></button>
+        </div>
+    </form>
+</dialog>
