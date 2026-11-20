@@ -52,6 +52,12 @@ public class ProfileController : Controller
     private async Task<ProfilePageViewModel> BuildProfilePageViewModel(Profile profile, string? viewerId, string? friendSearch = null)
     {
         var profileUserId = profile.UserId;
+        // Get the email of the profile owner - Jonathan
+        var email = await _context.Users
+            .AsNoTracking()
+            .Where(user => user.Id == profileUserId)
+            .Select(user => user.Email)
+            .FirstOrDefaultAsync();
         var posts = await ProjectProfileCards(
                 _context.Posts
                     .Where(post => post.AuthorId == profileUserId && post.DateOfDel == null)
@@ -167,6 +173,7 @@ public class ProfileController : Controller
         return new ProfilePageViewModel
         {
             Profile = profile,
+            Email = email,
             IsOwnProfile = isOwnProfile,
             Posts = posts,
             Bookmarks = bookmarkedPosts,

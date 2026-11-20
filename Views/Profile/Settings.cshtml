@@ -15,16 +15,13 @@
             <p>Manage your account details and profile preferences.</p>
         </div>
 
-        <a class="settings-button settings-button-secondary"
-           asp-controller="Profile"
-           asp-action="Index">
-            Back
+        <a class="settings-button settings-button-secondary" asp-controller="Profile" asp-action="Index">
+            Cancel
         </a>
     </header>
 
     <main class="settings-content">
-        <section class="settings-card"
-                aria-labelledby="display-name-settings-heading">
+        <section class="settings-card" aria-labelledby="display-name-settings-heading">
             <div class="settings-card-heading">
                 <div>
                     <h2 id="display-name-settings-heading">Display name</h2>
@@ -34,31 +31,24 @@
                 </div>
             </div>
 
-            <form class="settings-form"
-                asp-controller="Profile"
-                asp-action="Edit"
-                method="post">
+            <form class="settings-form" asp-controller="Profile" asp-action="Edit" method="post">
                 <input asp-for="Bio" type="hidden" />
                 <input asp-for="Program" type="hidden" />
                 <input asp-for="Campus" type="hidden" />
 
                 <div class="settings-field">
                     <label asp-for="DisplayName">Display name</label>
-                    <input asp-for="DisplayName"
-                        autocomplete="name"
-                        required />
+                    <input asp-for="DisplayName" autocomplete="name" required />
                     <span asp-validation-for="DisplayName"></span>
                 </div>
 
-                <button class="settings-button settings-button-primary"
-                        type="submit">
+                <button class="settings-button settings-button-primary" type="submit">
                     Change display name
                 </button>
             </form>
         </section>
 
-        <section class="settings-card"
-                 aria-labelledby="password-settings-heading">
+        <section class="settings-card" aria-labelledby="password-settings-heading">
             <div class="settings-card-heading">
                 <div>
                     <h2 id="password-settings-heading">Password</h2>
@@ -71,41 +61,99 @@
             <div class="settings-form">
                 <div class="settings-field">
                     <label for="current-password">Current password</label>
-                    <input id="current-password"
-                           name="currentPassword"
-                           type="password"
-                           autocomplete="current-password"
+                    <input id="current-password" name="currentPassword" type="password" autocomplete="current-password"
                            disabled />
                 </div>
 
                 <div class="settings-field">
                     <label for="new-password">New password</label>
-                    <input id="new-password"
-                           name="newPassword"
-                           type="password"
-                           autocomplete="new-password"
-                           disabled />
+                    <input id="new-password" name="newPassword" type="password" autocomplete="new-password" disabled />
                 </div>
 
                 <div class="settings-field">
                     <label for="confirm-password">Confirm new password</label>
-                    <input id="confirm-password"
-                           name="confirmPassword"
-                           type="password"
-                           autocomplete="new-password"
+                    <input id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password"
                            disabled />
                 </div>
 
-                <button class="settings-button settings-button-primary"
-                        type="button"
-                        disabled>
+                <button class="settings-button settings-button-primary" type="button" disabled>
                     Change password
                 </button>
             </div>
         </section>
 
-        <section class="settings-card settings-danger-card"
-                 aria-labelledby="delete-account-heading">
+        <section class="profile-edit-appearance" aria-labelledby="profile-edit-appearance-heading">
+            <div class="profile-edit-appearance-copy">
+                <h2 id="profile-edit-appearance-heading">Profile appearance</h2>
+                <p>Choose a theme or customize your profile’s accent color.</p>
+            </div>
+            <div class="profile-theme-options" role="group" aria-label="Choose a profile theme">
+                <button class="profile-theme-option" type="button" data-profile-theme-choice="campus"
+                        aria-pressed="false">
+                    <span class="profile-theme-swatch profile-theme-swatch-campus" aria-hidden="true"></span>
+                    Campus
+                </button>
+                <button class="profile-theme-option" type="button" data-profile-theme-choice="forest"
+                        aria-pressed="false">
+                    <span class="profile-theme-swatch profile-theme-swatch-forest" aria-hidden="true"></span>
+                    Forest
+                </button>
+                <button class="profile-theme-option" type="button" data-profile-theme-choice="lavender"
+                        aria-pressed="false">
+                    <span class="profile-theme-swatch profile-theme-swatch-lavender" aria-hidden="true"></span>
+                    Lavender
+                </button>
+                <button class="profile-theme-option" type="button" data-profile-theme-choice="dark"
+                        aria-pressed="false">
+                    <span class="profile-theme-swatch profile-theme-swatch-dark" aria-hidden="true"></span>
+                    Dark
+                </button>
+            </div>
+            <button class="profile-button profile-button-outline profile-customize-button" type="button"
+                    data-open-profile-customizer>
+                Customize profile
+            </button>
+        </section>
+
+        <dialog class="profile-customizer" data-profile-customizer aria-labelledby="profile-customizer-heading">
+            <form class="profile-customizer-form" data-profile-customizer-form>
+                <header class="profile-customizer-header">
+                    <div>
+                        <h2 id="profile-customizer-heading">Customize your profile</h2>
+                        <p>Personalize the accent color used across your profile.</p>
+                    </div>
+                    <button class="profile-customizer-close" type="button" data-close-profile-customizer
+                            aria-label="Close customization">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </header>
+
+                <div class="profile-customizer-fields">
+                    <div class="profile-customizer-field">
+                        <label for="profile-accent-color">Page accent color</label>
+                        <input id="profile-accent-color" name="accentColor" type="color" value="#173a63" />
+                    </div>
+                </div>
+
+                <p class="profile-customizer-status" data-profile-customizer-status role="status" aria-live="polite">
+                </p>
+
+                <footer class="profile-customizer-actions">
+                    <button class="profile-button profile-button-outline" type="button" data-reset-profile-customizer>
+                        Reset
+                    </button>
+                    <div>
+                        <button class="profile-button profile-button-outline" type="button"
+                                data-close-profile-customizer>
+                            Cancel
+                        </button>
+                        <button class="profile-button profile-button-primary" type="submit">Save changes</button>
+                    </div>
+                </footer>
+            </form>
+        </dialog>
+
+        <section class="settings-card settings-danger-card" aria-labelledby="delete-account-heading">
             <div class="settings-danger-copy">
                 <h2 id="delete-account-heading">Delete account</h2>
                 <p class="settings-card-description">
@@ -114,12 +162,15 @@
                 </p>
             </div>
 
-            <a class="settings-button settings-button-danger"
-               asp-controller="Profile"
-               asp-action="Delete"
+            <a class="settings-button settings-button-danger" asp-controller="Profile" asp-action="Delete"
                asp-route-userid="@userId">
                 Delete account
             </a>
         </section>
     </main>
 </section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/profile-customizer.js" asp-append-version="true" defer></script>
+}
