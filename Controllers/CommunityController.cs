@@ -165,6 +165,16 @@ public class CommunityController : Controller
             return Challenge();
         }
         var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
+        var communityDuplicateCheck = await _context.Communities
+                            .Where(c => c.DateOfDel == null)
+                            .FirstAsync(c => c.Name == viewModel.Name.Trim());
+        Console.WriteLine($"\n\n111{communityDuplicateCheck.Name}222\n\n\n");
+        if (communityDuplicateCheck != null)
+        {
+            ModelState.AddModelError("viewModel.Name", "A community with this name already exists! Please input a different name.");
+            return View(BuildCommunityForm(text.CreateForm, text.Options,
+                name: viewModel.Name, description: viewModel.Description, type: viewModel.Type));
+        }
         if (!ModelState.IsValid)
         {
             return View(BuildCommunityForm(text.CreateForm, text.Options,
