@@ -491,8 +491,8 @@ public class ProfileController : Controller
         .AsNoTracking()
         .FirstOrDefaultAsync(profile => profile.UserId == id, cancellationToken);
 
-        if (string.IsNullOrWhiteSpace(id) || 
-            profile?.ProfilePhotoStorageKey == null || 
+        if (string.IsNullOrWhiteSpace(id) ||
+            profile?.ProfilePhotoStorageKey == null ||
             profile.ProfilePhotoContentType == null)
         {
             return NotFound();
@@ -692,4 +692,27 @@ public class ProfileController : Controller
     {
         return _context.Profiles.Any(e => e.UserId == userid);
     }
+    // Author: Cameron Morris
+    public async Task<IActionResult> Settings()
+    {
+        string? userId = _userManager.GetUserId(User);
+
+        if (userId == null)
+        {
+            return Challenge();
+        }
+
+        var profile = await _context.Profiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(profile => profile.UserId == userId);
+
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        return View(profile);
+    }
+
 }
+
