@@ -11,15 +11,21 @@
 }
 <article class="post-details" aria-labelledby="post-details-title">
     <div class="post-details-author">
-        <span class="avatar avatar-large" aria-hidden="true">@post.AuthorInitials</span>
+        <a class="avatar avatar-large" aria-hidden="true" asp-controller="Profile" asp-action="Details"
+         asp-route-userId="@post.AuthorId">@post.AuthorInitials</a>
         <div>
-            <p class="post-details-name">@post.AuthorName</p>
+            <a class="post-details-name" asp-controller="Profile" asp-action="Details"
+             asp-route-userId="@post.AuthorId">@post.AuthorName</a>
             <p class="post-details-meta">
                 @if (post.CommunityName is not null)
                 {
                     <span>@post.CommunityName ·</span>
                 }
                 <time datetime="@post.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")">@post.TimeAgo(now)</time>
+                @if (post.EditedAt is { } editedAt)
+                {
+                    <span class="post-edited">· <time datetime="@editedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")" title="Edited @BCIT_Social.ViewModels.DisplayFormat.TimeAgo(editedAt, now)">Edited</time></span>
+                }
             </p>
         </div>
     </div>
@@ -31,6 +37,14 @@
             <p>@paragraph</p>
         }
     </div>
+    <div>
+        @foreach (PostPhoto photo in post.Photos.OrderBy(photo => photo.DisplayOrder))
+        {
+            <img src="@Url.Action("Photo", "Post", new { id = photo.Id })"
+                    alt="@photo.OriginalFileName"
+                    style="max-width: 100px; height: auto;" />
+        }
+    </div> 
     @if (post.Tags.Count > 0)
     {
         <ul class="post-tags" aria-label="Tags">
@@ -54,7 +68,7 @@
         @if (post.IsAuthor)
         {
             <a class="link-action" asp-controller="Post" asp-action="Edit" asp-route-id="@post.Id">Edit</a>
-            <form method="post" asp-controller="Post" asp-action="Delete" asp-route-id="@post.Id" onsubmit="return confirm('Delete this post?');">
+            <form method="post" asp-controller="Post" asp-action="Delete" asp-route-id="@post.Id" onsubmit="return confirm('Delete this post?');" data-delete-post>
                 <button class="link-action" type="submit">Delete</button>
             </form>
         }

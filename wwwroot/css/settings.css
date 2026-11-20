@@ -74,3 +74,130 @@ Defines shared colors, typography, and decorative image settings for the Home sh
 
     --radius: 12px;
 }
+
+body[data-profile-theme="campus"] {
+    --color-background: #f2f5f9;
+    --color-surface: #ffffff;
+    --color-text: #172033;
+    --color-muted: #526174;
+    --color-border: #d5deea;
+    --profile-accent: #173a63;
+    --profile-cover: linear-gradient(115deg, #e5edf6, #cfdaea 55%, #e7eef6);
+    --color-selected: #e7eef6;
+    --color-input: #f3f6f9;
+}
+
+body[data-profile-theme="ocean"] {
+    --color-background: #f2f7ff;
+    --color-surface: #ffffff;
+    --color-text: #172033;
+    --color-muted: #526174;
+    --color-border: #d6e1f0;
+    --profile-accent: #2563eb;
+    --profile-cover: linear-gradient(115deg, #dbeafe, #bfdbfe 55%, #e0f2fe);
+    --color-selected: #e8f0ff;
+    --color-input: #f2f6fc;
+}
+
+body[data-profile-theme="forest"] {
+    --color-background: #f2f8f4;
+    --color-surface: #ffffff;
+    --color-text: #172b22;
+    --color-muted: #52665c;
+    --color-border: #d6e5dc;
+    --profile-accent: #16835d;
+    --profile-cover: linear-gradient(115deg, #dcfce7, #bbf7d0 55%, #d1fae5);
+    --color-selected: #e7f4ec;
+    --color-input: #f1f7f3;
+}
+
+body[data-profile-theme="lavender"] {
+    --color-background: #f7f5fc;
+    --color-surface: #ffffff;
+    --color-text: #241e35;
+    --color-muted: #625a73;
+    --color-border: #e2dced;
+    --profile-accent: #805ad5;
+    --profile-cover: linear-gradient(115deg, #ede9fe, #ddd6fe 55%, #fae8ff);
+    --color-selected: #f0eafe;
+    --color-input: #f7f4fc;
+}
+
+body[data-profile-theme="dark"] {
+    color-scheme: dark;
+    --color-background: #0f172a;
+    --color-surface: #182235;
+    --color-text: #edf2f7;
+    --color-muted: #a8b4c6;
+    --color-border: #334155;
+    --profile-accent: #60a5fa;
+    --profile-cover: linear-gradient(115deg, #1e293b, #263750 55%, #172033);
+    --color-selected: #273a55;
+    --color-input: #263449;
+    --color-danger: #fca5a5;
+    --color-danger-surface: #512b32;
+    --color-avatar: #273a55;
+    --color-avatar-text: #bfdbfe;
+}
+
+body[data-profile-theme="colorblind"] {
+    --color-background: #f3f8fa;
+    --color-surface: #ffffff;
+    --color-text: #172033;
+    --color-muted: #526174;
+    --color-border: #d5e2e8;
+    --profile-accent: #0072b2;
+    --profile-cover: linear-gradient(115deg, #e5f4fb, #d5eaf5 55%, #fff1d2);
+    --color-selected: #e5f4fb;
+    --color-input: #f1f7fa;
+    --color-avatar: #e5f4fb;
+    --color-avatar-text: #005a8c;
+}
+
+body[data-profile-theme] {
+    --color-accent: var(--profile-accent);
+    --color-focus: var(--profile-accent);
+    background-color: var(--color-background);
+    color: var(--color-text);
+    --bs-body-bg: var(--color-background);
+    --bs-body-color: var(--color-text);
+    --bs-secondary-color: var(--color-muted);
+    --bs-border-color: var(--color-border);
+    --bs-card-bg: var(--color-surface);
+    --bs-tertiary-bg: var(--color-input);
+}
+
+body[data-profile-theme="dark"] .bg-white {
+    background-color: var(--color-surface) !important;
+}
+
+body[data-profile-theme="dark"] .text-dark,
+body[data-profile-theme="dark"] .navbar .navbar-brand,
+body[data-profile-theme="dark"] .navbar .nav-link,
+body[data-profile-theme="dark"] .footer {
+    color: var(--color-text) !important;
+}
+
+body[data-profile-avatar="rounded"] .avatar,
+body[data-profile-avatar="rounded"] .post-avatar,
+body[data-profile-avatar="rounded"] .msg-avatar,
+body[data-profile-avatar="rounded"] .profile-avatar {
+    border-radius: 14px;
+}
+
+body[data-profile-card="lifted"] .panel,
+body[data-profile-card="lifted"] .post-card,
+body[data-profile-card="lifted"] .post-details-card,
+body[data-profile-card="lifted"] .event-card,
+body[data-profile-card="lifted"] .msg-panel,
+body[data-profile-card="lifted"] .community-card,
+body[data-profile-card="lifted"] .featured-card,
+body[data-profile-card="lifted"] .details-card,
+body[data-profile-card="lifted"] .discussion-card,
+body[data-profile-card="lifted"] .profile-card,
+body[data-profile-card="lifted"] .profile-side-card,
+body[data-profile-card="lifted"] .profile-posts,
+body[data-profile-card="lifted"] .profile-edit-card {
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgb(23 32 51 / 10%);
+}

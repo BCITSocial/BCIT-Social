@@ -1,0 +1,16 @@
+@model BCIT_Social.Models.Profile?
+
+<button class="profile-button" type="button" popovertarget="profile-menu" aria-label="Account menu">
+    @if (!string.IsNullOrWhiteSpace(Model?.ProfilePhotoStorageKey))
+    {
+        <img src="@Url.Action("Photo", "Profile", new { id = Model.UserId })" 
+             alt="" />
+    }
+    else
+    {
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="9" r="3.6" />
+            <path d="M5.5 19.5c.8-3.3 3.4-5.5 6.5-5.5s5.7 2.2 6.5 5.5" />
+        </svg>
+    }
+</button>

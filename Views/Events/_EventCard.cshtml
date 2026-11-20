@@ -6,6 +6,7 @@
 @{
     var culture = CultureInfo.InvariantCulture;
     var text = ViewData[nameof(EventsText)] as EventsText ?? new EventsText();
+    var isDetails = ViewData["EventDetails"] is true;
 
     // Same-day events read "5:30 – 7:00 PM" (the first AM/PM is dropped when both match).
     // Multi-day events show the full date and time for both ends.
@@ -42,11 +43,16 @@
     var interested = Model.Rsvp == RsvpStatus.Interested;
     var going = Model.Rsvp == RsvpStatus.Going;
 }
+@* Banner at the top of the card. With no image it shows a plain placeholder with a calendar icon. *@
 <article class="event-card@(Model.IsCancelled ? " is-cancelled" : "")">
-    <div class="event-cover">
+    <div class="event-cover@(string.IsNullOrWhiteSpace(Model.CoverImageUrl) ? " no-image" : "")">
         @if (!string.IsNullOrWhiteSpace(Model.CoverImageUrl))
         {
             <img src="@Model.CoverImageUrl" alt="@Model.CoverImageAlt" loading="lazy" />
+        }
+        else
+        {
+            <span class="event-cover-placeholder" aria-hidden="true"><partial name="_Icon" model='"calendar"' /></span>
         }
         @if (Model.StartsAt is { } startsAt)
         {
@@ -60,9 +66,32 @@
             <span class="event-status status-@statusClass">@status</span>
         }
     </div>
-    @* Top to bottom: title, host, time, location, description, attendees, buttons. *@
+    @* Top to bottom: title, tags, host, time, location, description, attendees, buttons. *@
     <div class="event-body">
-        <h3 class="event-title">@Model.Title</h3>
+        <div class="event-title-row">
+            <h3 class="event-title">
+                @if (isDetails)
+                {
+                    @Model.Title
+                }
+                else
+                {
+                    <a asp-action="Details" asp-route-id="@Model.Id">@Model.Title</a>
+                }
+            </h3>
+            @* Bookmark toggle. aria-pressed tells screen readers whether the event is saved.
+               TODO(BE): stays disabled until the bookmark endpoint exists; saved events are listed under the "Saved" status chip. *@
+            <button class="bookmark-button@(Model.IsBookmarked ? " is-selected" : "")" type="button" aria-pressed="@(Model.IsBookmarked ? "true" : "false")" aria-label="@text.ButtonBookmark" title="@text.ButtonBookmark" disabled><partial name="_Icon" model='"bookmark"' /></button>
+        </div>
+        @if (Model.Tags.Count > 0)
+        {
+            <ul class="event-tags" aria-label="@text.LabelEventTags">
+                @foreach (var tag in Model.Tags)
+                {
+                    <li>@tag</li>
+                }
+            </ul>
+        }
         <dl class="event-meta">
             @if (Model.HostName.Length > 0)
             {
@@ -106,15 +135,22 @@
             }
             @* TODO(BE): these buttons stay disabled until the RSVP and event detail/manage endpoints exist. *@
             <div class="event-actions">
-                @if (Model.Rsvp == RsvpStatus.Hosting)
+                @if (Model.IsOwner && !isDetails)
                 {
-                    <button class="action-button" type="button" disabled><partial name="_Icon" model='"external"' />@text.ButtonViewEvent</button>
-                    <button class="action-button action-hosting" type="button" disabled>@text.ButtonManageEvent</button>
+                    <a class="action-button action-view" asp-action="Details" asp-route-id="@Model.Id"><partial name="_Icon" model='"external"' />@text.ButtonViewEvent</a>
                 }
-                else
+                @if (Model.Rsvp != RsvpStatus.Hosting || isDetails)
                 {
-                    <button class="action-button action-interested@(interested ? " is-selected" : "")" type="button" aria-pressed="@(interested ? "true" : "false")" disabled><partial name="_Icon" model='"star"' />@text.ButtonInterested</button>
-                    <button class="action-button action-going@(going ? " is-selected" : "")" type="button" aria-pressed="@(going ? "true" : "false")" disabled><partial name="_Icon" model='"check"' />@text.ButtonGoing</button>
+                    <form method="post" asp-action="Rsvp" asp-route-id="@Model.Id" asp-route-going="false" asp-route-fromDetails="@isDetails">
+                        <button class="action-button action-interested@(interested ? " is-selected" : "")" type="submit" aria-pressed="@(interested ? "true" : "false")" disabled="@(User.Identity?.IsAuthenticated != true)"><partial name="_Icon" model='"star"' />@text.ButtonInterested</button>
+                    </form>
+                    <form method="post" asp-action="Rsvp" asp-route-id="@Model.Id" asp-route-going="true" asp-route-fromDetails="@isDetails">
+                        <button class="action-button action-going@(going ? " is-selected" : "")" type="submit" aria-pressed="@(going ? "true" : "false")" disabled="@(User.Identity?.IsAuthenticated != true)"><partial name="_Icon" model='"check"' />@text.ButtonGoing</button>
+                    </form>
+                }
+                @if (Model.IsOwner && !isDetails)
+                {
+                    <a class="action-button action-hosting" asp-action="Manage" asp-route-id="@Model.Id">@text.ButtonManageEvent</a>
                 }
             </div>
         </div>

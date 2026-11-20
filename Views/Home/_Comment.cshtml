@@ -3,12 +3,15 @@
 @{
     var signedIn = User.Identity?.IsAuthenticated == true;
     var returnUrl = ViewData["ReturnUrl"] as string;
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 }
 <li class="comment">
-    <span class="avatar" aria-hidden="true">@Model.AuthorInitials</span>
+    <a class="avatar" aria-hidden="true" asp-controller="Profile" asp-action="Details"
+         asp-route-userId="@Model.AuthorId">@Model.AuthorInitials</a>
     <div class="comment-body">
         <p class="comment-meta">
-            <span class="comment-author">@Model.AuthorName</span>
+            <a class="comment-author" asp-controller="Profile" asp-action="Details"
+             asp-route-userId="@Model.AuthorId">@Model.AuthorName</a>
             @if (Model.IsPostAuthor)
             {
                 <span class="author-badge">Author</span>
@@ -16,6 +19,14 @@
             <span>· <time datetime="@Model.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")">@BCIT_Social.ViewModels.DisplayFormat.TimeAgo(Model.CreatedAt, DateTime.UtcNow)</time></span>
         </p>
         <p class="comment-content">@Model.Content</p>
+
+        @* Delete for the comment's own author. Shown disabled until deleting comments is supported.
+           TODO(BE): add a POST action (e.g. CommentController.Delete, [Authorize] + [ValidateAntiForgeryToken]) that soft-deletes
+           the comment, then make this a form posting to it with confirm('Delete this comment?') like the post Delete button. *@
+        @if (signedIn && Model.AuthorId == currentUserId)
+        {
+            <button class="link-action comment-delete" type="button" disabled title="Deleting comments isn't available yet">Delete</button>
+        }
 
         @if (signedIn)
         {

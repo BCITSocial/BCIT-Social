@@ -11,7 +11,7 @@ public static class SeedData
 
     private static readonly (string Email, string DisplayName, string Program, string Campus)[] UserDetails =
     [
-        ("maya.chen@example.com", "Maya Chen", "Computer Systems Technology", "Burnaby"),
+        ("demo.maya.chen@my.bcit.ca", "Maya Chen", "Computer Systems Technology", "Burnaby"),
         ("noah.patel@example.com", "Noah Patel", "Computer Systems Technology", "Burnaby"),
         ("ava.williams@example.com", "Ava Williams", "New Media Design and Web Development", "Downtown"),
         ("liam.garcia@example.com", "Liam Garcia", "Business Information Technology", "Burnaby"),
@@ -41,10 +41,10 @@ public static class SeedData
 
         var users = await SeedUsersAsync(userManager);
         await SeedProfilesAsync(db, users);
+        await SeedFriendshipsAsync(db, users);
 
         var communities = await SeedCommunitiesAsync(db, users);
         await SeedCommunityMembersAsync(db, users, communities);
-        await SeedCommunityEventsAsync(db, users, communities);
         await SeedCommunityMessagesAsync(db, users, communities);
 
         var tags = await SeedTagsAsync(db);
@@ -87,6 +87,28 @@ public static class SeedData
         }
 
         return users;
+    }
+
+    private static async Task SeedFriendshipsAsync(ApplicationDbContext db, IReadOnlyList<ApplicationUser> users)
+    {
+        // Maya is the demo account. Preserve any relationship already changed by a user.
+        for (var i = 1; i <= 8; i++)
+        {
+            var first = users[0].Id;
+            var second = users[i].Id;
+            var key = string.CompareOrdinal(first, second) < 0 ? $"{first}:{second}" : $"{second}:{first}";
+            if (await db.FriendRelationships.AnyAsync(r => r.RelationshipKey == key)) continue;
+            db.FriendRelationships.Add(new FriendRelationship
+            {
+                RelationshipKey = key,
+                RequesterId = i > 6 ? second : first,
+                RecipientId = i > 6 ? first : second,
+                Status = i > 6 ? "Pending" : "Accepted",
+                CreatedAt = DateTime.UtcNow.AddDays(-i),
+                UpdatedAt = i > 6 ? null : DateTime.UtcNow.AddDays(-i + 1)
+            });
+        }
+        await db.SaveChangesAsync();
     }
 
     private static async Task SeedProfilesAsync(
@@ -178,31 +200,6 @@ public static class SeedData
             IsModerator = isModerator,
             JoinedAt = DateTime.UtcNow.AddDays(-14)
         });
-        await db.SaveChangesAsync();
-    }
-
-    private static async Task SeedCommunityEventsAsync(
-        ApplicationDbContext db,
-        IReadOnlyList<ApplicationUser> users,
-        IReadOnlyList<Community> communities)
-    {
-        for (var i = 0; i < SampleCount; i++)
-        {
-            var title = $"BCIT Sample Event {i + 1:00}";
-            if (await db.CommunityEvents.AnyAsync(item => item.Title == title))
-            {
-                continue;
-            }
-
-            db.CommunityEvents.Add(new CommunityEvent
-            {
-                Title = title,
-                CreatorId = users[i].Id,
-                CommunityId = communities[i].Id,
-                EventDate = DateTime.UtcNow.AddDays(i + 1)
-            });
-        }
-
         await db.SaveChangesAsync();
     }
 

@@ -1,0 +1,110 @@
+@using BCIT_Social.ViewModels
+@model EventsViewModel
+@* "Create event" pop-up on the Events page. It reuses the create dialog styles from home.css.
+   All wording comes from Model.Text.CreateEvent ("text" > "createEvent" in events-text.json).
+   events.js opens and closes it, checks the fields, and shows the errors and the "Creating..." state. *@
+@{
+    var text = Model.Text.CreateEvent;
+    var hasCommunities = Model.OwnedCommunities.Count > 0;
+}
+<dialog class="create-dialog create-event-dialog" id="create-event-dialog" aria-labelledby="create-event-title">
+    <div class="create-dialog-top">
+        <div class="create-event-heading">
+            <h2 class="create-title" id="create-event-title">@text.Title</h2>
+            <p class="create-subtitle">@text.Subtitle</p>
+        </div>
+        <button class="icon-button" type="button" data-close-event aria-label="@text.Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        </button>
+    </div>
+
+    <form class="create-form" method="post" asp-action="CreateFromIndex" data-create-event data-event-date-range>
+        <div class="create-form-body">
+            @* Filled in by events.js: the error summary, or the "not available yet" note. *@
+            <p class="form-message" role="alert" data-form-message hidden></p>
+
+            <div class="create-field">
+                <label for="event-title">@text.LabelTitle</label>
+                <input id="event-title" name="Title" maxlength="150" placeholder="@text.PlaceholderTitle" required
+                       aria-describedby="event-title-error" data-error="@text.ErrorTitle" />
+                <p class="field-error" id="event-title-error" hidden></p>
+            </div>
+
+            <div class="create-field">
+                <label for="event-community">@text.LabelCommunity</label>
+                <select id="event-community" name="CommunityId" required disabled="@(!hasCommunities)"
+                        aria-describedby="event-community-error event-community-help" data-error="@text.ErrorCommunity">
+                    <option value="">@text.ChooseCommunity</option>
+                    @foreach (var community in Model.OwnedCommunities)
+                    {
+                        <option value="@community.Id">@community.Name</option>
+                    }
+                </select>
+                @if (!hasCommunities)
+                {
+                    <p class="create-help" id="event-community-help">@text.NoCommunities</p>
+                }
+                <p class="field-error" id="event-community-error" hidden></p>
+            </div>
+
+            <div class="create-field-row">
+                <div class="create-field">
+                    <label for="event-start">@text.LabelStart</label>
+                    <input id="event-start" name="EventDate" type="datetime-local" min="@Model.MinimumEventDate.ToString("yyyy-MM-dd'T'HH:mm")" required
+                           aria-describedby="event-start-error" data-error="@text.ErrorStart" data-error-past="@text.ErrorStartPast" />
+                    <p class="field-error" id="event-start-error" hidden></p>
+                </div>
+                <div class="create-field">
+                    <label for="event-end">@text.LabelEnd</label>
+                    <input id="event-end" name="EndsAt" type="datetime-local"
+                           aria-describedby="event-end-error" data-error="@text.ErrorEnd" />
+                    <p class="field-error" id="event-end-error" hidden></p>
+                </div>
+            </div>
+
+            <div class="create-field-row">
+                <div class="create-field">
+                    <label for="event-campus">@text.LabelCampus</label>
+                    <select id="event-campus" name="Campus" required aria-describedby="event-campus-error" data-error="@text.ErrorCampus">
+                        <option value="">@text.ChooseCampus</option>
+                        @foreach (var campus in EventsViewModel.campuses)
+                        {
+                            <option value="@campus">@campus</option>
+                        }
+                    </select>
+                    <p class="field-error" id="event-campus-error" hidden></p>
+                </div>
+                <div class="create-field">
+                    <label for="event-location">@text.LabelLocation</label>
+                    <input id="event-location" name="Location" maxlength="100" placeholder="@text.PlaceholderLocation" />
+                </div>
+            </div>
+
+            <div class="create-field">
+                <label for="event-description">@text.LabelDescription</label>
+                <textarea id="event-description" name="Description" rows="4" maxlength="2000" placeholder="@text.PlaceholderDescription"></textarea>
+            </div>
+
+            @* Tag checkboxes, the same tags as the chips on the page. Left out while there are no tags. *@
+            @if (Model.Tags.Count > 0)
+            {
+                <fieldset class="create-field">
+                    <legend>@text.LabelTags</legend>
+                    <div class="event-tag-options">
+                        @foreach (var tag in Model.Tags)
+                        {
+                            <label><input type="checkbox" name="Tags" value="@tag" /><span>@tag</span></label>
+                        }
+                    </div>
+                </fieldset>
+            }
+
+        </div>
+
+        <div class="create-footer">
+            <button class="secondary-button" type="button" data-close-event>@text.Cancel</button>
+            <button class="cta-button" type="submit" disabled="@(!hasCommunities)" data-submitting-text="@text.Submitting"
+                    data-error-summary="@text.ErrorSummary">@text.Submit</button>
+        </div>
+    </form>
+</dialog>
