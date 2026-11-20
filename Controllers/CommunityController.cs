@@ -8,6 +8,7 @@ using BCIT_Social.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 public class CommunityController : Controller
 {
@@ -522,7 +523,7 @@ public class CommunityController : Controller
             _context.Communities.Update(community);
             await _context.SaveChangesAsync();
         }
-        if (returnToHandling == true)
+        if (returnToHandling)
         {
             return RedirectToAction(nameof(CommunityHandling));
         }
@@ -581,6 +582,58 @@ public class CommunityController : Controller
             await _context.SaveChangesAsync();
         }
         return RedirectToAction(nameof(Index));
+    }
+
+    /// <summary>
+    /// Author: Joshua Trepanier, Tin Trinh
+    /// (Most code copied from Tin to make my life easier by seperating the methods
+    /// of leaving and deleting a community)
+    /// Last Revised: Nov. 19th, 2026
+    /// Description: POST call to leave a community from the user deletion page
+    /// </summary>
+    /// <param name="id">community id</param>
+    // POST: COMMUNITY/LeaveCreator/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> LeaveCreatorMultiFromDeletionPage(int? id, CommunitiesLeaveCreatorFromDeletionPageModel viewModel)
+    {
+        var community = await _context.Communities.FindAsync(id);
+        string? currentUserId = _userManager.GetUserId(User);
+        if (community == null || community.DateOfDel != null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Challenge();
+        }
+
+        if (await MemberExistsAsync(currentUserId, community) == false)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+        var communityMember = await _context.CommunityMembers.FindAsync(currentUserId, id);
+        var newCreator = await _context.CommunityMembers.FindAsync(viewModel.CreatorId, id);
+
+        if (communityMember == null || newCreator == null)
+        {
+            return NotFound();
+        }
+        if (ModelState.IsValid)
+        {
+            community.CreatorId = viewModel.CreatorId.Trim();
+            community.Creator = newCreator.User;
+            newCreator.IsModerator = true;
+
+            community.Members.Remove(communityMember);
+            _context.CommunityMembers.Remove(communityMember);
+            _context.CommunityMembers.Update(newCreator);
+
+            _context.Communities.Update(community);
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction(nameof(CommunityHandling));
     }
 
     /// <summary>

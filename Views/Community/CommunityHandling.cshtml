@@ -23,17 +23,20 @@
         }
         else
         {
-            <form asp-action="LeaveCreatorMulti" asp-route-id="@community.Id" asp-route-returnToHandling="true">
-                <p>Assign the new Owner of the Community.</p>
-                <select name="creatorId">
+            <form asp-controller="Community" asp-action="LeaveCreatorMultiFromDeletionPage" asp-route-id="@community.Id" method="post">
+                @Html.AntiForgeryToken()
+                <select name="CreatorId">
                     @foreach (var member in community.Members)
                     {
                         if (member.UserId != community.CreatorId)
                         {
-                            <option value="@member.UserId">@member.User.UserName</option>
+                            <option value="@member.UserId">
+                                @member.User.UserName
+                            </option>
                         }
                     }
                 </select>
+
                 <input type="submit" value="Assign" class="btn btn-primary" />
             </form>
             <a asp-action="Delete" asp-route-id="@community.Id">Or Delete the Community</a>
