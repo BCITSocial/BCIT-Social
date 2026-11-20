@@ -38,7 +38,7 @@
                 </div>
             </div>
 
-            <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+            <form asp-action="Delete" asp-route-id="@Model.Id" asp-route-returnToHandling="@Model.FromHandling" method="post">
                 <input type="hidden" asp-for="Id" />
                 <div class="modal-footer-actions">
                     <a asp-action="Index" class="btn-cancel">@text.CancelButton</a>

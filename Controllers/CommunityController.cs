@@ -592,7 +592,7 @@ public class CommunityController : Controller
     /// Description: POST call to leave a community from the user deletion page
     /// </summary>
     /// <param name="id">community id</param>
-    // POST: COMMUNITY/LeaveCreator/5
+    // POST: COMMUNITY/LeaveCreatorMultiFromDeletion/5
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
@@ -891,7 +891,7 @@ public class CommunityController : Controller
 
     // GET: COMMUNITY/Delete/5
     [Authorize]
-    public async Task<IActionResult> Delete(int? id)
+    public async Task<IActionResult> Delete(int? id, bool returnToHandling = false)
     {
         if (id == null)
         {
@@ -910,14 +910,14 @@ public class CommunityController : Controller
         }
 
         // Author: Jay
-        return View(await DeleteViewModelFromCommunity(community));
+        return View(await DeleteViewModelFromCommunity(community, returnToHandling));
     }
 
     // POST: COMMUNITY/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> DeleteConfirmed(int? id)
+    public async Task<IActionResult> DeleteConfirmed(int? id, bool returnToHandling = false)
     {
         var community = await _context.Communities.FindAsync(id);
         if (community == null || community.DateOfDel != null)
@@ -932,6 +932,10 @@ public class CommunityController : Controller
         }
 
         await _context.SaveChangesAsync();
+        if (returnToHandling)
+        {
+            return RedirectToAction(nameof(CommunityHandling));
+        }
         return RedirectToAction(nameof(Index));
     }
 
@@ -1032,7 +1036,7 @@ public class CommunityController : Controller
     /// 
     /// <param name="community">A Community</param>
     /// <returns>view model</returns>
-    private async Task<CommunityDeleteViewModel> DeleteViewModelFromCommunity(Community community)
+    private async Task<CommunityDeleteViewModel> DeleteViewModelFromCommunity(Community community, bool returnToHandling)
     {
         var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
         var tags = CommunityTags.Parse(community.Type, text.Options);
@@ -1045,6 +1049,7 @@ public class CommunityController : Controller
             Location = tags.Campus ?? text.DefaultCampus,
             MemberCount = await _context.CommunityMembers.CountAsync(member => member.CommunityId == community.Id),
             MembersLabel = text.MembersLabel,
+            FromHandling = returnToHandling
         };
     }
 
