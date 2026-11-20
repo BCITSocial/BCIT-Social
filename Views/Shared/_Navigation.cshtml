@@ -5,6 +5,7 @@ Renders sidebar navigation, marks the active controller route, and lists the use
 
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var signedIn = User.Identity?.IsAuthenticated == true;
 }
 <nav class="sidebar" aria-label="Main navigation">
     <ul class="sidebar-links">

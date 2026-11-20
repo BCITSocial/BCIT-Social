@@ -16,6 +16,7 @@ frontend view for Communities page.
     ViewData["Title"] = text.PageTitle;
     // Labels for _CommunityCard.
     ViewData["CommunitiesText"] = text;
+    var signedIn = User.Identity?.IsAuthenticated == true;
 }
 
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
@@ -28,11 +29,12 @@ frontend view for Communities page.
             <p class="communities-subtitle">@text.PageSubtitle</p>
         </div>
         <p></p>
-        @if (ViewBag.UserCommunityCount < 3)
+        @* Creating a community needs an account, so signed-out visitors don't see the button. *@
+        @if (signedIn && ViewBag.UserCommunityCount < 3)
         {
             <button type="button" class="btn-create" data-open-modal="create-community-modal">@text.CreateButton</button>
         }
-        else
+        else if (signedIn)
         {
             <button type="button" class="btn-create" onclick='alert("TODO");'>@text.CreateButton</button>
         }
@@ -135,8 +137,11 @@ frontend view for Communities page.
     </section>
 </div>
 
-@* pop-ups: create community, and "Are you sure?" for Leave *@
-<partial name="_CreateCommunityModal" model="Model.CreateForm" />
+@* pop-ups: create community (signed-in only), and "Are you sure?" for Leave *@
+@if (signedIn)
+{
+    <partial name="_CreateCommunityModal" model="Model.CreateForm" />
+}
 <partial name="_ConfirmDialog" />
 
 @section Scripts {

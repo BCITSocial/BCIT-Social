@@ -21,6 +21,8 @@ Provides the shared page structure, styles, header, navigation, and script secti
     @{ var rightRail = ViewData["RightRail"] as IReadOnlyList<string>; }
     <a class="skip-link" href="#main-content">Skip to content</a>
     <partial name="_Header" />
+    @* Three columns: the nav pinned to the left edge, the page centred, and a right column pinned to the right
+       edge. A page fills the right column with @section RightPanel { ... }, or lists right-rail cards in ViewData["RightRail"]. *@
     <div class="app-shell@(rightRail is null ? "" : " has-rail")">
         <partial name="_Navigation" />
         <main id="main-content" tabindex="-1">
@@ -29,6 +31,12 @@ Provides the shared page structure, styles, header, navigation, and script secti
         @if (rightRail is not null)
         {
             @await Component.InvokeAsync("RightRail", new { cards = rightRail })
+        }
+        else
+        {
+            <div class="shell-right">
+                @await RenderSectionAsync("RightPanel", required: false)
+            </div>
         }
     </div>
     @await Component.InvokeAsync("CreatePostDialog")
