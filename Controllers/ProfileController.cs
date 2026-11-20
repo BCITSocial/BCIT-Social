@@ -52,6 +52,12 @@ public class ProfileController : Controller
     private async Task<ProfilePageViewModel> BuildProfilePageViewModel(Profile profile, string? viewerId, string? friendSearch = null)
     {
         var profileUserId = profile.UserId;
+        // Get the email of the profile owner - Jonathan
+        var email = await _context.Users
+            .AsNoTracking()
+            .Where(user => user.Id == profileUserId)
+            .Select(user => user.Email)
+            .FirstOrDefaultAsync();
         var posts = await ProjectProfileCards(
                 _context.Posts
                     .Where(post => post.AuthorId == profileUserId && post.DateOfDel == null)
@@ -167,6 +173,7 @@ public class ProfileController : Controller
         return new ProfilePageViewModel
         {
             Profile = profile,
+            Email = email,
             IsOwnProfile = isOwnProfile,
             Posts = posts,
             Bookmarks = bookmarkedPosts,
@@ -494,8 +501,8 @@ public class ProfileController : Controller
         .AsNoTracking()
         .FirstOrDefaultAsync(profile => profile.UserId == id, cancellationToken);
 
-        if (string.IsNullOrWhiteSpace(id) || 
-            profile?.ProfilePhotoStorageKey == null || 
+        if (string.IsNullOrWhiteSpace(id) ||
+            profile?.ProfilePhotoStorageKey == null ||
             profile.ProfilePhotoContentType == null)
         {
             return NotFound();
@@ -705,4 +712,27 @@ public class ProfileController : Controller
     {
         return _context.Profiles.Any(e => e.UserId == userid);
     }
+    // Author: Cameron Morris
+    public async Task<IActionResult> Settings()
+    {
+        string? userId = _userManager.GetUserId(User);
+
+        if (userId == null)
+        {
+            return Challenge();
+        }
+
+        var profile = await _context.Profiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(profile => profile.UserId == userId);
+
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        return View(profile);
+    }
+
 }
+

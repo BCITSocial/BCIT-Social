@@ -1,52 +1,53 @@
 @model BCIT_Social.Models.Profile
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Profile Details";
+    Layout = "_HomeLayout";
 }
 
-<h1>Details</h1>
+<div class="profile-page-shell">
+    <header class="profile-edit-heading">
+        <div>
+            <h1>Profile details</h1>
+            <p>Get to know @Model.DisplayName.</p>
+        </div>
+        <a class="profile-button profile-button-outline" asp-action="Index">Back to profile</a>
+    </header>
 
-<div>
-    <h4>Profile</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DisplayName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DisplayName)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Bio)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Bio)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Program)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Program)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Campus)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Campus)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.User)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.User)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.UserId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <section class="profile-edit-card" aria-labelledby="profile-details-heading">
+        <div class="profile-edit-cover" aria-hidden="true"></div>
+        <div class="profile-edit-content">
+            <div class="profile-edit-section-heading">
+                <div class="profile-avatar" aria-hidden="true">
+                    @(string.IsNullOrWhiteSpace(Model.DisplayName) ? "B" : Model.DisplayName[..1].ToUpperInvariant())
+                </div>
+                <div>
+                    <h2 id="profile-details-heading">@Model.DisplayName</h2>
+                    <p>Profile information</p>
+                </div>
+            </div>
+
+            <dl class="profile-detail-list">
+                <div>
+                    <dt>About me</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(Model.Bio) ? "No bio added yet." : Model.Bio)</dd>
+                </div>
+                <div>
+                    <dt>Program</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(Model.Program) ? "Not specified" : Model.Program)</dd>
+                </div>
+                <div>
+                    <dt>Campus</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(Model.Campus) ? "Not specified" : Model.Campus)</dd>
+                </div>
+            </dl>
+
+            <div class="profile-edit-actions">
+                <a class="profile-button profile-button-outline" asp-action="Index">Back to profile</a>
+                <a class="profile-button profile-button-primary"
+                   asp-action="Edit"
+                   asp-route-userid="@Model.UserId">Edit profile</a>
+            </div>
+        </div>
+    </section>
 </div>

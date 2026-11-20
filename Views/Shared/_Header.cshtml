@@ -63,6 +63,7 @@ Renders the shared brand, centered search placeholder, notifications popup, and 
             <form asp-area="Identity" asp-page="/Account/Logout"
                   asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
                 <button class="profile-menu-item" asp-controller="Profile" asp-action="Index">View profile</button>
+                <button class="profile-menu-item" asp-controller="Profile" asp-action="Settings">Settings</button>
                 <button class="profile-menu-item" type="submit">Log out</button>
             </form>
         </div>
