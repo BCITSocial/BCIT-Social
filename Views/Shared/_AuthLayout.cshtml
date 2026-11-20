@@ -1,0 +1,29 @@
+@*
+author: Andre Di Lascio
+Bare layout for the log in and sign up pages: no header or left nav, the form centred on the page.
+*@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - BCIT Social</title>
+    <link rel="stylesheet" href="~/css/settings.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+    <script src="~/js/profile-theme.js" asp-append-version="true" defer></script>
+</head>
+<body>
+    <main class="auth-page" id="main-content">
+        @* The logo is the way back to the site, since there is no header here. *@
+        <a class="brand auth-page-brand" asp-area="" asp-controller="Home" asp-action="Index">
+            <span class="brand-badge brand-logo" aria-hidden="true">
+                <img src="~/images/brandLogo.png" alt="" />
+            </span>BCIT Social
+        </a>
+        @RenderBody()
+    </main>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
