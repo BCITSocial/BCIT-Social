@@ -1,8 +1,7 @@
 @model BCIT_Social.ViewModels.CreatePostViewModel
 @*
-The create post modal. Submits the post title, content, and one post type (TagId) to
-PostController.Create. Parts the backend doesn't handle yet are shown disabled: Post to,
-formatting, extra tags, and the Event tab.
+The create post modal (Home's Create button only makes posts). Submits the post title, content, and one tag
+(TagId) to PostController.Create. Parts the backend doesn't handle yet are shown disabled: Post to and formatting.
 create-post.js checks the fields and the chosen photos, shows previews, and sends the form in the background.
 After a post is published the page reloads and shows a short "published" note, so the new post appears in the feed
 as a normal card instead of opening on its own page.
@@ -13,15 +12,9 @@ TODO(BE): with JavaScript off the form is sent normally and PostController.Creat
         data-published-text="Your post was published." data-view-post-text="View post" data-dismiss-text="Dismiss"
         data-deleted-text="Your post was deleted.">
     <div class="create-dialog-top">
-        <div class="create-tabs" role="group" aria-label="What to create">
-            <span class="create-tab" aria-current="true">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg>
-                Post
-            </span>
-            <button class="create-tab" type="button" disabled title="Creating events isn't available yet">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5" /><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" /></svg>
-                Event
-            </button>
+        <div class="create-heading">
+            <h2 class="create-title" id="create-post-title">Create post</h2>
+            <p class="create-subtitle">Start a conversation with your community.</p>
         </div>
         <button class="icon-button" type="button" data-close-create aria-label="Close">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg>
@@ -31,9 +24,6 @@ TODO(BE): with JavaScript off the form is sent normally and PostController.Creat
     <form class="create-form" method="post" enctype="multipart/form-data" asp-area="" asp-controller="Post" asp-action="Create"
           novalidate data-create-post>
         <div class="create-form-body">
-            <h2 class="create-title" id="create-post-title">Create post</h2>
-            <p class="create-subtitle">Start a conversation with your community.</p>
-
             @* Filled in by create-post.js: the error summary, or why the post couldn't be published. *@
             <p class="form-message" role="alert" data-form-message hidden></p>
 
@@ -45,8 +35,9 @@ TODO(BE): with JavaScript off the form is sent normally and PostController.Creat
                 <p class="create-help">Posting to a community isn't available yet.</p>
             </div>
 
-            <fieldset class="create-field" aria-describedby="create-post-type-error" data-error="Choose a post type.">
-                <legend>Post type</legend>
+            @* One field for the post's tag: it used to be split into "Post type" and a separate, unused "Tags" field. *@
+            <fieldset class="create-field" aria-describedby="create-post-type-error" data-error="Choose a tag.">
+                <legend>Tag</legend>
                 <div class="post-type-options">
                     @foreach (var type in Model.PostTypes)
                     {
@@ -83,12 +74,6 @@ TODO(BE): with JavaScript off the form is sent normally and PostController.Creat
                     </div>
                 </div>
                 <p class="field-error" id="create-post-content-error" hidden></p>
-            </div>
-
-            <div class="create-field">
-                <span class="create-label">Tags (optional)</span>
-                <button class="add-tag" type="button" disabled>+ Add tag</button>
-                <p class="create-help">Extra tags aren't available yet. The post type is saved as the post's tag.</p>
             </div>
 
             @* Photos: the box opens the file picker. create-post.js shows a preview of each chosen photo with a
