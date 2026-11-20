@@ -21,7 +21,7 @@ Renders the Home banner, share box, feed, and discovery panel.
         @if (Model.HasCurrentUserProfilePhoto && Model.CurrentUserId != null)
         {
             <img style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
-                src="@Url.Action("Photo", "Profile", new { id = Model.CurrentUserId })"/>
+                src="@Url.Action(action: "Photo", "Profile", new { id = Model.CurrentUserId })"/>
         }
         else
         {

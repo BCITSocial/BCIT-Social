@@ -37,6 +37,11 @@ public class HomeController : Controller
                 ? []
                 : await _context.YourCommunitiesAsync(userId, YOURCOMMUNITIESSHOWN),
             CurrentUserInitials = await CurrentUserInitialsAsync(userId),
+            CurrentUserId = _userManager.GetUserId(User),
+            HasCurrentUserProfilePhoto = userId is not null && await _context.Profiles
+                .Where(profile => profile.UserId == userId)
+                .Select(profile => profile.ProfilePhotoStorageKey != null)
+                .FirstOrDefaultAsync(),
         });
     }
 
