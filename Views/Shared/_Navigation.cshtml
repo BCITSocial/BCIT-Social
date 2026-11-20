@@ -21,27 +21,24 @@ Renders sidebar navigation, marks the active controller route, and lists the use
             </a>
         </li>
         <li>
+            <a asp-controller="Friends" asp-action="Index" aria-current="@(currentController == "Friends" ? "page" : null)">
+                <svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3.2" /><path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" /><path d="M17 11v6M14 14h6" /></svg>
+                Friends
+            </a>
+        </li>
+        <li>
             <a asp-controller="Events" asp-action="Index" aria-current="@(currentController == "Events" ? "page" : null)">
                 <svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="5.5" width="16" height="14.5" rx="1.5" /><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" /></svg>
                 Events
             </a>
         </li>
-        @* these two nav links needs to be in authorize view*@
+        @* Replace disabled controls with route links as the team adds each screen. *@
         <li>
             <a asp-controller="Messages" asp-action="Index" aria-current="@(currentController == "Messages" ? "page" : null)">
                 <svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg>
                 Messages
             </a>
         </li>
-        <li>
-            <a asp-controller="Profile" asp-action="Index" aria-current="@(currentController == "Profile" ? "page" : null)">
-                <svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.33-8 4v2h16v-2c0-2.67-5.33-4-8-4z" /></svg>
-                Profile
-            </a>
-        </li>
     </ul>
-    @if (ViewData["UseMinimalSiteShell"] as bool? != true)
-    {
-        @await Component.InvokeAsync("SidebarCommunities")
-    }
+    @await Component.InvokeAsync("SidebarCommunities")
 </nav>
