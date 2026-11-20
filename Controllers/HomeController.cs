@@ -137,6 +137,10 @@ public class HomeController : Controller
                 .Select(profile => profile.ProfilePhotoStorageKey != null)
                 .FirstOrDefault(),
             IsAuthor = userId != null && post.AuthorId == userId,
+            Photos = _context.PostPhotos
+                .Where(photo => photo.PostId == post.Id)
+                .OrderBy(photo => photo.DisplayOrder)
+                .ToList(),
             IsSaved = userId != null && _context.Bookmarks
                 .Any(bookmark => bookmark.UserId == userId && bookmark.PostId == post.Id),
         });
