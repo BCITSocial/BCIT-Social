@@ -134,9 +134,22 @@
 
 /* Phones: the filter menu panel opens in the page flow at full width instead of floating. */
 @media (max-width: 640px) {
-    .events-banner { padding: 28px 20px; }
+    .events-banner { margin-bottom: 12px; padding: 18px 16px; }
+    .events-banner-title { font-size: 1.375rem; }
+    .events-banner-text { font-size: 0.875rem; }
+    .events-panel-head h1 { font-size: 1.5rem; }
     .events-controls .filter-menu { width: 100%; }
     .filter-menu-panel { position: static; width: auto; margin-top: 8px; box-shadow: none; }
+    /* Filter dropdowns two to a row so they don't push the events far down. */
+    .events-toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+    .events-toolbar label { width: 100%; min-width: 0; }
+    .events-toolbar select { width: 100%; }
+    /* Status chips and view tabs scroll sideways instead of wrapping. */
+    .chip-group, .events-tabs { flex-wrap: nowrap; width: 100%; overflow-x: auto; scrollbar-width: none; }
+    .chip-group a, .events-tabs a { flex: none; }
+    .events-tabs { gap: 18px; }
+    .events-tabs a { font-size: 1rem; }
+    .event-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
     /* Calendar: smaller boxes; each event shows as a short bar without text, the full title stays for screen readers. */
     .calendar-weekday { padding: 6px 0; font-size: 0.6875rem; }
     .calendar-day { min-height: 64px; padding: 4px; }

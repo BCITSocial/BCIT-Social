@@ -139,6 +139,127 @@ p {
     pointer-events: none;
 }
 
+/* Search dropdown: grouped results under the search box (header-search.js). */
+.header-search-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+    max-height: min(520px, calc(100dvh - 90px));
+    overflow-y: auto;
+    padding: 6px 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: 0 16px 40px rgb(16 29 67 / 18%);
+}
+
+.search-group + .search-group {
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid var(--color-border);
+}
+
+.search-group-title {
+    margin: 0;
+    padding: 8px 16px 4px;
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.search-result {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+    .search-result.is-active, .search-result:hover {
+        background: var(--color-input);
+        color: var(--color-text);
+    }
+
+.search-result-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--color-input);
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-bold);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 18px;
+}
+
+.search-result.is-active .search-result-icon, .search-result:hover .search-result-icon {
+    background-color: var(--color-surface);
+}
+
+.search-result-icon-people {
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    color: var(--color-surface);
+}
+
+.search-result.is-active .search-result-icon-people, .search-result:hover .search-result-icon-people {
+    background-color: var(--color-accent);
+}
+
+.search-result-icon-posts {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='M4 5h16v11H9l-5 4Z'/%3E%3C/svg%3E");
+}
+
+.search-result-icon-events {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round'%3E%3Crect x='4' y='5' width='16' height='15' rx='2'/%3E%3Cpath d='M4 10h16M9 3v4M15 3v4'/%3E%3C/svg%3E");
+}
+
+.search-result-body {
+    display: grid;
+    min-width: 0;
+}
+
+.search-result-title, .search-result-meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.search-result-title {
+    font-size: 0.9375rem;
+    font-weight: var(--font-weight-bold);
+}
+
+.search-result mark {
+    padding: 0;
+    background: none;
+    color: var(--color-accent);
+}
+
+.search-result-meta mark {
+    font-weight: var(--font-weight-bold);
+}
+
+.search-result-meta {
+    color: var(--color-muted);
+    font-size: 0.8125rem;
+}
+
+.search-empty {
+    padding: 12px 16px;
+    font-size: 0.875rem;
+}
+
 .header-actions {
     display: flex;
     align-items: center;
@@ -336,13 +457,24 @@ p {
     }
 
 /* Shell and sidebar */
+/* Page shell: nav pinned to the left edge, page centred, right column (.shell-right) pinned to the right edge.
+   Both side columns are the same width, so the page sits in the exact centre of the window. */
 .app-shell {
+    --shell-side: 240px;
     display: grid;
-    grid-template-columns: 215px minmax(0, 1fr);
+    grid-template-columns: var(--shell-side) minmax(0, 1fr) var(--shell-side);
+    width: 100%;
     min-height: calc(100dvh - 69px);
 }
 
+/* The nav stays in place while the page scrolls. It is one window tall and scrolls on its own
+   if its list of communities is longer than that. */
 .sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100dvh;
+    overflow-y: auto;
     padding: 16px;
     background: var(--color-surface);
     border-right: 1px solid var(--color-border);
@@ -431,6 +563,12 @@ p {
         background: var(--color-input);
     }
 
+.sidebar-communities [aria-current="page"] {
+    background: var(--color-selected);
+    color: var(--color-accent);
+    font-weight: var(--font-weight-bold);
+}
+
 .sidebar-community-badge {
     display: grid;
     flex: none;
@@ -451,9 +589,26 @@ p {
 }
 
 main {
+    width: 100%;
+    max-width: 940px;
     min-width: 0;
+    justify-self: center;
     padding: 12px 16px 28px;
 }
+
+/* Home reads like a feed, so its column is narrower than other pages. */
+    main:has(.home-feed-layout) {
+        max-width: 760px;
+    }
+
+.shell-right {
+    min-width: 0;
+    padding: 12px 16px 28px 0;
+}
+
+    .shell-right:not(:has(*)) {
+        display: none;
+    }
 
 .page-heading {
     display: flex;
@@ -477,6 +632,70 @@ main {
     min-height: 280px;
     text-align: center;
 }
+
+.error-page {
+    display: grid;
+    justify-items: center;
+    max-width: 640px;
+    margin: clamp(32px, 10vh, 100px) auto;
+    padding: 40px 24px;
+    text-align: center;
+}
+
+.error-page-icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 20px;
+    border-radius: 50%;
+    background: var(--color-danger-surface);
+    color: var(--color-danger);
+    font-size: 1.75rem;
+    font-weight: var(--font-weight-bold);
+}
+
+.error-page-eyebrow {
+    margin-bottom: 8px;
+    color: var(--color-danger);
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.error-page h1 {
+    margin-bottom: 10px;
+}
+
+.error-page-message {
+    max-width: 420px;
+}
+
+.error-page-request {
+    margin-top: 20px;
+    font-size: 0.8125rem;
+    overflow-wrap: anywhere;
+}
+
+.error-page-home {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    margin-top: 20px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    background: var(--color-accent);
+    color: #fff;
+    font-weight: var(--font-weight-bold);
+    text-decoration: none;
+}
+
+    .error-page-home:hover {
+        color: #fff;
+        filter: brightness(0.94);
+    }
 
 /* Buttons and avatars */
 .primary-button {
@@ -658,23 +877,36 @@ a.primary-button {
     stroke-linejoin: round;
 }
 
+/* Kept compact so the feed starts higher up. */
 .share-box {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    column-gap: 20px;
-    row-gap: 8px;
+    column-gap: 12px;
+    row-gap: 4px;
+    padding-block: 10px;
 }
+
+    .share-box .avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+    }
+
+    .share-box .cta-button {
+        min-height: 36px;
+        padding-block: 6px;
+    }
 
 .share-prompt {
     display: flex;
     align-items: center;
-    min-height: 48px;
-    padding: 8px 16px;
+    min-height: 36px;
+    padding: 6px 14px;
     border: 1px solid var(--color-border);
     border-radius: 8px;
     color: var(--color-muted);
-    font-size: 1rem;
+    font-size: 0.875rem;
     text-decoration: none;
 }
 
@@ -684,15 +916,88 @@ a.primary-button {
 
 .share-hint {
     grid-column: 2 / -1;
+    font-size: 0.8125rem;
+}
+
+/* Signed-out visitors: sign-up prompt in place of the share box. */
+.share-box-guest {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 20px;
+}
+
+.share-guest-text h2 {
+    margin: 0 0 4px;
+    font-size: 1.125rem;
+}
+
+.share-guest-text p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-muted);
+}
+
+.share-guest-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Guest buttons use the gold call-to-action colour and navy so they stand out from the blue header buttons. */
+.guest-login {
+    border-color: var(--color-text);
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+    .guest-login:hover {
+        background: var(--color-text);
+        color: var(--color-surface);
+    }
+
+.guest-signup {
+    border-color: var(--color-cta);
+    background: var(--color-cta);
+    color: var(--color-cta-text);
+}
+
+    .guest-signup:hover {
+        border-color: #f5c63c;
+        background: #f5c63c;
+        color: var(--color-cta-text);
+    }
+
+/* Signed-out visitors: call to action in place of the Events/Communities box. */
+.guest-cta-panel {
+    position: sticky;
+    top: 12px;
+}
+
+    .guest-cta-panel h2 {
+        margin: 0 0 6px;
+        font-size: 1.125rem;
+    }
+
+    .guest-cta-panel p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--color-muted);
+    }
+
+.guest-cta-list {
+    display: grid;
+    gap: 6px;
+    margin: 14px 0 0;
+    padding-left: 18px;
     font-size: 0.875rem;
 }
 
 /* @author Asher. Feed layout and the Events/Communities discovery panel. */
 .home-feed-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(250px, 320px);
+    grid-template-columns: minmax(0, 1fr);
     align-items: start;
-    gap: 12px;
 }
 
     .home-feed-layout > .home-section {
@@ -967,12 +1272,28 @@ a.primary-button {
         display: none;
     }
 
-@media (max-width: 900px) {
-    .home-feed-layout {
-        grid-template-columns: minmax(0, 1fr);
+/* Below 1200px there is no room for a right column: it moves above the page content instead. */
+@media (max-width: 1200px) {
+    .app-shell {
+        grid-template-columns: var(--shell-side) minmax(0, 1fr);
     }
 
-    .discovery-panel {
+    .shell-right {
+        grid-column: 2;
+        grid-row: 1;
+        padding: 12px 16px 0;
+    }
+
+    main {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    .sidebar {
+        grid-row: 1 / span 2;
+    }
+
+    .discovery-panel, .guest-cta-panel {
         position: static;
     }
 }
@@ -1774,7 +2095,24 @@ body:has(.create-dialog[open]) {
         grid-template-columns: minmax(0, 1fr);
     }
 
+    .sidebar, .shell-right, main {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .shell-right {
+        order: 1;
+        padding: 12px 16px 0;
+    }
+
+    main {
+        order: 2;
+    }
+
     .sidebar {
+        position: static;
+        height: auto;
+        overflow: visible;
         padding: 8px 12px;
         border-right: 0;
         border-bottom: 1px solid var(--color-border);
@@ -1815,7 +2153,7 @@ body:has(.create-dialog[open]) {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .discovery-panel {
+    .discovery-panel, .guest-cta-panel {
         position: static;
     }
 
@@ -2132,3 +2470,434 @@ body:has(.create-dialog[open]) {
     .post-show-more[hidden] {
         display: none !important;
     }
+
+/* Feed filter chips beside "All" (Views/Home/Index.cshtml). */
+.feed-heading {
+    flex-wrap: wrap;
+    gap: 12px 20px;
+}
+
+.feed-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.feed-filter {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 4px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 0.875rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+    .feed-filter[aria-current="true"] {
+        border-color: var(--color-accent);
+        background: var(--color-selected);
+        color: var(--color-accent);
+        font-weight: var(--font-weight-bold);
+    }
+
+button.feed-filter:disabled {
+    color: var(--color-muted);
+    cursor: default;
+}
+
+/* Post card (Views/Home/_PostCards.cshtml). Uses .feed-card so the older .post-card rules above don't apply.
+   Top row: avatar, name, community, date and tags. The whole card is clickable (post-details.js). */
+.post-card.feed-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 14px 16px 4px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .post-card.feed-card:hover {
+        border-color: var(--color-muted);
+        box-shadow: 0 4px 14px rgb(16 29 67 / 8%);
+    }
+
+.feed-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-size: 0.8125rem;
+}
+
+.feed-card .post-avatar {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    margin-right: 4px;
+    font-size: 0.75rem;
+}
+
+.feed-card .post-author {
+    font-size: 0.9375rem;
+}
+
+.feed-card-meta {
+    color: var(--color-muted);
+    white-space: nowrap;
+}
+
+.feed-card .post-tags {
+    margin: 0 0 0 4px;
+    gap: 6px;
+}
+
+    .feed-card .post-tags li {
+        padding: 2px 10px;
+    }
+
+.feed-card .post-title {
+    margin: 2px 0 0;
+    font-size: 1.375rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 1.25;
+}
+
+    .feed-card .post-title a, .feed-card .post-title a:hover {
+        color: var(--color-text);
+        text-decoration: none;
+    }
+
+.feed-card .post-content {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.9375rem;
+}
+
+    /* Long posts show three lines until "Show more" is pressed (feed.js toggles .is-collapsed). */
+    .feed-card .post-content.is-collapsed {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+    }
+
+.feed-card .post-actions {
+    margin-top: 0;
+}
+
+/* Header pieces that only show on small screens. */
+.header-start {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-self: start;
+    min-width: 0;
+}
+
+.nav-toggle, .header-search-toggle {
+    display: none;
+}
+
+.nav-backdrop[hidden] {
+    display: none;
+}
+
+/* ===== Phone layout (Reddit as the reference) =====
+   Up to 900px: the left nav becomes a slide-out menu behind the header's menu button, and the right column is
+   hidden (the nav already links to Events). Up to 640px: the header search folds into an icon, and the feed runs
+   edge to edge with thin separators instead of floating cards. */
+@media (max-width: 900px) {
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 12px;
+        padding: 8px 12px 8px 4px;
+    }
+
+    .nav-toggle {
+        display: grid;
+    }
+
+    .app-shell {
+        display: block;
+        min-height: 0;
+    }
+
+    .shell-right {
+        display: none;
+    }
+
+    main {
+        max-width: none;
+        margin-inline: auto;
+    }
+
+        main:has(.home-feed-layout) {
+            max-width: 760px;
+        }
+
+    .sidebar {
+        position: fixed;
+        z-index: 50;
+        inset: 0 auto 0 0;
+        width: min(290px, 85vw);
+        height: 100dvh;
+        padding: 16px 12px;
+        overflow-y: auto;
+        border-right: 1px solid var(--color-border);
+        border-bottom: 0;
+        box-shadow: 0 16px 40px rgb(16 29 67 / 18%);
+        transform: translateX(-100%);
+        visibility: hidden;
+        transition: transform 0.2s ease, visibility 0.2s ease;
+    }
+
+    body.nav-open .sidebar {
+        transform: none;
+        visibility: visible;
+    }
+
+    body.nav-open {
+        overflow: hidden;
+    }
+
+    .sidebar-links {
+        display: grid;
+        gap: 2px;
+    }
+
+        .sidebar-links a, .sidebar-links button {
+            width: 100%;
+            padding: 8px 16px;
+        }
+
+    .sidebar-communities {
+        display: block;
+    }
+
+    .nav-backdrop {
+        position: fixed;
+        z-index: 40;
+        inset: 0;
+        background: var(--color-overlay);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar {
+        transition: none;
+    }
+}
+
+@media (max-width: 640px) {
+    /* Header: menu, logo, then icons. Search is one tap away. */
+    .site-header {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 8px;
+        padding: 6px 8px 6px 2px;
+    }
+
+    .brand {
+        gap: 8px;
+        font-size: 1.0625rem;
+    }
+
+    .header-actions {
+        gap: 4px;
+    }
+
+    .header-search-toggle {
+        display: grid;
+    }
+
+    .header-search {
+        display: none;
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    body.search-open .header-search {
+        display: block;
+    }
+
+    .header-auth-actions {
+        gap: 6px;
+    }
+
+    .header-auth-button {
+        min-height: 36px;
+        padding: 6px 12px;
+        font-size: 0.8125rem;
+    }
+
+    .profile-button {
+        width: 40px;
+        height: 40px;
+    }
+
+    .header-popover {
+        inset: 56px 8px auto 8px;
+        width: auto;
+    }
+
+    /* Page column: less padding so content gets the width. */
+    main {
+        padding: 8px 8px 20px;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    /* Home: banner, share box and feed run edge to edge, like Reddit's mobile feed. */
+    main:has(.home-feed-layout) {
+        padding: 0 0 20px;
+    }
+
+    .home-banner {
+        border-radius: 0;
+        min-height: 72px;
+    }
+
+    .home-section {
+        margin-top: 8px;
+        border-radius: 0;
+        border-inline: 0;
+    }
+
+    .share-box {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        padding: 8px 12px;
+    }
+
+        .share-box .avatar {
+            display: grid;
+        }
+
+    .share-hint {
+        display: none;
+    }
+
+    .share-box-guest {
+        padding: 12px;
+    }
+
+    .share-guest-actions {
+        width: 100%;
+    }
+
+        .share-guest-actions .header-auth-button {
+            flex: 1;
+        }
+
+    .feed.home-section {
+        padding: 0;
+        background: var(--color-transparent);
+        border: 0;
+    }
+
+    .feed-heading {
+        flex-wrap: nowrap;
+        gap: 12px;
+        margin: 0;
+        padding: 10px 12px;
+        background: var(--color-surface);
+        border-block: 1px solid var(--color-border);
+    }
+
+        .feed-heading h2 {
+            flex: none;
+            font-size: 1.0625rem;
+        }
+
+    /* The chips scroll sideways instead of wrapping onto a second line. */
+    .feed-filters {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+        .feed-filters::-webkit-scrollbar {
+            display: none;
+        }
+
+    .feed-list {
+        gap: 0;
+    }
+
+    .post-card.feed-card {
+        gap: 4px;
+        padding: 10px 12px 2px;
+        border-width: 0 0 1px;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+        .post-card.feed-card:hover {
+            border-color: var(--color-border);
+            box-shadow: none;
+            background: var(--color-input);
+        }
+
+    .feed-card .post-avatar {
+        display: grid;
+        width: 24px;
+        height: 24px;
+        margin-right: 2px;
+        font-size: 0.625rem;
+    }
+
+    .feed-card-head {
+        font-size: 0.75rem;
+    }
+
+    .feed-card .post-author {
+        font-size: 0.8125rem;
+    }
+
+    .feed-card .post-title {
+        font-size: 1.0625rem;
+    }
+
+    .feed-card .post-content {
+        font-size: 0.875rem;
+        -webkit-line-clamp: 3;
+    }
+
+    .feed-card .post-tags li {
+        padding: 1px 8px;
+        font-size: 0.6875rem;
+    }
+
+    .post-actions {
+        gap: 4px;
+    }
+
+    .post-action {
+        min-height: 40px;
+        padding: 0 8px;
+        font-size: 0.8125rem;
+    }
+
+    .feed-status {
+        padding: 0 12px;
+    }
+
+    .feed .empty-state {
+        min-height: 200px;
+        padding: 16px;
+        background: var(--color-surface);
+    }
+}
