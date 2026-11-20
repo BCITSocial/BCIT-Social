@@ -14,8 +14,8 @@ public class EventsViewModel
     // Option lists for the page. Value is what goes in the URL, Label is what the user sees.
     public static readonly IReadOnlyList<(string Value, string Label)> views =
     [
-        (DISCOVER, "Discover events"),
         (CALENDAR, "My calendar"),
+        (DISCOVER, "Discover events"),
     ];
 
     public static readonly IReadOnlyList<(string Value, string Label)> statuses =
@@ -86,7 +86,8 @@ public class EventsViewModel
         Range = Pick(ranges, query.Range, DEFAULTRANGE);
         Sort = Pick(sorts, query.Sort, DEFAULTSORT);
         Status = Pick(statuses, query.Status, "all");
-        View = Pick(views, query.View, DISCOVER);
+        // The calendar opens first; Discover is the other tab.
+        View = Pick(views, query.View, CALENDAR);
         _requestedTag = string.IsNullOrWhiteSpace(query.Tag) ? null : query.Tag.Trim();
         Month = DateOnly.TryParseExact((query.Month ?? "") + "-01", "yyyy-MM-dd", out var month) ? month : ThisMonth;
     }

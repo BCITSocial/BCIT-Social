@@ -15,6 +15,12 @@
     var hasBanner = !string.IsNullOrEmpty(Model.BannerUrl);
     var initiallyShown = Math.Max(discussions.InitiallyShown, 1);
     var now = DateTime.UtcNow;
+    // When you're a member, the left nav highlights this community under "Your communities"
+    // instead of the Communities link (_Navigation and the SidebarCommunities view read this).
+    if (Model.IsMember)
+    {
+        ViewData["ActiveCommunityId"] = Model.Id;
+    }
 }
 
 <!-- Included communities.css for shared modal styling, badges, and the Joined menu -->

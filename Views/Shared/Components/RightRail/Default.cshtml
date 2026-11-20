@@ -17,7 +17,7 @@
                 <section class="rail-card" aria-labelledby="rail-events-heading">
                     <div class="rail-card-head">
                         <h2 id="rail-events-heading">@text.EventsHeading</h2>
-                        <a asp-controller="Events" asp-action="Index">@text.EventsLink</a>
+                        <a asp-controller="Events" asp-action="Index" asp-route-view="discover">@text.EventsLink</a>
                     </div>
                     @if (Model.Events.Count == 0)
                     {

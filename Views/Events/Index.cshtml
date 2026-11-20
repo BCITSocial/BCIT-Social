@@ -10,7 +10,7 @@
     ViewData["RightRail"] = new[] { RightRailCards.Events, RightRailCards.Links };
 }
 
-@* Events page: banner, heading with status chips, tabs and filter bar, then the card grid.
+@* Events page: banner, heading with the Create button, tabs (My calendar first), then the calendar or the Discover filters and cards.
    All wording comes from Model.Text (the "text" section of events-text.json); this file only places it. *@
 <link rel="stylesheet" href="~/css/events.css" asp-append-version="true" />
 
@@ -30,42 +30,43 @@
 }
 
 <section class="panel events-panel" aria-labelledby="events-heading">
+    @* Heading on the left, "Create event" on the right like the other pages. *@
     <div class="events-panel-head">
         <div>
             <h1 id="events-heading">@text.Heading</h1>
             <p>@text.Subheading</p>
-            @* Opens the "Create event" pop-up (_CreateEventDialog). *@
-            <button class="cta-button events-create-button" type="button" data-open-event
-                    aria-haspopup="dialog">@text.CreateEvent.OpenButton</button>
         </div>
-        @* Status chips. Each link keeps the other filters and changes only "status". *@
-        <nav class="chip-group" aria-label="@text.LabelMyEvents">
-            @foreach (var (value, label) in EventsViewModel.statuses)
-            {
-                <a asp-action="Index" asp-all-route-data="@Model.RouteValues(status: value)"
-                   aria-current="@(Model.Status == value ? "page" : null)">@EventsText.Pick(text.Statuses, value,
-                   label)</a>
-                }
-            </nav>
-        </div>
+        @* Opens the "Create event" pop-up (_CreateEventDialog). *@
+        <button class="cta-button events-create-button" type="button" data-open-event
+                aria-haspopup="dialog">@text.CreateEvent.OpenButton</button>
+    </div>
 
-        <div class="events-controls">
-            <nav class="events-tabs" aria-label="@text.LabelEventsView">
-                @foreach (var (value, label) in EventsViewModel.views)
+    @* My calendar is the default tab; Discover lists every event with the status chips and filters. *@
+    <nav class="events-tabs" aria-label="@text.LabelEventsView">
+        @foreach (var (value, label) in EventsViewModel.views)
+        {
+            <a asp-action="Index" asp-all-route-data="@Model.RouteValues(view: value)"
+               aria-current="@(Model.View == value ? "page" : null)">@EventsText.Pick(text.Views, value, label)</a>
+        }
+    </nav>
+
+    @if (Model.View == EventsViewModel.DISCOVER)
+    {
+        <div class="events-filter-bar">
+            @* Status chips. Each link keeps the other filters and changes only "status". *@
+            <nav class="chip-group" aria-label="@text.LabelMyEvents">
+                @foreach (var (value, label) in EventsViewModel.statuses)
                 {
-                    <a asp-action="Index" asp-all-route-data="@Model.RouteValues(view: value)"
-                       aria-current="@(Model.View == value ? "page" : null)">@EventsText.Pick(text.Views, value, label)</a>
+                    <a asp-action="Index" asp-all-route-data="@Model.RouteValues(status: value)"
+                       aria-current="@(Model.Status == value ? "page" : null)">@EventsText.Pick(text.Statuses, value, label)</a>
                 }
             </nav>
+
             @* Plain GET form. The field names match EventsQuery. events.js submits it when a dropdown changes;
-           the Apply button appears only when JavaScript is off. *@
+               the Apply button appears only when JavaScript is off. No search box: the header search covers the site. *@
             <form class="events-toolbar" method="get" asp-action="Index" data-events-filters>
                 <input type="hidden" name="view" value="@Model.View" />
                 <input type="hidden" name="status" value="@Model.Status" />
-                <label class="toolbar-search">
-                    <span class="visually-hidden">@text.LabelSearch</span>
-                    <input type="search" name="q" value="@Model.Query" placeholder="@text.SearchPlaceholder" />
-                </label>
                 <label>
                     <span class="visually-hidden">@text.LabelCommunity</span>
                     <select name="community">
@@ -91,51 +92,50 @@
                     <select name="range">
                         @foreach (var (value, label) in EventsViewModel.ranges)
                         {
-                            <option value="@value" selected="@(value == Model.Range)">@EventsText.Pick(text.Ranges, value,
-                                                                                        label)</option>
-                            }
-                        </select>
-                    </label>
-                    <label>
-                        <span class="visually-hidden">@text.LabelSort</span>
-                        <select name="sort">
-                            @foreach (var (value, label) in EventsViewModel.sorts)
-                            {
-                                <option value="@value" selected="@(value == Model.Sort)">@EventsText.Format(text.SortOption,
-                                                                                                EventsText.Pick(text.Sorts, value, label))</option>
-                                }
-                            </select>
-                        </label>
-                        <noscript><button class="primary-button" type="submit">@text.Apply</button></noscript>
-                    </form>
-                </div>
-
-                @* The calendar shows RSVP events; Discover shows event cards. *@
-                @if (Model.View == EventsViewModel.CALENDAR)
-                {
-                    <partial name="_Calendar" model="Model" />
-                }
-                else if (Model.Events.Count == 0)
-                {
-                    <div class="empty-state">
-                        <p>@text.EmptyEvents</p>
-                    </div>
-                }
-                else
-                {
-                    <ul class="event-grid">
-                        @foreach (var item in Model.Events)
-                        {
-                            <li>
-                                <partial name="_EventCard" model="item" />
-                            </li>
+                            <option value="@value" selected="@(value == Model.Range)">@EventsText.Pick(text.Ranges, value, label)</option>
                         }
-                    </ul>
-                }
-            </section>
+                    </select>
+                </label>
+                <label>
+                    <span class="visually-hidden">@text.LabelSort</span>
+                    <select name="sort">
+                        @foreach (var (value, label) in EventsViewModel.sorts)
+                        {
+                            <option value="@value" selected="@(value == Model.Sort)">@EventsText.Format(text.SortOption, EventsText.Pick(text.Sorts, value, label))</option>
+                        }
+                    </select>
+                </label>
+                <noscript><button class="primary-button" type="submit">@text.Apply</button></noscript>
+            </form>
+        </div>
+    }
 
-            <partial name="_CreateEventDialog" model="Model" />
-
-            @section Scripts {
-                <script src="~/js/events.js" asp-append-version="true" defer></script>
+    @* The calendar shows RSVP events; Discover shows event cards. *@
+    @if (Model.View == EventsViewModel.CALENDAR)
+    {
+        <partial name="_Calendar" model="Model" />
+    }
+    else if (Model.Events.Count == 0)
+    {
+        <div class="empty-state">
+            <p>@text.EmptyEvents</p>
+        </div>
+    }
+    else
+    {
+        <ul class="event-grid">
+            @foreach (var item in Model.Events)
+            {
+                <li>
+                    <partial name="_EventCard" model="item" />
+                </li>
             }
+        </ul>
+    }
+</section>
+
+<partial name="_CreateEventDialog" model="Model" />
+
+@section Scripts {
+    <script src="~/js/events.js" asp-append-version="true" defer></script>
+}

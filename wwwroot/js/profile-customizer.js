@@ -47,7 +47,8 @@
 
     apply(preferences, page);
 
-    page.querySelectorAll("[data-profile-theme-choice]").forEach((button) => {
+    // The theme buttons sit in the customize dialog, which is outside .profile-page.
+    document.querySelectorAll("[data-profile-theme-choice]").forEach((button) => {
         button.addEventListener("click", () => {
             const theme = button.dataset.profileThemeChoice;
             if (!Object.hasOwn(themes, theme)) {
@@ -56,6 +57,8 @@
 
             save({ ...preferences, theme, accentColor: themes[theme] },
                 "Theme applied, but could not be saved in this browser.");
+            // Keep the dialog's accent colour in step, so "Save changes" doesn't undo the theme.
+            setFormValues(preferences);
         });
     });
 

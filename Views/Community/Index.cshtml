@@ -16,6 +16,7 @@ frontend view for Communities page.
     ViewData["Title"] = text.PageTitle;
     // Labels for _CommunityCard.
     ViewData["CommunitiesText"] = text;
+    var signedIn = User.Identity?.IsAuthenticated == true;
 }
 
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
@@ -28,27 +29,20 @@ frontend view for Communities page.
             <p class="communities-subtitle">@text.PageSubtitle</p>
         </div>
         <p></p>
-        @if (ViewBag.UserCommunityCount < 3)
+        @* Creating a community needs an account, so signed-out visitors don't see the button. *@
+        @if (signedIn && ViewBag.UserCommunityCount < 3)
         {
             <button type="button" class="btn-create" data-open-modal="create-community-modal">@text.CreateButton</button>
         }
-        else
+        else if (signedIn)
         {
             <button type="button" class="btn-create" onclick='alert("TODO");'>@text.CreateButton</button>
         }
     </div>
 
-    @* search (an icon until hovered/focused) & filter dropdowns. communities.js hides cards that don't match. *@
+    @* filter dropdowns, communities.js hides cards that don't match. *@
     <form id="community-filters" class="community-filters" method="get" role="search" aria-label="@filters.Label">
-        <div class="filter-search">
-            <label for="community-search" class="filter-search-icon" title="@filters.SearchLabel">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
-                <span class="visually-hidden">@filters.SearchLabel</span>
-            </label>
-            <input type="search" id="community-search" class="search-input" autocomplete="off"
-                   placeholder="@filters.SearchPlaceholder" />
-        </div>
-
+        @* No search box here: the header search covers the whole site. *@
         <div class="filter-selects">
             <label>
                 <span class="visually-hidden">@filters.TypeLabel</span>
@@ -106,19 +100,16 @@ frontend view for Communities page.
         </section>
     }
 
-    @* browse: 3 cards, then "See all" turns it into pages of 8 with a pager (communities.js) *@
+    @* browse: every community is always shown (no "See all" preview or pages). communities.js still filters them. *@
     <section class="community-section" aria-labelledby="browse-heading">
         <div class="community-section-header">
             <h2 id="browse-heading" class="community-section-title">
                 @text.BrowseHeading <span id="browse-count" class="section-count">@browse.Count</span>
             </h2>
-            <button type="button" id="browse-toggle" class="link-action-btn" aria-expanded="false" aria-controls="browse-page"
-                    data-see-all="@text.SeeAllButton" data-show-less="@text.ShowLessButton"
-                    hidden="@(browse.Count <= text.BrowsePreviewCount)">@text.SeeAllButton</button>
         </div>
 
         <div id="browse-page" class="browse-page"
-             data-preview-count="@text.BrowsePreviewCount" data-page-size="@text.BrowsePageSize">
+             data-preview-count="@Math.Max(browse.Count, 1)" data-page-size="@text.BrowsePageSize">
             <div id="browse-grid" class="browse-grid">
                 @foreach (var item in browse)
                 {
@@ -135,8 +126,11 @@ frontend view for Communities page.
     </section>
 </div>
 
-@* pop-ups: create community, and "Are you sure?" for Leave *@
-<partial name="_CreateCommunityModal" model="Model.CreateForm" />
+@* pop-ups: create community (signed-in only), and "Are you sure?" for Leave *@
+@if (signedIn)
+{
+    <partial name="_CreateCommunityModal" model="Model.CreateForm" />
+}
 <partial name="_ConfirmDialog" />
 
 @section Scripts {

@@ -3,16 +3,23 @@
 .events-banner-title { color: inherit; font-size: var(--font-size-title); font-weight: var(--font-weight-bold); line-height: var(--line-height-heading); }
 .events-banner-text { margin-top: 8px; color: inherit; }
 
-/* Panel header: title on the left, status chips on the right. */
-.events-panel-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+/* Panel header: title on the left, "Create event" on the right (same as the other pages). */
+.events-panel-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.events-panel-head p { margin-top: 4px; }
+
+/* Discover only: status chips on the left, filter and sort dropdowns on the right, wrapping on narrow screens. */
+.events-filter-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
 .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip-group a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; border-radius: 8px; background: var(--color-input); color: var(--color-muted); text-decoration: none; }
-.chip-group [aria-current="page"] { background: var(--color-selected); color: var(--color-accent); font-weight: var(--font-weight-bold); }
+.chip-group a { display: inline-flex; align-items: center; min-height: 36px; padding: 6px 14px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-surface); color: var(--color-muted); font-size: 0.875rem; text-decoration: none; transition: border-color 0.15s ease, color 0.15s ease; }
+.chip-group a:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.chip-group [aria-current="page"] { border-color: var(--color-accent); background: var(--color-selected); color: var(--color-accent); font-weight: var(--font-weight-bold); }
 
 /* Tabs on the left, filter menu button on the right. They wrap onto two rows on narrow screens. */
 .events-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
-.events-tabs { display: flex; gap: 24px; }
-.events-tabs a { display: inline-flex; align-items: center; min-height: 44px; border-bottom: 3px solid var(--color-transparent); color: var(--color-muted); font-size: 1.125rem; text-decoration: none; }
+/* My calendar / Discover tabs, underlined, with a thin rule under the whole row. */
+.events-tabs { display: flex; gap: 24px; margin-bottom: 16px; border-bottom: 1px solid var(--color-border); }
+.events-tabs a { display: inline-flex; align-items: center; min-height: 40px; margin-bottom: -1px; border-bottom: 3px solid var(--color-transparent); color: var(--color-muted); font-size: 1.0625rem; text-decoration: none; }
+.events-tabs a:hover { color: var(--color-text); }
 .events-tabs [aria-current="page"] { border-bottom-color: var(--color-accent); color: var(--color-accent); font-weight: var(--font-weight-bold); }
 
 /* Filter menu: the hamburger button, and the panel that drops down under it on the right. */
@@ -24,10 +31,12 @@
 .filter-count { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--color-accent); color: var(--color-surface); font-size: 0.75rem; font-weight: var(--font-weight-bold); }
 .filter-menu-panel { position: absolute; top: calc(100% + 8px); right: 0; z-index: 10; display: grid; gap: 12px; width: 280px; padding: 16px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); box-shadow: 0 12px 32px rgb(16 29 67 / 16%); }
 
-/* Fields inside the panel: a visible label above each dropdown, one per row. */
-.events-toolbar { display: grid; gap: 12px; }
-.events-toolbar label { display: grid; gap: 4px; font-size: 0.875rem; font-weight: var(--font-weight-bold); }
-.events-toolbar select { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-input); color: var(--color-text); font: inherit; font-weight: var(--font-weight-normal); }
+/* Filter and sort dropdowns: rounded pills in one row, each with its own chevron. */
+.events-toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
+.events-toolbar label { display: block; }
+.events-toolbar select { min-height: 36px; padding: 6px 34px 6px 14px; border: 1px solid var(--color-border); border-radius: 999px; background-color: var(--color-surface); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-position: right 12px center; background-repeat: no-repeat; background-size: 14px; color: var(--color-text); font: inherit; font-size: 0.875rem; cursor: pointer; appearance: none; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.events-toolbar select:hover { border-color: var(--color-accent); }
+.events-toolbar select:focus-visible { border-color: var(--color-accent); outline: none; box-shadow: 0 0 0 3px var(--color-selected); }
 .filter-reset { justify-self: start; color: var(--color-accent); font-size: 0.875rem; }
 
 /* Tag chips above the cards. They scroll sideways on one row instead of wrapping when there are many. */
@@ -121,7 +130,7 @@
 
 /* "Create event" button under the heading, the notice shown after creating, and the pop-up.
    The pop-up itself uses the .create-dialog styles from home.css; these are only the extra parts. */
-.events-create-button { margin-top: 16px; }
+.events-create-button { flex: none; }
 .events-notice { margin-bottom: 16px; padding: 12px 16px; border-radius: var(--radius); background: var(--color-going); color: var(--color-going-text); font-weight: var(--font-weight-bold); }
 .create-event-heading { flex: 1; }
 .create-event-heading .create-subtitle { margin-top: 4px; }
@@ -134,9 +143,23 @@
 
 /* Phones: the filter menu panel opens in the page flow at full width instead of floating. */
 @media (max-width: 640px) {
-    .events-banner { padding: 28px 20px; }
+    .events-banner { margin-bottom: 12px; padding: 18px 16px; }
+    .events-banner-title { font-size: 1.375rem; }
+    .events-banner-text { font-size: 0.875rem; }
+    .events-panel-head h1 { font-size: 1.5rem; }
     .events-controls .filter-menu { width: 100%; }
     .filter-menu-panel { position: static; width: auto; margin-top: 8px; box-shadow: none; }
+    /* Filter dropdowns two to a row so they don't push the events far down. */
+    .events-filter-bar { gap: 10px; }
+    .events-toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+    .events-toolbar label { width: 100%; min-width: 0; }
+    .events-toolbar select { width: 100%; }
+    /* Status chips and view tabs scroll sideways instead of wrapping. */
+    .chip-group, .events-tabs { flex-wrap: nowrap; width: 100%; overflow-x: auto; scrollbar-width: none; }
+    .chip-group a, .events-tabs a { flex: none; }
+    .events-tabs { gap: 18px; }
+    .events-tabs a { font-size: 1rem; }
+    .event-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
     /* Calendar: smaller boxes; each event shows as a short bar without text, the full title stays for screen readers. */
     .calendar-weekday { padding: 6px 0; font-size: 0.6875rem; }
     .calendar-day { min-height: 64px; padding: 4px; }
@@ -145,3 +168,6 @@
     .calendar-more { padding-left: 0; font-size: 0.625rem; }
     .create-field-row { grid-template-columns: 1fr; }
 }
+
+/* Events: a smaller empty message so the page does not open on a large blank area. */
+.events-panel .empty-state { min-height: 160px; }
