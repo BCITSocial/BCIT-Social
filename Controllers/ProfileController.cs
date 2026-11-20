@@ -537,26 +537,12 @@ public class ProfileController : Controller
                             .ToListAsync();
         if (communities.Count > 0)
         {
-            
-            /*
-            Logic
-            1. Redirect to community handling page
-            2. Page has a list of communities either to delete or assign new creator
-            3. redirect to that page until count == 0
-            4. are you sure you want to delete your account page
-            5. mark for deletion.
-            */
             return RedirectToAction(nameof(CommunityController.CommunityHandling), "Community");
         }
         
         if (profile != null && account != null && communities.Count == 0)
         {
             account.DateOfDel = DateTime.Now.AddDays(7);
-            /*
-             We need to handle this in log in
-             1. Make sure if user.DateOfDel != null 
-                the user can't log in
-            */
             _context.Users.Update(account);
         }
         await _context.SaveChangesAsync();
