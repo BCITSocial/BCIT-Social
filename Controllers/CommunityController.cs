@@ -677,19 +677,21 @@ public class CommunityController : Controller
     }
 
     /// <summary>
-    /// Author: Tin Trinh
-    /// Last Revised: Oct. 21, 2026
+    /// Author: Tin Trinh, Joshua Trepanier
+    /// Last Revised: Nov 19th, 2026
     /// Description: POST call to leave a community
     /// Removes user from a community (they leave), otherwise redirects to index.
     /// Community is either deleted or Creator role is passed to another member.
+    /// If the user deletes the page from the CommunityHandling page it redirects them back to there.
     /// </summary>
     /// <param name="id">community id</param>
+    /// <param name="returnToHandling">True if the user came from thew CommunityHandling page</param>
     /// <returns></returns>
     // POST: COMMUNITY/LeaveCreator/5
     [HttpPost, ActionName("LeaveCreatorSolo")]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> LeaveCreatorSolo(int? id)
+    public async Task<IActionResult> LeaveCreatorSolo(int? id, bool returnToHandling = false)
     {
         var community = await _context.Communities.FindAsync(id);
         string? currentUserId = _userManager.GetUserId(User);
@@ -716,6 +718,10 @@ public class CommunityController : Controller
             community.DateOfDel = DateTime.Now.AddDays(7);
             _context.Communities.Update(community);
             await _context.SaveChangesAsync();
+        }
+        if (returnToHandling)
+        {
+            return RedirectToAction(nameof(CommunityHandling));
         }
         return RedirectToAction(nameof(Index));
     }
@@ -772,6 +778,58 @@ public class CommunityController : Controller
             await _context.SaveChangesAsync();
         }
         return RedirectToAction(nameof(Index));
+    }
+
+    /// <summary>
+    /// Author: Joshua Trepanier, Tin Trinh
+    /// (Most code copied from Tin to make my life easier by seperating the methods
+    /// of leaving and deleting a community)
+    /// Last Revised: Nov. 19th, 2026
+    /// Description: POST call to leave a community from the user deletion page
+    /// </summary>
+    /// <param name="id">community id</param>
+    // POST: COMMUNITY/LeaveCreatorMultiFromDeletion/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> LeaveCreatorMultiFromDeletionPage(int? id, CommunitiesLeaveCreatorFromDeletionPageModel viewModel)
+    {
+        var community = await _context.Communities.FindAsync(id);
+        string? currentUserId = _userManager.GetUserId(User);
+        if (community == null || community.DateOfDel != null)
+        {
+            return NotFound();
+        }
+        if (currentUserId == null)
+        {
+            return Challenge();
+        }
+
+        if (await MemberExistsAsync(currentUserId, community) == false)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+        var communityMember = await _context.CommunityMembers.FindAsync(currentUserId, id);
+        var newCreator = await _context.CommunityMembers.FindAsync(viewModel.CreatorId, id);
+
+        if (communityMember == null || newCreator == null)
+        {
+            return NotFound();
+        }
+        if (ModelState.IsValid)
+        {
+            community.CreatorId = viewModel.CreatorId.Trim();
+            community.Creator = newCreator.User;
+            newCreator.IsModerator = true;
+
+            community.Members.Remove(communityMember);
+            _context.CommunityMembers.Remove(communityMember);
+            _context.CommunityMembers.Update(newCreator);
+
+            _context.Communities.Update(community);
+            await _context.SaveChangesAsync();
+        }
+        return RedirectToAction(nameof(CommunityHandling));
     }
 
     /// <summary>
@@ -1029,7 +1087,7 @@ public class CommunityController : Controller
 
     // GET: COMMUNITY/Delete/5
     [Authorize]
-    public async Task<IActionResult> Delete(int? id)
+    public async Task<IActionResult> Delete(int? id, bool returnToHandling = false)
     {
         if (id == null)
         {
@@ -1048,14 +1106,14 @@ public class CommunityController : Controller
         }
 
         // Author: Jay
-        return View(await DeleteViewModelFromCommunity(community));
+        return View(await DeleteViewModelFromCommunity(community, returnToHandling));
     }
 
     // POST: COMMUNITY/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> DeleteConfirmed(int? id)
+    public async Task<IActionResult> DeleteConfirmed(int? id, bool returnToHandling = false)
     {
         var community = await _context.Communities.FindAsync(id);
         string? bannerKey = null;
@@ -1072,6 +1130,10 @@ public class CommunityController : Controller
         community.DateOfDel = DateTime.Now.AddDays(7);
         _context.Communities.Update(community);
         await _context.SaveChangesAsync();
+        if (returnToHandling)
+        {
+            return RedirectToAction(nameof(CommunityHandling));
+        }
         // Author: Jay
         await DeleteBannerAsync(bannerKey);
         return RedirectToAction(nameof(Index));
@@ -1181,7 +1243,7 @@ public class CommunityController : Controller
     /// 
     /// <param name="community">A Community</param>
     /// <returns>view model</returns>
-    private async Task<CommunityDeleteViewModel> DeleteViewModelFromCommunity(Community community)
+    private async Task<CommunityDeleteViewModel> DeleteViewModelFromCommunity(Community community, bool returnToHandling)
     {
         var text = LoadText<CommunitiesText>(COMMUNITIES_TEXT_FILE);
         var tags = CommunityTags.Parse(community.Type, text.Options);
@@ -1194,6 +1256,7 @@ public class CommunityController : Controller
             Location = tags.Campus ?? text.DefaultCampus,
             MemberCount = await _context.CommunityMembers.CountAsync(member => member.CommunityId == community.Id),
             MembersLabel = text.MembersLabel,
+            FromHandling = returnToHandling
         };
     }
 
@@ -1353,6 +1416,40 @@ public class CommunityController : Controller
             CommunityId = communityMember.CommunityId
         };
         return viewModel;
+    }
+
+
+    /// <summary>
+    /// Author: Joshua Trepanier
+    /// Last Revised: Nov. 19, 2026
+    /// Description: Creates a view model the community handling page
+    /// as of creation only designed for user deletion
+    /// </summary>
+    /// <returns>a view model</returns>
+    [Authorize]
+    public async Task<IActionResult> CommunityHandling()
+    {
+        var userID = _userManager.GetUserId(User);
+        if (userID == null)
+        {
+            return Forbid();
+        }
+        var communities = await _context.Communities
+            .AsNoTracking()
+            .Where(community => community.CreatorId == userID && community.DateOfDel == null)
+            .Include(community => community.Members)
+            .ThenInclude(member => member.User)
+            .ToListAsync();
+        if (communities.Count == 0)
+        {
+            return RedirectToAction(nameof(ProfileController.Delete), "Profile", new { userID });
+        }
+        var viewModel = new CommunityHandlingViewModel
+        {
+            Communities = communities,
+            Id = userID
+        };
+        return View(viewModel);
     }
 
     /// <summary>

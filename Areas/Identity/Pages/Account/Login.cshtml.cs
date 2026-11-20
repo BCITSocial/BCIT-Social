@@ -41,7 +41,12 @@ public class LoginModel(SignInManager<ApplicationUser> signInManager) : PageMode
             ModelState.AddModelError("Input.Email", "Use your BCIT email address.");
             return Page();
         }
-
+        var user = await signInManager.UserManager.FindByEmailAsync(Input.Email);
+        if (user?.DateOfDel != null)
+        {
+            ModelState.AddModelError(string.Empty, "This account has been disabled");
+            return Page();
+        }
         var result = await signInManager.PasswordSignInAsync(
             Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
         if (result.Succeeded) return LocalRedirect(ReturnUrl);

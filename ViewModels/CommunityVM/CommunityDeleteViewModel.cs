@@ -10,4 +10,5 @@ public class CommunityDeleteViewModel
     public string Location { get; init; } = "";
     public int MemberCount { get; init; }
     public string MembersLabel { get; init; } = "members";
+    public bool FromHandling {get; init;}
 }
