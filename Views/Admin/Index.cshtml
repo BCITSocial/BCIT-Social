@@ -1,0 +1,33 @@
+@model BCIT_Social.ViewModels.AdminViewModel
+
+<h1>Admin Page</h1>
+<section class="d-flex">
+    <div class="border m-4 p-4 rounded bg-light">
+        <h1>Communities</h1>
+        @{
+            foreach (var community in Model.Communities)
+            {
+                <li>
+                    @community.Name
+                    @if (community.DateOfDel != null)
+                    {
+                        <p class="text-danger">Marked for deletion: @community.DateOfDel</p>
+                    }
+                </li>
+            }
+        }
+    </div>
+    <div class="border m-4 p-4 rounded bg-light">
+        <h1>Users</h1>
+        @{
+            foreach (var user in Model.Users)
+            {
+                <li>@user.Email</li>
+                @if (user.DateOfDel != null)
+                {
+                    <p class="text-danger">Marked for deletion: @user.DateOfDel</p>
+                }
+            }
+        }
+    </div>
+</section>
