@@ -6,10 +6,22 @@
 <h1>Admin Dashboard</h1>
 <a asp-action="Index">Back to dashboard</a>
 <div class="card bg-light p-4 mt-2">
-    <h2>Community: @Model.Name</h2>
+    @if (Model.DateOfDel == null)
+    {
+        <h2>
+            <a asp-controller="Community" asp-action="Details" asp-route-id="@Model.Id">Community: @Model.Name</a>
+        </h2>
+    }
+    else
+    {
+        <h2>
+            Community: @Model.Name
+        </h2>
+    }
     <hr />
     <p>Creator: @Model.Creator.UserName</p>
     <p>Description: @Model.Description</p>
+    <p>Member Count: @Model.Members.Count</p>
     <p>Members</p>
     <ul>
         @foreach (var member in Model.Members)
