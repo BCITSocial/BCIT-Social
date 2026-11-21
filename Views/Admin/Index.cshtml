@@ -3,7 +3,7 @@
     Layout = "_HomeLayout";
 }
 <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-<h1>Admin Page</h1>
+<h1>Admin Dashboard</h1>
 <ul class="nav nav-tabs" id="myTab" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link active" id="communities-tab" data-bs-toggle="tab" data-bs-target="#communities"
@@ -22,6 +22,7 @@
                 <thead>
                     <tr>
                         <th>Name</th>
+                        <th>Creator</th>
                         <th>Deletion Date</th>
                         <th>Actions</th>
                     </tr>
@@ -34,6 +35,10 @@
                             <tr>
                                 <td class="@style">
                                     @community.Name
+                                </td>
+                                <td class="@style">
+                                    @community.Creator.UserName
+                
                                 </td>
                                 <td class="@style">
                                     @community.DateOfDel
@@ -78,7 +83,7 @@
                                     @user.DateOfDel
                                 </td>
                                 <td>
-                                    <a href="">Edit</a>
+                                    <a asp-action="EditUser" asp-route-id="@user.Id">Edit</a>
                                 </td>
                             </tr>
                         }

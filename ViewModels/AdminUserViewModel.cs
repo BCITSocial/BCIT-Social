@@ -10,4 +10,5 @@ namespace BCIT_Social.ViewModels;
 public class AdminUserViewModel
 {
     public ApplicationUser AppUser { get; set; } = null!;
+    public List<Community> CommunitiesOwned { get; set; } = [];
 }

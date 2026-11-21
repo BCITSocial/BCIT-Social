@@ -187,8 +187,118 @@ public class AdminController : Controller
         {
             return NotFound();
         }
-        return View(user);
+        var communities = await _context.Communities
+                                    .Where(c => c.CreatorId == id)
+                                    .Where(c => c.DateOfDel == null)
+                                    .ToListAsync();
+        var viewModel = new AdminUserViewModel
+        {
+            AppUser = user,
+            CommunitiesOwned = communities
+        };
+        return View(viewModel);
+    }
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Nov. 21, 2026
+    /// Restores a community
+    /// Sets DateOfDel to null
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RestoreUser(string? id)
+    {
+        if (id == null)
+        {
+            return NotFound();
+        }
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        if (user.DateOfDel == null)
+        {
+            return RedirectToAction(nameof(EditUser), new { id });
+        }
+        if (ModelState.IsValid)
+        {
+            user.DateOfDel = null;
+        }
+        _context.Update(user);
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(EditUser), new { id });
     }
 
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Nov. 21, 2026
+    /// Deletes a User
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteUser(string? id)
+    {
+        if (id == null)
+        {
+            return NotFound();
+        }
+        var user = await _userManager.FindByIdAsync(id);
+        var communities = await _context.Communities
+                .Where(c => c.CreatorId == id)
+                .Where(c => c.DateOfDel == null)
+                .ToListAsync();
+        if (user == null)
+        {
+            return NotFound();
+        }
+        if (user.DateOfDel != null)
+        {
+            return RedirectToAction(nameof(EditUser), new { id });
+        }
+        if (ModelState.IsValid)
+        {
+            user.DateOfDel = DateTime.Now.AddDays(7);
+            foreach (var comm in communities)
+            {
+                comm.DateOfDel = DateTime.Now.AddDays(7); ;
+                _context.Update(comm);
+            }
+        }
+
+        _context.Update(user);
+
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(EditUser), new { id });
+    }
+
+    /// <summary>
+    /// Author: Tin Trinh
+    /// Last Revised: Nov. 21, 2026
+    /// Deletes a User Permenantly
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PermaDeleteUser(string? id)
+    {
+        // var currentUser = await _userManager.GetUserIdAsync(User);
+        if (id == null)
+        {
+            return NotFound();
+        }
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        if (user.DateOfDel == null)
+        {
+            return RedirectToAction(nameof(EditUser), new { id });
+        }
+
+        await _userManager.DeleteAsync(user);
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
 
 }
