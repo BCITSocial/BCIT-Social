@@ -1,0 +1,37 @@
+@model BCIT_Social.Models.Community
+@{
+    Layout = "_HomeLayout";
+}
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<h1>Admin Page</h1>
+<a asp-action="Index">Back to dashboard</a>
+<div class="card bg-light p-4 mt-2">
+    <h2>Community: @Model.Name</h2>
+    <hr />
+    <p>Creator: @Model.Creator.UserName</p>
+    <p>Description: @Model.Description</p>
+    <p>Members</p>
+    <ul>
+        @foreach (var member in Model.Members)
+        {
+            <li>@member.User</li>
+        }
+    </ul>
+    @if (Model.DateOfDel != null)
+    {
+        <p class="text-danger">Date of Deletion: @Model.DateOfDel</p>
+        <form asp-action="RestoreCommunity" asp-route-id="@Model.Id" method="post">
+            <button type="submit">Restore Community</button>
+        </form>
+        <strong class="text-danger mt-5">This will delete this community FOREVER</strong>
+        <form asp-action="PermaDeleteCommunity" asp-route-id="@Model.Id" method="post">
+            <button type="submit" class="bg-danger">Permanently Delete Community</button>
+        </form>
+    }
+    else
+    {
+        <form asp-action="DeleteCommunity" asp-route-id="@Model.Id" method="post">
+            <button type="submit">Delete Community</button>
+        </form>
+    }
+</div>

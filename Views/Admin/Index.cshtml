@@ -1,33 +1,93 @@
 @model BCIT_Social.ViewModels.AdminViewModel
-
+@{
+    Layout = "_HomeLayout";
+}
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 <h1>Admin Page</h1>
-<section class="d-flex">
-    <div class="border m-4 p-4 rounded bg-light">
-        <h1>Communities</h1>
-        @{
-            foreach (var community in Model.Communities)
-            {
-                <li>
-                    @community.Name
-                    @if (community.DateOfDel != null)
-                    {
-                        <p class="text-danger">Marked for deletion: @community.DateOfDel</p>
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="communities-tab" data-bs-toggle="tab" data-bs-target="#communities"
+                type="button" role="tab" aria-controls="communities" aria-selected="true">Communities</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab"
+                aria-controls="users" aria-selected="false">Users</button>
+    </li>
+</ul>
+<div class="tab-content" id="AdminTabs">
+    <div class="tab-pane fade show active" id="communities" role="tabpanel" aria-labelledby="communities-tab">
+        <div class="border m-4 p-4 rounded bg-light">
+            <h1>Communities</h1>
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Deletion Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        foreach (var community in Model.Communities)
+                        {
+                            var style = community.DateOfDel != null ? "text-danger" : "";
+                            <tr>
+                                <td class="@style">
+                                    @community.Name
+                                </td>
+                                <td class="@style">
+                                    @community.DateOfDel
+                
+                                </td>
+                                <td>
+                                    <a asp-action="EditCommunity" asp-route-id="@community.Id">Edit</a>
+                                </td>
+                            </tr>
+                        }
                     }
-                </li>
-            }
-        }
+                </tbody>
+            </table>
+        </div>
+
     </div>
-    <div class="border m-4 p-4 rounded bg-light">
-        <h1>Users</h1>
-        @{
-            foreach (var user in Model.Users)
-            {
-                <li>@user.Email</li>
-                @if (user.DateOfDel != null)
-                {
-                    <p class="text-danger">Marked for deletion: @user.DateOfDel</p>
-                }
-            }
-        }
+    <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
+        <div class="border m-4 p-4 rounded bg-light">
+            <h1>Users</h1>
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Deletion Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        foreach (var user in Model.Users)
+                        {
+                            var style = user.DateOfDel != null ? "text-danger" : "";
+                            <tr>
+                                <td class="@style">
+                                    @user.UserName
+                                </td>
+                                <td class="@style">
+                                    @user.FirstName @user.LastName
+                                </td>
+                                <td class="@style">
+                                    @user.DateOfDel
+                                </td>
+                                <td>
+                                    <a href="">Edit</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+
+        </div>
     </div>
-</section>
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
