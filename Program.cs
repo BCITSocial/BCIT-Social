@@ -52,8 +52,18 @@ if (builder.Configuration.GetValue<bool>("SeedData:Enabled"))
 {
     await using var scope = app.Services.CreateAsyncScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    await SeedData.InitializeAsync(db, userManager);
+    var userManager =
+        scope.ServiceProvider
+            .GetRequiredService<UserManager<ApplicationUser>>();
+
+    var roleManager =
+        scope.ServiceProvider
+            .GetRequiredService<RoleManager<IdentityRole>>();
+
+    await SeedData.InitializeAsync(
+        db,
+        userManager,
+        roleManager);
 }
 
 // Configure the HTTP request pipeline.

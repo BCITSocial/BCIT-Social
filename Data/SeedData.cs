@@ -14,6 +14,7 @@ namespace BCIT_Social.Data;
 public static class SeedData
 {
     private const string SEED_BLOB_FOLDER = "seed-v2";
+    private const string ADMIN_ROLE = "Admin";
 
     private sealed class SeedSecretsMarker
     {
@@ -31,10 +32,12 @@ public static class SeedData
     /// </summary>
     public static async Task InitializeAsync(
         ApplicationDbContext db,
-        UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole> roleManager)
     {
         ArgumentNullException.ThrowIfNull(db);
         ArgumentNullException.ThrowIfNull(userManager);
+        ArgumentNullException.ThrowIfNull(roleManager);
 
         await db.Database.MigrateAsync();
 
@@ -52,6 +55,11 @@ public static class SeedData
                 await SeedUsersAsync(
                     userManager,
                     seedNow);
+            
+            await SeedAdministratorsAsync(
+                userManager,
+                roleManager,
+                users);
 
             await SeedProfilesAsync(
                 db,
@@ -420,6 +428,67 @@ public static class SeedData
         }
 
         return users;
+    }
+
+    private static async Task SeedAdministratorsAsync(
+        UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        IReadOnlyDictionary<string, ApplicationUser> users)
+    {
+        if (!await roleManager.RoleExistsAsync(ADMIN_ROLE))
+        {
+            var createRoleResult =
+                await roleManager.CreateAsync(
+                    new IdentityRole(ADMIN_ROLE));
+
+            if (!createRoleResult.Succeeded)
+            {
+                var errors =
+                    string.Join(
+                        "; ",
+                        createRoleResult.Errors.Select(
+                            error => error.Description));
+
+                throw new InvalidOperationException(
+                    $"Could not create the '{ADMIN_ROLE}' role: {errors}");
+            }
+        }
+
+        string[] administratorKeys =
+        [
+            "maya",
+            "noah"
+        ];
+
+        foreach (var administratorKey in administratorKeys)
+        {
+            var user = users[administratorKey];
+
+            if (await userManager.IsInRoleAsync(
+                    user,
+                    ADMIN_ROLE))
+            {
+                continue;
+            }
+
+            var addToRoleResult =
+                await userManager.AddToRoleAsync(
+                    user,
+                    ADMIN_ROLE);
+
+            if (!addToRoleResult.Succeeded)
+            {
+                var errors =
+                    string.Join(
+                        "; ",
+                        addToRoleResult.Errors.Select(
+                            error => error.Description));
+
+                throw new InvalidOperationException(
+                    $"Could not assign '{user.Email}' to " +
+                    $"the '{ADMIN_ROLE}' role: {errors}");
+            }
+        }
     }
 
     private static async Task SeedProfilesAsync(
