@@ -1,329 +1,943 @@
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using BCIT_Social.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using SixLabors.ImageSharp;
 
 namespace BCIT_Social.Data;
 
+/// <summary>
+/// Creates the BCIT Social demonstration dataset.
+/// </summary>
 public static class SeedData
 {
-    private const int SampleCount = 20;
-    private const string DemoPassword = "Demo123!";
+    private const string SEED_BLOB_FOLDER = "seed-v2";
 
-    private static readonly (string Email, string DisplayName, string Program, string Campus)[] UserDetails =
-    [
-        ("demo.maya.chen@my.bcit.ca", "Maya Chen", "Computer Systems Technology", "Burnaby"),
-        ("noah.patel@example.com", "Noah Patel", "Computer Systems Technology", "Burnaby"),
-        ("ava.williams@example.com", "Ava Williams", "New Media Design and Web Development", "Downtown"),
-        ("liam.garcia@example.com", "Liam Garcia", "Business Information Technology", "Burnaby"),
-        ("emma.johnson@example.com", "Emma Johnson", "Computer Systems Technology", "Burnaby"),
-        ("oliver.kim@example.com", "Oliver Kim", "Mechanical Engineering", "Burnaby"),
-        ("sophia.brown@example.com", "Sophia Brown", "Computer Information Technology", "Downtown"),
-        ("ethan.lee@example.com", "Ethan Lee", "Business Information Technology", "Burnaby"),
-        ("isabella.martin@example.com", "Isabella Martin", "New Media Design and Web Development", "Downtown"),
-        ("lucas.thompson@example.com", "Lucas Thompson", "Computer Systems Technology", "Burnaby"),
-        ("mia.anderson@example.com", "Mia Anderson", "Accounting", "Burnaby"),
-        ("mason.taylor@example.com", "Mason Taylor", "Computer Information Technology", "Downtown"),
-        ("amelia.moore@example.com", "Amelia Moore", "Marketing Management", "Burnaby"),
-        ("james.jackson@example.com", "James Jackson", "Computer Systems Technology", "Burnaby"),
-        ("harper.white@example.com", "Harper White", "Graphic Communications", "Downtown"),
-        ("benjamin.harris@example.com", "Benjamin Harris", "Business Information Technology", "Burnaby"),
-        ("evelyn.clark@example.com", "Evelyn Clark", "Computer Information Technology", "Downtown"),
-        ("henry.lewis@example.com", "Henry Lewis", "Electrical and Computer Engineering", "Burnaby"),
-        ("charlotte.walker@example.com", "Charlotte Walker", "New Media Design and Web Development", "Downtown"),
-        ("daniel.hall@example.com", "Daniel Hall", "Computer Systems Technology", "Burnaby")
-    ];
+    private sealed class SeedSecretsMarker
+    {
+    }
 
+    private sealed record SeedAsset(
+        string RelativePath,
+        string StorageKey,
+        string OriginalFileName,
+        string ContentType,
+        long FileSizeBytes);
+
+    /// <summary>
+    /// Applies migrations, uploads seed images, and inserts the seed dataset.
+    /// </summary>
     public static async Task InitializeAsync(
         ApplicationDbContext db,
         UserManager<ApplicationUser> userManager)
     {
+        ArgumentNullException.ThrowIfNull(db);
+        ArgumentNullException.ThrowIfNull(userManager);
+
         await db.Database.MigrateAsync();
 
-        var users = await SeedUsersAsync(userManager);
-        await SeedProfilesAsync(db, users);
-        await SeedFriendshipsAsync(db, users);
+        var configuration = BuildConfiguration();
+        var assets = await UploadSeedAssetsAsync(configuration);
 
-        var communities = await SeedCommunitiesAsync(db, users);
-        await SeedCommunityMembersAsync(db, users, communities);
-        await SeedCommunityMessagesAsync(db, users, communities);
+        await using var transaction =
+            await db.Database.BeginTransactionAsync();
 
-        var tags = await SeedTagsAsync(db);
-        var posts = await SeedPostsAsync(db, users, communities);
-        await SeedCommentsAsync(db, users, posts);
-        await SeedPostTagsAsync(db, posts, tags);
-        await SeedBookmarksAsync(db, users, posts);
+        try
+        {
+            var seedNow = DateTime.UtcNow;
 
-        var chatboxes = await SeedChatboxesAsync(db, users);
-        await SeedChatboxUsersAsync(db, users, chatboxes);
-        await SeedMessagesAsync(db, users, chatboxes);
+            var users =
+                await SeedUsersAsync(
+                    userManager,
+                    seedNow);
+
+            await SeedProfilesAsync(
+                db,
+                users,
+                assets);
+
+            await SeedFriendshipsAsync(
+                db,
+                users,
+                seedNow);
+
+            var communities =
+                await SeedCommunitiesAsync(
+                    db,
+                    users,
+                    assets);
+
+            await SeedCommunityMembersAsync(
+                db,
+                users,
+                communities,
+                seedNow);
+
+            var tags =
+                await SeedTagsAsync(db);
+
+            var posts =
+                await SeedPostsAsync(
+                    db,
+                    users,
+                    communities,
+                    seedNow);
+
+            await SeedPostTagsAsync(
+                db,
+                posts,
+                tags);
+
+            await SeedPostPhotosAsync(
+                db,
+                posts,
+                assets,
+                seedNow);
+
+            await SeedCommentsAsync(
+                db,
+                users,
+                posts);
+
+            await SeedBookmarksAsync(
+                db,
+                users,
+                posts,
+                seedNow);
+
+            var events =
+                await SeedEventsAsync(
+                    db,
+                    users,
+                    communities);
+
+            await SeedEventRsvpsAsync(
+                db,
+                users,
+                events);
+
+            await transaction.CommitAsync();
+
+            Console.WriteLine(
+                "BCIT Social seed data was created successfully.");
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
-    private static async Task<List<ApplicationUser>> SeedUsersAsync(
-        UserManager<ApplicationUser> userManager)
+    private static IConfigurationRoot BuildConfiguration()
     {
-        var users = new List<ApplicationUser>(SampleCount);
-        foreach (var detail in UserDetails)
+        var environmentName =
+            Environment.GetEnvironmentVariable(
+                "ASPNETCORE_ENVIRONMENT")
+            ?? "Development";
+
+        return new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile(
+                "appsettings.json",
+                optional: true,
+                reloadOnChange: false)
+            .AddJsonFile(
+                $"appsettings.{environmentName}.json",
+                optional: true,
+                reloadOnChange: false)
+            .AddUserSecrets<SeedSecretsMarker>(
+                optional: true)
+            .AddEnvironmentVariables()
+            .Build();
+    }
+
+    private static async Task<
+        Dictionary<string, SeedAsset>>
+        UploadSeedAssetsAsync(
+            IConfiguration configuration)
+    {
+        var connectionString =
+            configuration["AzureStorage:ConnectionString"];
+
+        var containerName =
+            configuration["AzureStorage:ContainerName"];
+
+        if (string.IsNullOrWhiteSpace(connectionString))
         {
-            var user = await userManager.FindByEmailAsync(detail.Email);
+            throw new InvalidOperationException(
+                "AzureStorage:ConnectionString is not configured.");
+        }
+
+        if (string.IsNullOrWhiteSpace(containerName))
+        {
+            throw new InvalidOperationException(
+                "AzureStorage:ContainerName is not configured.");
+        }
+
+        var configuredAssetPath =
+            configuration["SeedData:AssetsPath"];
+
+        var assetRoot =
+            string.IsNullOrWhiteSpace(configuredAssetPath)
+                ? Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "Data",
+                    "SeedAssets")
+                : Path.GetFullPath(
+                    configuredAssetPath,
+                    Directory.GetCurrentDirectory());
+
+        if (!Directory.Exists(assetRoot))
+        {
+            throw new DirectoryNotFoundException(
+                $"The seed asset directory was not found: {assetRoot}");
+        }
+
+        var pendingAssets =
+            new List<(SeedAsset Asset, string FullPath)>();
+
+        // Validate every asset before uploading anything.
+        foreach (var relativePath in
+                 SeedDataCatalog.ImageFiles)
+        {
+            var fullPath =
+                Path.Combine(
+                    assetRoot,
+                    relativePath.Replace(
+                        '/',
+                        Path.DirectorySeparatorChar));
+
+            if (!File.Exists(fullPath))
+            {
+                throw new FileNotFoundException(
+                    $"Required seed image was not found: {fullPath}",
+                    fullPath);
+            }
+
+            var fileInfo = new FileInfo(fullPath);
+            var contentType = GetContentType(fullPath);
+
+            await using var validationStream =
+                File.OpenRead(fullPath);
+
+            var imageInfo =
+                await Image.IdentifyAsync(validationStream);
+
+            if (imageInfo is null)
+            {
+                throw new InvalidOperationException(
+                    $"Seed asset is not a valid image: {fullPath}");
+            }
+
+            var isCommunityBanner =
+                relativePath.StartsWith(
+                    "communities/",
+                    StringComparison.OrdinalIgnoreCase);
+
+            var minimumWidth =
+                isCommunityBanner ? 800 : 300;
+
+            var minimumHeight =
+                isCommunityBanner ? 200 : 300;
+
+            if (imageInfo.Width < minimumWidth ||
+                imageInfo.Height < minimumHeight)
+            {
+                throw new InvalidOperationException(
+                    $"Seed image '{relativePath}' is " +
+                    $"{imageInfo.Width}x{imageInfo.Height}. " +
+                    $"It must be at least " +
+                    $"{minimumWidth}x{minimumHeight}.");
+            }
+
+            var normalizedRelativePath =
+                relativePath.Replace('\\', '/');
+
+            var storageKey =
+                $"{SEED_BLOB_FOLDER}/" +
+                normalizedRelativePath;
+
+            var asset =
+                new SeedAsset(
+                    normalizedRelativePath,
+                    storageKey,
+                    Path.GetFileName(fullPath),
+                    contentType,
+                    fileInfo.Length);
+
+            pendingAssets.Add((asset, fullPath));
+        }
+
+        var container =
+            new BlobContainerClient(
+                connectionString,
+                containerName);
+
+        await container.CreateIfNotExistsAsync(
+            PublicAccessType.None);
+
+        var uploadedAssets =
+            new Dictionary<string, SeedAsset>(
+                StringComparer.OrdinalIgnoreCase);
+
+        foreach (var pendingAsset in pendingAssets)
+        {
+            var blob =
+                container.GetBlobClient(
+                    pendingAsset.Asset.StorageKey);
+
+            if (!(await blob.ExistsAsync()).Value)
+            {
+                await using var uploadStream =
+                    File.OpenRead(
+                        pendingAsset.FullPath);
+
+                await blob.UploadAsync(
+                    uploadStream,
+                    new BlobUploadOptions
+                    {
+                        HttpHeaders =
+                            new BlobHttpHeaders
+                            {
+                                ContentType =
+                                    pendingAsset
+                                        .Asset
+                                        .ContentType
+                            }
+                    });
+            }
+
+            uploadedAssets[
+                pendingAsset.Asset.RelativePath] =
+                pendingAsset.Asset;
+        }
+
+        Console.WriteLine(
+            $"Validated and prepared {uploadedAssets.Count} seed images.");
+
+        return uploadedAssets;
+    }
+
+    private static string GetContentType(
+        string filePath)
+    {
+        return Path.GetExtension(filePath)
+            .ToLowerInvariant() switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+
+            _ => throw new InvalidOperationException(
+                $"Unsupported seed image type: {filePath}")
+        };
+    }
+
+    private static async Task<
+        Dictionary<string, ApplicationUser>>
+        SeedUsersAsync(
+            UserManager<ApplicationUser> userManager,
+            DateTime seedNow)
+    {
+        var users =
+            new Dictionary<string, ApplicationUser>(
+                StringComparer.OrdinalIgnoreCase);
+
+        for (var index = 0;
+             index < SeedDataCatalog.Users.Length;
+             index++)
+        {
+            var seed =
+                SeedDataCatalog.Users[index];
+
+            var user =
+                await userManager.FindByEmailAsync(
+                    seed.Email);
+
             if (user is null)
             {
                 user = new ApplicationUser
                 {
-                    UserName = detail.Email,
-                    Email = detail.Email,
-                    EmailConfirmed = true
+                    UserName = seed.Email,
+                    Email = seed.Email,
+                    EmailConfirmed = true,
+                    FirstName = seed.FirstName,
+                    LastName = seed.LastName,
+                    CreatedAt =
+                        seedNow.AddDays(
+                            -(180 - index * 4))
                 };
 
-                var result = await userManager.CreateAsync(user, DemoPassword);
+                var result =
+                    await userManager.CreateAsync(
+                        user,
+                        SeedDataCatalog.DEMO_PASSWORD);
+
                 if (!result.Succeeded)
                 {
-                    var errors = string.Join("; ", result.Errors.Select(error => error.Description));
+                    var errors =
+                        string.Join(
+                            "; ",
+                            result.Errors.Select(
+                                error =>
+                                    error.Description));
+
                     throw new InvalidOperationException(
-                        $"Could not create demo user '{detail.Email}': {errors}");
+                        $"Could not create seed user " +
+                        $"'{seed.Email}': {errors}");
+                }
+            }
+            else
+            {
+                user.UserName = seed.Email;
+                user.Email = seed.Email;
+                user.EmailConfirmed = true;
+                user.FirstName = seed.FirstName;
+                user.LastName = seed.LastName;
+                user.DateOfDel = null;
+
+                var result =
+                    await userManager.UpdateAsync(user);
+
+                if (!result.Succeeded)
+                {
+                    var errors =
+                        string.Join(
+                            "; ",
+                            result.Errors.Select(
+                                error =>
+                                    error.Description));
+
+                    throw new InvalidOperationException(
+                        $"Could not update seed user " +
+                        $"'{seed.Email}': {errors}");
                 }
             }
 
-            users.Add(user);
+            users[seed.Key] = user;
         }
 
         return users;
     }
 
-    private static async Task SeedFriendshipsAsync(ApplicationDbContext db, IReadOnlyList<ApplicationUser> users)
-    {
-        // Maya is the demo account. Preserve any relationship already changed by a user.
-        for (var i = 1; i <= 8; i++)
-        {
-            var first = users[0].Id;
-            var second = users[i].Id;
-            var key = string.CompareOrdinal(first, second) < 0 ? $"{first}:{second}" : $"{second}:{first}";
-            if (await db.FriendRelationships.AnyAsync(r => r.RelationshipKey == key)) continue;
-            db.FriendRelationships.Add(new FriendRelationship
-            {
-                RelationshipKey = key,
-                RequesterId = i > 6 ? second : first,
-                RecipientId = i > 6 ? first : second,
-                Status = i > 6 ? "Pending" : "Accepted",
-                CreatedAt = DateTime.UtcNow.AddDays(-i),
-                UpdatedAt = i > 6 ? null : DateTime.UtcNow.AddDays(-i + 1)
-            });
-        }
-        await db.SaveChangesAsync();
-    }
-
     private static async Task SeedProfilesAsync(
         ApplicationDbContext db,
-        IReadOnlyList<ApplicationUser> users)
+        IReadOnlyDictionary<string, ApplicationUser> users,
+        IReadOnlyDictionary<string, SeedAsset> assets)
     {
-        for (var i = 0; i < users.Count; i++)
+        foreach (var seed in SeedDataCatalog.Users)
         {
-            var userId = users[i].Id;
-            if (await db.Profiles.AnyAsync(profile => profile.UserId == userId))
+            var user = users[seed.Key];
+
+            var profile =
+                await db.Profiles.FirstOrDefaultAsync(
+                    item => item.UserId == user.Id);
+
+            if (profile is null)
             {
-                continue;
+                profile = new Profile
+                {
+                    UserId = user.Id
+                };
+
+                db.Profiles.Add(profile);
             }
 
-            var detail = UserDetails[i];
-            db.Profiles.Add(new Profile
+            profile.DisplayName =
+                $"{seed.FirstName} {seed.LastName}";
+
+            profile.Bio = seed.Bio;
+            profile.Program = seed.Program;
+            profile.Campus = seed.Campus;
+
+            if (seed.PhotoFile is not null)
             {
-                UserId = userId,
-                DisplayName = detail.DisplayName,
-                Bio = $"{detail.DisplayName.Split(' ')[0]} is a BCIT student who enjoys learning, collaborating, and getting involved on campus.",
-                Program = detail.Program,
-                Campus = detail.Campus
-            });
+                var asset = assets[seed.PhotoFile];
+
+                profile.ProfilePhotoStorageKey =
+                    asset.StorageKey;
+
+                profile.ProfilePhotoOriginalFileName =
+                    asset.OriginalFileName;
+
+                profile.ProfilePhotoContentType =
+                    asset.ContentType;
+
+                profile.ProfilePhotoFileSizeBytes =
+                    asset.FileSizeBytes;
+
+                profile.ProfilePhotoUpdatedAt =
+                    DateTime.UtcNow;
+            }
         }
 
         await db.SaveChangesAsync();
     }
 
-    private static async Task<List<Community>> SeedCommunitiesAsync(
+    private static async Task SeedFriendshipsAsync(
         ApplicationDbContext db,
-        IReadOnlyList<ApplicationUser> users)
+        IReadOnlyDictionary<string, ApplicationUser> users,
+        DateTime seedNow)
     {
-        var communities = new List<Community>(SampleCount);
-        for (var i = 0; i < SampleCount; i++)
+        foreach (var seed in
+                 SeedDataCatalog.Friendships)
         {
-            var name = i switch
+            var requester =
+                users[seed.RequesterKey];
+
+            var recipient =
+                users[seed.RecipientKey];
+
+            var relationshipKey =
+                GetRelationshipKey(
+                    requester.Id,
+                    recipient.Id);
+
+            var relationship =
+                await db.FriendRelationships
+                    .FirstOrDefaultAsync(
+                        item =>
+                            item.RelationshipKey ==
+                            relationshipKey);
+
+            var createdAt =
+                seedNow.AddDays(-seed.DaysAgo);
+
+            if (relationship is null)
             {
-                0 => "BCIT Developers",
-                1 => "Burnaby Study Circle",
-                _ => $"BCIT Student Community {i + 1:00}"
-            };
-            var community = await db.Communities.FirstOrDefaultAsync(item => item.Name == name);
-            if (community is null)
-            {
-                community = new Community
-                {
-                    Name = name,
-                    Type = i % 2 == 0 ? "Interest" : "Study",
-                    CreatorId = users[i % users.Count].Id
-                };
-                db.Communities.Add(community);
-                await db.SaveChangesAsync();
+                relationship =
+                    new FriendRelationship
+                    {
+                        RelationshipKey =
+                            relationshipKey
+                    };
+
+                db.FriendRelationships.Add(
+                    relationship);
             }
 
-            communities.Add(community);
+            relationship.RequesterId =
+                requester.Id;
+
+            relationship.RecipientId =
+                recipient.Id;
+
+            relationship.Status = seed.Status;
+            relationship.CreatedAt = createdAt;
+
+            relationship.UpdatedAt =
+                seed.Status == "Accepted"
+                    ? createdAt.AddHours(12)
+                    : null;
+
+            relationship.DeactivatedAt = null;
         }
 
+        await db.SaveChangesAsync();
+    }
+
+    private static string GetRelationshipKey(
+        string firstUserId,
+        string secondUserId)
+    {
+        return string.CompareOrdinal(
+            firstUserId,
+            secondUserId) < 0
+            ? $"{firstUserId}:{secondUserId}"
+            : $"{secondUserId}:{firstUserId}";
+    }
+
+    private static async Task<
+        Dictionary<string, Community>>
+        SeedCommunitiesAsync(
+            ApplicationDbContext db,
+            IReadOnlyDictionary<string, ApplicationUser> users,
+            IReadOnlyDictionary<string, SeedAsset> assets)
+    {
+        var communities =
+            new Dictionary<string, Community>(
+                StringComparer.OrdinalIgnoreCase);
+
+        foreach (var seed in
+                 SeedDataCatalog.Communities)
+        {
+            var community =
+                await db.Communities
+                    .FirstOrDefaultAsync(
+                        item =>
+                            item.Name == seed.Name);
+
+            if (community is null)
+            {
+                community = new Community();
+                db.Communities.Add(community);
+            }
+
+            community.CreatorId =
+                users[seed.OwnerKey].Id;
+
+            community.Name = seed.Name;
+            community.Type = seed.Type;
+            community.Description =
+                seed.Description;
+
+            community.DateOfDel = null;
+
+            if (seed.BannerFile is not null)
+            {
+                var asset =
+                    assets[seed.BannerFile];
+
+                community.BannerPhotoStorageKey =
+                    asset.StorageKey;
+
+                community.BannerPhotoOriginalFileName =
+                    asset.OriginalFileName;
+
+                community.BannerPhotoContentType =
+                    asset.ContentType;
+
+                community.BannerPhotoFileSizeBytes =
+                    asset.FileSizeBytes;
+
+                community.BannerPhotoUpdatedAt =
+                    DateTime.UtcNow;
+            }
+
+            communities[seed.Key] = community;
+        }
+
+        await db.SaveChangesAsync();
         return communities;
     }
 
-    private static async Task SeedCommunityMembersAsync(
-        ApplicationDbContext db,
-        IReadOnlyList<ApplicationUser> users,
-        IReadOnlyList<Community> communities)
+    private static async Task
+        SeedCommunityMembersAsync(
+            ApplicationDbContext db,
+            IReadOnlyDictionary<string, ApplicationUser> users,
+            IReadOnlyDictionary<string, Community> communities,
+            DateTime seedNow)
     {
-        for (var i = 0; i < SampleCount; i++)
+        foreach (var seed in
+                 SeedDataCatalog.Communities)
         {
-            await AddCommunityMemberAsync(db, users[i], communities[i], i % 5 == 0);
-            await AddCommunityMemberAsync(db, users[i], communities[(i + 1) % SampleCount], false);
-        }
-    }
+            var community =
+                communities[seed.Key];
 
-    private static async Task AddCommunityMemberAsync(
-        ApplicationDbContext db,
-        ApplicationUser user,
-        Community community,
-        bool isModerator)
-    {
-        if (await db.CommunityMembers.AnyAsync(member =>
-                member.UserId == user.Id && member.CommunityId == community.Id))
-        {
-            return;
-        }
+            var memberKeys =
+                seed.MemberKeys
+                    .Append(seed.OwnerKey)
+                    .Distinct(
+                        StringComparer.OrdinalIgnoreCase);
 
-        db.CommunityMembers.Add(new CommunityMember
-        {
-            UserId = user.Id,
-            CommunityId = community.Id,
-            IsModerator = isModerator,
-            JoinedAt = DateTime.UtcNow.AddDays(-14)
-        });
-        await db.SaveChangesAsync();
-    }
+            var moderatorKeys =
+                seed.ModeratorKeys
+                    .Append(seed.OwnerKey)
+                    .ToHashSet(
+                        StringComparer.OrdinalIgnoreCase);
 
-    private static async Task SeedCommunityMessagesAsync(
-        ApplicationDbContext db,
-        IReadOnlyList<ApplicationUser> users,
-        IReadOnlyList<Community> communities)
-    {
-        for (var i = 0; i < SampleCount; i++)
-        {
-            var body = $"Sample community message {i + 1:00}: who's joining the next campus meetup?";
-            if (await db.CommunityMessages.AnyAsync(item => item.MessageBody == body))
+            var memberIndex = 0;
+
+            foreach (var memberKey in memberKeys)
             {
-                continue;
+                var user = users[memberKey];
+
+                var membership =
+                    await db.CommunityMembers.FindAsync(
+                        user.Id,
+                        community.Id);
+
+                if (membership is null)
+                {
+                    membership =
+                        new CommunityMember
+                        {
+                            UserId = user.Id,
+                            CommunityId =
+                                community.Id,
+
+                            JoinedAt =
+                                seedNow.AddDays(
+                                    -(95 -
+                                      memberIndex * 3))
+                        };
+
+                    db.CommunityMembers.Add(
+                        membership);
+                }
+
+                membership.IsModerator =
+                    moderatorKeys.Contains(memberKey);
+
+                memberIndex++;
             }
-
-            db.CommunityMessages.Add(new CommunityMessage
-            {
-                CommunityId = communities[i].Id,
-                SenderId = users[i].Id,
-                MessageBody = body,
-                SentAt = DateTime.UtcNow.AddHours(-i)
-            });
         }
 
         await db.SaveChangesAsync();
     }
 
-    private static async Task<List<Tags>> SeedTagsAsync(ApplicationDbContext db)
+    private static async Task<
+        Dictionary<string, Tags>>
+        SeedTagsAsync(
+            ApplicationDbContext db)
     {
-        var names = new[]
-        {
-            "projects", "study", "campus-life", "help",
-            "technology", "careers", "events", "housing",
-            "food", "clubs", "design", "coding",
-            "networking", "wellness", "resources", "questions",
-            "announcements", "volunteering", "sports", "arts"
-        };
-        var tags = new List<Tags>(names.Length);
+        var tags =
+            new Dictionary<string, Tags>(
+                StringComparer.OrdinalIgnoreCase);
 
-        foreach (var name in names)
+        foreach (var name in
+                 SeedDataCatalog.Tags)
         {
-            var tag = await db.Tags.FirstOrDefaultAsync(item => item.Name == name);
+            var tag =
+                await db.Tags.FirstOrDefaultAsync(
+                    item => item.Name == name);
+
             if (tag is null)
             {
-                tag = new Tags { Name = name };
+                tag = new Tags
+                {
+                    Name = name
+                };
+
                 db.Tags.Add(tag);
-                await db.SaveChangesAsync();
             }
 
-            tags.Add(tag);
+            tags[name] = tag;
         }
 
+        await db.SaveChangesAsync();
         return tags;
     }
 
-    private static async Task<List<Post>> SeedPostsAsync(
-        ApplicationDbContext db,
-        IReadOnlyList<ApplicationUser> users,
-        IReadOnlyList<Community> communities)
+    private static async Task<
+        Dictionary<string, Post>>
+        SeedPostsAsync(
+            ApplicationDbContext db,
+            IReadOnlyDictionary<string, ApplicationUser> users,
+            IReadOnlyDictionary<string, Community> communities,
+            DateTime seedNow)
     {
-        var posts = new List<Post>(SampleCount);
-        for (var i = 0; i < SampleCount; i++)
+        var posts =
+            new Dictionary<string, Post>(
+                StringComparer.OrdinalIgnoreCase);
+
+        foreach (var seed in SeedDataCatalog.Posts)
         {
-            var content = $"Sample post {i + 1:00}: sharing ideas, questions, and updates from the BCIT community.";
-            var post = await db.Posts.FirstOrDefaultAsync(item => item.Content == content);
+            var post =
+                await db.Posts.FirstOrDefaultAsync(
+                    item =>
+                        item.Title == seed.Title);
+
             if (post is null)
             {
                 post = new Post
                 {
-                    AuthorId = users[i].Id,
-                    CommunityId = communities[i].Id,
-                    Title = $"Sample post title {i + 1:00}",
-                    Content = content,
-                    CreatedAt = DateTime.UtcNow.AddDays(-i)
+                    CreatedAt =
+                        seedNow.AddHours(
+                            -seed.HoursAgo)
                 };
+
                 db.Posts.Add(post);
-                await db.SaveChangesAsync();
             }
 
-            posts.Add(post);
+            post.AuthorId =
+                users[seed.AuthorKey].Id;
+
+            post.CommunityId =
+                communities[seed.CommunityKey].Id;
+
+            post.Title = seed.Title;
+            post.Content = seed.Content;
+            post.DateOfDel = null;
+
+            posts[seed.Key] = post;
         }
 
+        await db.SaveChangesAsync();
         return posts;
     }
 
-    private static async Task SeedCommentsAsync(
+    private static async Task SeedPostTagsAsync(
         ApplicationDbContext db,
-        IReadOnlyList<ApplicationUser> users,
-        IReadOnlyList<Post> posts)
+        IReadOnlyDictionary<string, Post> posts,
+        IReadOnlyDictionary<string, Tags> tags)
     {
-        for (var i = 0; i < SampleCount; i++)
+        foreach (var seed in SeedDataCatalog.Posts)
         {
-            var content = $"Sample comment {i + 1:00}: thanks for sharing this with everyone.";
-            if (await db.Comments.AnyAsync(item => item.Content == content))
-            {
-                continue;
-            }
+            var post = posts[seed.Key];
 
-            db.Comments.Add(new Comments
+            foreach (var tagName in seed.Tags)
             {
-                AuthorId = users[(i + 1) % users.Count].Id,
-                PostId = posts[i].Id,
-                Content = content,
-                CreatedAt = DateTime.UtcNow.AddHours(-i)
-            });
+                var tag = tags[tagName];
+
+                var exists =
+                    await db.PostTags.AnyAsync(
+                        item =>
+                            item.PostId == post.Id &&
+                            item.TagId == tag.Id);
+
+                if (!exists)
+                {
+                    db.PostTags.Add(
+                        new PostTags
+                        {
+                            PostId = post.Id,
+                            TagId = tag.Id
+                        });
+                }
+            }
         }
 
         await db.SaveChangesAsync();
     }
 
-    private static async Task SeedPostTagsAsync(
+    private static async Task SeedPostPhotosAsync(
         ApplicationDbContext db,
-        IReadOnlyList<Post> posts,
-        IReadOnlyList<Tags> tags)
+        IReadOnlyDictionary<string, Post> posts,
+        IReadOnlyDictionary<string, SeedAsset> assets,
+        DateTime seedNow)
     {
-        for (var i = 0; i < SampleCount; i++)
+        foreach (var seed in SeedDataCatalog.Posts)
         {
-            var postId = posts[i].Id;
-            var tagId = tags[i].Id;
-            if (!await db.PostTags.AnyAsync(item => item.PostId == postId && item.TagId == tagId))
+            var post = posts[seed.Key];
+
+            for (var index = 0;
+                 index < seed.PhotoFiles.Length;
+                 index++)
             {
-                db.PostTags.Add(new PostTags { PostId = postId, TagId = tagId });
+                var asset =
+                    assets[seed.PhotoFiles[index]];
+
+                var photo =
+                    await db.PostPhotos
+                        .FirstOrDefaultAsync(
+                            item =>
+                                item.StorageKey ==
+                                asset.StorageKey);
+
+                if (photo is null)
+                {
+                    photo = new PostPhoto
+                    {
+                        StorageKey =
+                            asset.StorageKey
+                    };
+
+                    db.PostPhotos.Add(photo);
+                }
+
+                photo.PostId = post.Id;
+
+                photo.OriginalFileName =
+                    asset.OriginalFileName;
+
+                photo.ContentType =
+                    asset.ContentType;
+
+                photo.FileSizeBytes =
+                    asset.FileSizeBytes;
+
+                photo.DisplayOrder = index;
+                photo.CreatedAt = seedNow;
             }
+        }
+
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task SeedCommentsAsync(
+        ApplicationDbContext db,
+        IReadOnlyDictionary<string, ApplicationUser> users,
+        IReadOnlyDictionary<string, Post> posts)
+    {
+        var comments =
+            new Dictionary<string, Comments>(
+                StringComparer.OrdinalIgnoreCase);
+
+        var topLevelSeeds =
+            SeedDataCatalog.Comments
+                .Where(
+                    item =>
+                        item.ParentKey is null);
+
+        foreach (var seed in topLevelSeeds)
+        {
+            var post = posts[seed.PostKey];
+            var user = users[seed.AuthorKey];
+
+            var comment =
+                await db.Comments
+                    .FirstOrDefaultAsync(
+                        item =>
+                            item.PostId == post.Id &&
+                            item.AuthorId == user.Id &&
+                            item.Content ==
+                            seed.Content);
+
+            if (comment is null)
+            {
+                comment = new Comments();
+                db.Comments.Add(comment);
+            }
+
+            comment.PostId = post.Id;
+            comment.AuthorId = user.Id;
+            comment.Content = seed.Content;
+
+            comment.CreatedAt =
+                post.CreatedAt.AddHours(
+                    seed.HoursAfterPost);
+
+            comment.ParentCommentId = null;
+
+            comments[seed.Key] = comment;
+        }
+
+        await db.SaveChangesAsync();
+
+        var replySeeds =
+            SeedDataCatalog.Comments
+                .Where(
+                    item =>
+                        item.ParentKey is not null);
+
+        foreach (var seed in replySeeds)
+        {
+            var post = posts[seed.PostKey];
+            var user = users[seed.AuthorKey];
+
+            var parent =
+                comments[seed.ParentKey!];
+
+            var comment =
+                await db.Comments
+                    .FirstOrDefaultAsync(
+                        item =>
+                            item.PostId == post.Id &&
+                            item.AuthorId == user.Id &&
+                            item.Content ==
+                            seed.Content);
+
+            if (comment is null)
+            {
+                comment = new Comments();
+                db.Comments.Add(comment);
+            }
+
+            comment.PostId = post.Id;
+            comment.AuthorId = user.Id;
+            comment.Content = seed.Content;
+
+            comment.ParentCommentId =
+                parent.Id;
+
+            comment.CreatedAt =
+                post.CreatedAt.AddHours(
+                    seed.HoursAfterPost);
+
+            comments[seed.Key] = comment;
         }
 
         await db.SaveChangesAsync();
@@ -331,103 +945,174 @@ public static class SeedData
 
     private static async Task SeedBookmarksAsync(
         ApplicationDbContext db,
-        IReadOnlyList<ApplicationUser> users,
-        IReadOnlyList<Post> posts)
+        IReadOnlyDictionary<string, ApplicationUser> users,
+        IReadOnlyDictionary<string, Post> posts,
+        DateTime seedNow)
     {
-        for (var i = 0; i < SampleCount; i++)
+        foreach (var seed in
+                 SeedDataCatalog.Bookmarks)
         {
-            var userId = users[(i + 1) % users.Count].Id;
-            var postId = posts[i].Id;
-            if (!await db.Bookmarks.AnyAsync(item => item.UserId == userId && item.PostId == postId))
-            {
-                db.Bookmarks.Add(new Bookmarks
-                {
-                    UserId = userId,
-                    PostId = postId,
-                    SavedAt = DateTime.UtcNow.AddDays(-i)
-                });
-            }
-        }
+            var user = users[seed.UserKey];
+            var post = posts[seed.PostKey];
 
-        await db.SaveChangesAsync();
-    }
+            var bookmark =
+                await db.Bookmarks.FindAsync(
+                    user.Id,
+                    post.Id);
 
-    private static async Task<List<Chatbox>> SeedChatboxesAsync(
-        ApplicationDbContext db,
-        IReadOnlyList<ApplicationUser> users)
-    {
-        var chatboxes = new List<Chatbox>(SampleCount);
-        for (var i = 0; i < SampleCount; i++)
-        {
-            var creatorId = users[i].Id;
-            var chatbox = await db.Chatboxes.FirstOrDefaultAsync(item => item.CreatorId == creatorId);
-            if (chatbox is null)
+            if (bookmark is null)
             {
-                chatbox = new Chatbox
+                bookmark = new Bookmarks
                 {
-                    CreatorId = creatorId,
-                    CreatedAt = DateTime.UtcNow.AddDays(-i)
+                    UserId = user.Id,
+                    PostId = post.Id
                 };
-                db.Chatboxes.Add(chatbox);
-                await db.SaveChangesAsync();
+
+                db.Bookmarks.Add(bookmark);
             }
 
-            chatboxes.Add(chatbox);
+            bookmark.SavedAt =
+                seedNow.AddDays(-seed.DaysAgo);
         }
 
-        return chatboxes;
-    }
-
-    private static async Task SeedChatboxUsersAsync(
-        ApplicationDbContext db,
-        IReadOnlyList<ApplicationUser> users,
-        IReadOnlyList<Chatbox> chatboxes)
-    {
-        for (var i = 0; i < chatboxes.Count; i++)
-        {
-            await AddChatboxUserAsync(db, users[i], chatboxes[i]);
-            await AddChatboxUserAsync(db, users[(i + 1) % users.Count], chatboxes[i]);
-        }
-    }
-
-    private static async Task AddChatboxUserAsync(
-        ApplicationDbContext db,
-        ApplicationUser user,
-        Chatbox chatbox)
-    {
-        if (await db.ChatboxUsers.AnyAsync(item =>
-                item.UserId == user.Id && item.ChatboxId == chatbox.Id))
-        {
-            return;
-        }
-
-        db.ChatboxUsers.Add(new ChatboxUser { UserId = user.Id, ChatboxId = chatbox.Id });
         await db.SaveChangesAsync();
     }
 
-    private static async Task SeedMessagesAsync(
-        ApplicationDbContext db,
-        IReadOnlyList<ApplicationUser> users,
-        IReadOnlyList<Chatbox> chatboxes)
+    private static async Task<
+        Dictionary<string, CommunityEvent>>
+        SeedEventsAsync(
+            ApplicationDbContext db,
+            IReadOnlyDictionary<string, ApplicationUser> users,
+            IReadOnlyDictionary<string, Community> communities)
     {
-        for (var i = 0; i < chatboxes.Count; i++)
+        var events =
+            new Dictionary<string, CommunityEvent>(
+                StringComparer.OrdinalIgnoreCase);
+
+        var vancouverToday =
+            TimeZoneInfo.ConvertTimeBySystemTimeZoneId(
+                DateTime.UtcNow,
+                "America/Vancouver").Date;
+
+        foreach (var seed in SeedDataCatalog.Events)
         {
-            var text = $"Sample direct message {i + 1:00}: see you around campus!";
-            if (await db.Messages.AnyAsync(item =>
-                    item.ChatboxId == chatboxes[i].Id && item.Text == text))
+            var community =
+                communities[seed.CommunityKey];
+
+            var communityEvent =
+                await db.CommunityEvents
+                    .FirstOrDefaultAsync(
+                        item =>
+                            item.Title == seed.Title &&
+                            item.CommunityId ==
+                            community.Id);
+
+            var startsAt =
+                vancouverToday
+                    .AddDays(seed.DaysFromToday)
+                    .AddHours(seed.StartHour);
+
+            if (communityEvent is null)
             {
-                continue;
+                communityEvent =
+                    new CommunityEvent();
+
+                db.CommunityEvents.Add(
+                    communityEvent);
             }
 
-            db.Messages.Add(new Message
-            {
-                ChatboxId = chatboxes[i].Id,
-                SenderId = users[i].Id,
-                Text = text,
-                CreatedAt = DateTime.UtcNow.AddMinutes(-i * 5)
-            });
+            communityEvent.CreatorId =
+                users[seed.CreatorKey].Id;
+
+            communityEvent.CommunityId =
+                community.Id;
+
+            communityEvent.Title =
+                seed.Title;
+
+            communityEvent.EventDate =
+                startsAt;
+
+            communityEvent.EndsAt =
+                startsAt.AddMinutes(
+                    seed.DurationMinutes);
+
+            communityEvent.Campus =
+                seed.Campus;
+
+            communityEvent.Location =
+                seed.Location;
+
+            communityEvent.Description =
+                seed.Description;
+
+            communityEvent.DateOfDel = null;
+
+            events[seed.Key] =
+                communityEvent;
         }
 
         await db.SaveChangesAsync();
+        return events;
+    }
+
+    private static async Task
+        SeedEventRsvpsAsync(
+            ApplicationDbContext db,
+            IReadOnlyDictionary<string, ApplicationUser> users,
+            IReadOnlyDictionary<string, CommunityEvent> events)
+    {
+        foreach (var seed in SeedDataCatalog.Events)
+        {
+            var communityEvent =
+                events[seed.Key];
+
+            foreach (var userKey in
+                     seed.GoingUserKeys)
+            {
+                await AddOrUpdateRsvpAsync(
+                    db,
+                    communityEvent.Id,
+                    users[userKey].Id,
+                    going: true);
+            }
+
+            foreach (var userKey in
+                     seed.InterestedUserKeys)
+            {
+                await AddOrUpdateRsvpAsync(
+                    db,
+                    communityEvent.Id,
+                    users[userKey].Id,
+                    going: false);
+            }
+        }
+
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task AddOrUpdateRsvpAsync(
+        ApplicationDbContext db,
+        int eventId,
+        string userId,
+        bool going)
+    {
+        var rsvp =
+            await db.EventRsvps.FindAsync(
+                eventId,
+                userId);
+
+        if (rsvp is null)
+        {
+            rsvp = new EventRsvp
+            {
+                EventId = eventId,
+                UserId = userId
+            };
+
+            db.EventRsvps.Add(rsvp);
+        }
+
+        rsvp.Going = going;
     }
 }

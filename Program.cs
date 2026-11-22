@@ -33,6 +33,21 @@ builder.Services.AddScoped<UploadService>();
 
 var app = builder.Build();
 
+// Temp, to delete db data
+// if (builder.Configuration.GetValue<bool>("DatabaseReset:Enabled"))
+// {
+//     await using var resetScope =
+//         app.Services.CreateAsyncScope();
+
+//     var resetDb =
+//         resetScope.ServiceProvider
+//             .GetRequiredService<ApplicationDbContext>();
+
+//     await DeleteData.DeleteAllAsync(
+//         resetDb,
+//         builder.Configuration);
+// }
+
 if (builder.Configuration.GetValue<bool>("SeedData:Enabled"))
 {
     await using var scope = app.Services.CreateAsyncScope();
