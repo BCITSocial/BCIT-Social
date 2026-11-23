@@ -1,0 +1,55 @@
+@model BCIT_Social.Models.Community
+@{
+    Layout = "_HomeLayout";
+}
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<h1>Admin Dashboard</h1>
+<a asp-action="Index">Back to dashboard</a>
+<div class="card bg-light p-4 mt-2">
+    @if (Model.DateOfDel == null)
+    {
+        <h2>
+            <a asp-controller="Community" asp-action="Details" asp-route-id="@Model.Id">Community: @Model.Name</a>
+        </h2>
+    }
+    else
+    {
+        <h2>
+            Community: @Model.Name
+        </h2>
+    }
+    <hr />
+    <p>Creator: @Model.Creator.UserName</p>
+    <p>Description: @Model.Description</p>
+    <p>Member Count: @Model.Members.Count</p>
+    <p>Members</p>
+    <ul>
+        @foreach (var member in Model.Members)
+        {
+            <li>
+                <a asp-action="EditUser" asp-route-id="@member.UserId">
+                    @member.User
+                </a>
+            </li>
+        }
+    </ul>
+    <hr class="m-4" />
+    <h3>Actions</h3>
+    @if (Model.DateOfDel != null)
+    {
+        <p class="text-danger">Date of Deletion: @Model.DateOfDel</p>
+        <form asp-action="RestoreCommunity" asp-route-id="@Model.Id" method="post">
+            <button type="submit">Restore Community</button>
+        </form>
+        <strong class="text-danger mt-5">This will delete this community FOREVER</strong>
+        <form asp-action="PermaDeleteCommunity" asp-route-id="@Model.Id" method="post">
+            <button type="submit" class="bg-danger">Permanently Delete Community</button>
+        </form>
+    }
+    else
+    {
+        <form asp-action="DeleteCommunity" asp-route-id="@Model.Id" method="post">
+            <button type="submit">Mark Community For Deletion</button>
+        </form>
+    }
+</div>
