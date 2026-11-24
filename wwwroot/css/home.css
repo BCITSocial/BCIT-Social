@@ -611,6 +611,10 @@ a.primary-button {
   padding: 12px 16px 16px;
 }
 
+.home-section.share-box {
+  margin-top: 0px;
+}
+
 .section-heading {
   display: flex;
   align-items: baseline;
@@ -1088,7 +1092,7 @@ a.primary-button {
 
   .discovery-panel,
   .guest-cta-panel {
-    position: static;
+    display: none;
   }
 }
 
