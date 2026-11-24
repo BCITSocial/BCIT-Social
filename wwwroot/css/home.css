@@ -321,7 +321,7 @@ p {
 }
 
 .profile-button,
-.profile-button > * {
+.profile-button>* {
   display: grid;
   place-items: center;
   height: 44px;
@@ -640,6 +640,7 @@ main:has(.home-feed-layout) {
   padding: 10px 18px;
   border: 1px solid var(--color-border);
   background: var(--color-selected);
+  cursor: pointer;
 }
 
 a.primary-button {
@@ -930,7 +931,7 @@ a.primary-button {
   align-items: start;
 }
 
-.home-feed-layout > .home-section {
+.home-feed-layout>.home-section {
   min-width: 0;
 }
 
@@ -1062,7 +1063,7 @@ a.primary-button {
 }
 
 .post-avatar,
-.post-avatar > * {
+.post-avatar>* {
   display: grid;
   place-items: center;
   width: 40px;
@@ -1418,12 +1419,12 @@ a.primary-button {
   list-style: none;
 }
 
-.comments > .comment-list > .comment {
+.comments>.comment-list>.comment {
   padding: 16px 0;
   border-bottom: 1px solid var(--color-border);
 }
 
-.comments > .comment-list > .comment:last-child {
+.comments>.comment-list>.comment:last-child {
   border-bottom: 0;
 }
 
@@ -1474,8 +1475,8 @@ a.primary-button {
   margin-top: 4px;
 }
 
-.reply-toggle > summary,
-.replies > summary {
+.reply-toggle>summary,
+.replies>summary {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1486,12 +1487,12 @@ a.primary-button {
   list-style: none;
 }
 
-.reply-toggle > summary::-webkit-details-marker,
-.replies > summary::-webkit-details-marker {
+.reply-toggle>summary::-webkit-details-marker,
+.replies>summary::-webkit-details-marker {
   display: none;
 }
 
-.reply-toggle > summary .post-icon {
+.reply-toggle>summary .post-icon {
   width: 16px;
   height: 16px;
 }
@@ -1500,7 +1501,7 @@ a.primary-button {
   margin: 4px 0 8px;
 }
 
-.replies > .comment-list {
+.replies>.comment-list {
   display: grid;
   gap: 16px;
   margin-top: 8px;
@@ -1567,7 +1568,7 @@ body:has(.create-dialog[open]) {
   text-decoration: none;
 }
 
-.create-tab + .create-tab {
+.create-tab+.create-tab {
   border-left: 1px solid var(--color-border);
 }
 
@@ -1623,8 +1624,8 @@ body:has(.create-dialog[open]) {
   border: 0;
 }
 
-.create-field > label,
-.create-field > legend,
+.create-field>label,
+.create-field>legend,
 .create-label {
   padding: 0;
   font-size: 0.875rem;
@@ -1727,14 +1728,14 @@ body:has(.create-dialog[open]) {
   cursor: pointer;
 }
 
-.post-type-option input:checked + span {
+.post-type-option input:checked+span {
   border-color: var(--color-tag-text);
   background: var(--color-tag-surface);
   color: var(--color-tag-text);
   font-weight: var(--font-weight-bold);
 }
 
-.post-type-option input:focus-visible + span {
+.post-type-option input:focus-visible+span {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
@@ -1813,7 +1814,7 @@ body:has(.create-dialog[open]) {
 }
 
 /* The file input itself is hidden (beats the input rule above), so the box shows its focus and error state. */
-.create-field > input[type="file"].visually-hidden {
+.create-field>input[type="file"].visually-hidden {
   width: 1px;
   min-height: 0;
   padding: 0;
@@ -2127,7 +2128,7 @@ body:has(.create-dialog[open]) {
   }
 
   .comment-box .avatar,
-  .comment > .avatar {
+  .comment>.avatar {
     display: none;
   }
 

@@ -9,11 +9,9 @@ Provides the shared page structure, styles, header, navigation, and script secti
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] - BCIT Social</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/settings.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/right-rail.css" asp-append-version="true" />
 </head>
 @* The theme script uses the signed-in user's ID to load their saved appearance. *@
 <body data-profile-user-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value">
@@ -23,7 +21,7 @@ Provides the shared page structure, styles, header, navigation, and script secti
     <partial name="_Header" />
     <div class="app-shell@(rightRail is null ? "" : " has-rail")">
         <partial name="_Navigation" />
-        <main id="main-content" tabindex="-1">
+        <main id="main-content" tabindex="-1" sty>
             @RenderBody()
         </main>
         @if (rightRail is not null)
