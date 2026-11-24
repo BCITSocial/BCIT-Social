@@ -50,7 +50,17 @@ This view renders the user's profile page, including their profile information, 
                     <div class="profile-cover" aria-hidden="true"></div>
                     <div class="profile-card-content">
                         <div class="profile-card-actions">
-                            <div class="profile-avatar" aria-hidden="true">@avatarInitials</div>
+                            <div class="profile-avatar" aria-hidden="true">
+                                @if (!string.IsNullOrWhiteSpace(profile.ProfilePhotoStorageKey)
+                                    && !string.IsNullOrWhiteSpace(profile.ProfilePhotoContentType))
+                                {
+                                    <img src="@Url.Action("Photo", "Profile", new { id = profile.UserId })" alt="" />
+                                }
+                                else
+                                {
+                                    @avatarInitials
+                                }
+                            </div>
                             @if (Model.IsOwnProfile)
                             {
                                 <div class="profile-card-button-group">
@@ -99,11 +109,6 @@ This view renders the user's profile page, including their profile information, 
                         </div>
 
                         <h1 id="profile-heading" class="profile-name">@profile.DisplayName</h1>
-                        @if (!string.IsNullOrWhiteSpace(Model.Email))
-                        {
-                            <span class="profile-email">@Model.Email</span>
-                        }
-
                         <div class="profile-tags" aria-label="Profile information">
                             @if (!string.IsNullOrWhiteSpace(profile.Program))
                             {
