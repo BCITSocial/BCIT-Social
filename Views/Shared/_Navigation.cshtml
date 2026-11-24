@@ -76,8 +76,5 @@ Renders sidebar navigation, marks the active controller route, and lists the use
 
         
     </ul>
-    @if (ViewData["UseMinimalSiteShell"] as bool? != true)
-    {
-        @await Component.InvokeAsync("SidebarCommunities")
-    }
+    @await Component.InvokeAsync("SidebarCommunities")
 </nav>
