@@ -14,6 +14,16 @@ Displays the basic account signup form and password requirements.
     <form method="post" asp-route-returnUrl="@Model.ReturnUrl" data-auth-form>
         <div asp-validation-summary="ModelOnly" class="auth-errors" role="alert"></div>
         <div class="auth-field">
+            <label asp-for="Input.FirstName"></label>
+            <input asp-for="Input.FirstName" autocomplete="username" required />
+            <span asp-validation-for="Input.FirstName" class="auth-errors"></span>
+        </div>
+        <div class="auth-field">
+            <label asp-for="Input.LastName"></label>
+            <input asp-for="Input.LastName" autocomplete="username" required />
+            <span asp-validation-for="Input.LastName" class="auth-errors"></span>
+        </div>
+        <div class="auth-field">
             <label asp-for="Input.Email"></label>
             <input asp-for="Input.Email" autocomplete="username" placeholder="you@example.com" required />
             <span asp-validation-for="Input.Email" class="auth-errors"></span>
