@@ -2,6 +2,11 @@
     "pageTitle": "Communities",
     "pageSubtitle": "Your communities!, Join any that are listed below.",
     "createButton": "+ Create",
+    "limitNotice": {
+        "title": "Community limit reached",
+        "message": "You can only create up to 3 communities. Delete one of yours to make a new one.",
+        "closeButton": "Got it"
+    },
     "yourHeading": "Your communities",
     "yourEmpty": "You haven't joined any communities yet. Find one below!",
     "browseHeading": "Browse communities",
