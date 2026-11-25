@@ -28,7 +28,9 @@ Renders the Home banner, share box, feed, and discovery panel.
             }
             else
             {
-                @(Model.CurrentUserInitials == "" ? "?" : Model.CurrentUserInitials)
+                <div>
+                    @(Model.CurrentUserInitials == "" ? "?" : Model.CurrentUserInitials)
+                </div>
             }
         </span>
         <a class="share-prompt" asp-controller="Post" asp-action="Create" data-open-create>What would you like to share?</a>
