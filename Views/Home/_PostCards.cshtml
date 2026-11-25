@@ -7,22 +7,16 @@
 }
 @foreach (BCIT_Social.ViewModels.PostCardViewModel post in Model)
 {
-    <article class="post-card"
-             data-post-id="@post.Id"
-             data-created-ticks="@post.CreatedAt.Ticks"
+    <article class="post-card" data-post-id="@post.Id" data-created-ticks="@post.CreatedAt.Ticks"
              aria-labelledby="post-title-@post.Id">
 
-        <a class="post-avatar"
-           aria-hidden="true"
-           asp-controller="Profile"
-           asp-action="Details"
+        <a class="post-avatar" aria-hidden="true" asp-controller="Profile" asp-action="Details"
            asp-route-userId="@post.AuthorId">
             @if (post.AuthorHasProfilePhoto)
             {
-                <img class="post-avatar"
-                        style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
-                        src="@Url.Action(action: "Photo", "Profile", new { id = post.AuthorId })"
-                        alt="@($"{@post.AuthorName}'s profile photo")" />
+                <img class="post-avatar" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
+                     src="@Url.Action(action: "Photo", "Profile", new { id = post.AuthorId })"
+                     alt="@($"{@post.AuthorName}'s profile photo")" />
             }
             else
             {
@@ -34,10 +28,7 @@
 
             <div class="post-card-top">
                 <p class="post-meta">
-                    <a class="post-author"
-                       asp-controller="Profile"
-                       asp-action="Details"
-                       asp-route-userId="@post.AuthorId">
+                    <a class="post-author" asp-controller="Profile" asp-action="Details" asp-route-userId="@post.AuthorId">
                         @post.AuthorName
                     </a>
 
@@ -66,10 +57,7 @@
             </div>
 
             <h3 class="post-title" id="post-title-@post.Id">
-                <a asp-controller="Home"
-                   asp-action="Post"
-                   asp-route-id="@post.Id"
-                   data-open-post>
+                <a asp-controller="Home" asp-action="Post" asp-route-id="@post.Id" data-open-post>
                     @post.Title
                 </a>
             </h3>
@@ -77,35 +65,23 @@
             <div class="post-content-container">
                 <p class="post-content" data-post-content>@post.Content</p>
 
-                <button class="post-show-more"
-                        type="button"
-                        data-post-toggle
-                        aria-expanded="false"
-                        hidden>
+                <button class="post-show-more" type="button" data-post-toggle aria-expanded="false" hidden>
                     Show more
                 </button>
             </div>
 
-            <div>
+            <div class="post-photo-holder">
                 @foreach (PostPhoto photo in post.Photos.OrderBy(photo => photo.DisplayOrder))
                 {
-                    <img src="@Url.Action("Photo", "Post", new { id = photo.Id })"
-                         alt="@photo.OriginalFileName"
-                         style="max-width: 100px; height: auto;" />
+                    <img class="post-photo" src="@Url.Action("Photo", "Post", new { id = photo.Id })"
+                         alt="@photo.OriginalFileName" />
                 }
             </div>
 
             <div class="post-actions">
-                <a class="post-action"
-                   asp-controller="Home"
-                   asp-action="Post"
-                   asp-route-id="@post.Id"
-                   data-open-post>
+                <a class="post-action" asp-controller="Home" asp-action="Post" asp-route-id="@post.Id" data-open-post>
 
-                    <svg class="post-icon"
-                         viewBox="0 0 24 24"
-                         aria-hidden="true"
-                         focusable="false">
+                    <svg class="post-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M4 5h16v11H9l-5 4Z" />
                     </svg>
 
@@ -118,20 +94,13 @@
 
                 @if (signedIn)
                 {
-                    <form class="post-save"
-                          method="post"
-                          asp-controller="Bookmarks"
-                          asp-action="@(post.IsSaved ? "Remove" : "Save")"
-                          asp-route-postId="@post.Id"
+                    <form class="post-save" method="post" asp-controller="Bookmarks"
+                          asp-action="@(post.IsSaved ? "Remove" : "Save")" asp-route-postId="@post.Id"
                           asp-route-returnUrl="@returnUrl">
 
-                        <button class="post-action"
-                                type="submit"
-                                aria-pressed="@(post.IsSaved ? "true" : "false")">
+                        <button class="post-action" type="submit" aria-pressed="@(post.IsSaved ? "true" : "false")">
 
-                            <svg class="post-icon @(post.IsSaved ? "is-filled" : "")"
-                                 viewBox="0 0 24 24"
-                                 aria-hidden="true"
+                            <svg class="post-icon @(post.IsSaved ? "is-filled" : "")" viewBox="0 0 24 24" aria-hidden="true"
                                  focusable="false">
                                 <path d="M6 3h12v18l-6-4.5L6 21Z" />
                             </svg>
@@ -142,15 +111,9 @@
                 }
                 else
                 {
-                    <a class="post-action post-save"
-                       asp-area="Identity"
-                       asp-page="/Account/Login"
-                       asp-route-returnUrl="/">
+                    <a class="post-action post-save" asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="/">
 
-                        <svg class="post-icon"
-                             viewBox="0 0 24 24"
-                             aria-hidden="true"
-                             focusable="false">
+                        <svg class="post-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                             <path d="M6 3h12v18l-6-4.5L6 21Z" />
                         </svg>
 
@@ -164,18 +127,11 @@
 
                 @if (post.IsAuthor)
                 {
-                    <a class="post-action"
-                       asp-controller="Post"
-                       asp-action="Edit"
-                       asp-route-id="@post.Id">
+                    <a class="post-action" asp-controller="Post" asp-action="Edit" asp-route-id="@post.Id">
                         Edit
                     </a>
 
-                    <form class="post-manage"
-                          method="post"
-                          asp-controller="Post"
-                          asp-action="Delete"
-                          asp-route-id="@post.Id"
+                    <form class="post-manage" method="post" asp-controller="Post" asp-action="Delete" asp-route-id="@post.Id"
                           onsubmit="return confirm('Delete this post?');">
 
                         <button class="post-action" type="submit">
