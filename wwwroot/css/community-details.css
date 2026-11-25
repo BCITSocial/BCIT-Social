@@ -332,3 +332,44 @@
 .delete-summary .delete-summary-count {
     margin: 0;
 }
+/* In the shared page shell the wrapper lines up with the column edges, like Events and Communities. */
+main > .details-wrapper {
+    padding: 0;
+}
+
+/* Phone layout: tighter padding, the banner's accent box drops out, and the header actions wrap below. */
+@media (max-width: 640px) {
+    main > .details-wrapper {
+        gap: 0.9rem;
+    }
+
+    .details-hero-banner {
+        padding: 1.25rem;
+    }
+
+    .details-hero-banner h1 {
+        font-size: 1.3rem;
+    }
+
+    .banner-solid-accent {
+        display: none;
+    }
+
+    .community-icon-box {
+        width: 44px;
+        height: 44px;
+        font-size: 1rem;
+    }
+
+    .community-main-title {
+        font-size: 1.2rem;
+    }
+
+    .meta-right-actions {
+        width: 100%;
+    }
+
+    .details-tabs {
+        overflow-x: auto;
+    }
+}

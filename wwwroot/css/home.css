@@ -591,6 +591,12 @@ p {
   background: var(--color-input);
 }
 
+.sidebar-communities [aria-current="page"] {
+    background: var(--color-selected);
+    color: var(--color-accent);
+    font-weight: var(--font-weight-bold);
+}
+
 .sidebar-community-badge {
   display: grid;
   flex: none;
@@ -844,6 +850,7 @@ a.primary-button {
   stroke-linejoin: round;
 }
 
+/* Kept compact so the feed starts higher up. */
 .share-box {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -851,6 +858,17 @@ a.primary-button {
   column-gap: 20px;
   row-gap: 8px;
 }
+
+    .share-box .avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+    }
+
+    .share-box .cta-button {
+        min-height: 36px;
+        padding-block: 6px;
+    }
 
 .share-prompt {
   display: flex;
