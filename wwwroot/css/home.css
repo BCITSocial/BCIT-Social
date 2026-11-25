@@ -162,7 +162,7 @@ p {
   box-shadow: 0 16px 40px rgb(16 29 67 / 18%);
 }
 
-.search-group+.search-group {
+.search-group + .search-group {
   margin-top: 4px;
   padding-top: 4px;
   border-top: 1px solid var(--color-border);
@@ -324,74 +324,46 @@ p {
   stroke-linejoin: round;
 }
 
-/* .profile-button {
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-} */
-
 .profile-button {
-  display: flex;
-  height: 44px;
   width: 44px;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  border: 1px black solid;
-  background: var(--color-input);
-  color: var(--color-muted);
-  cursor: pointer;
-}
-
-/* .post-avatar {
-  display: flex;
-  place-items: center;
-  width: 40px;
-  height: 40px;
+  height: 44px;
   border-radius: 50%;
-  background: var(--color-avatar);
-  color: var(--color-avatar-text);
-  font-size: 0.875rem;
-  font-weight: var(--font-weight-bold);
-} */
-
-/* .profile-button {
   overflow: hidden;
+  cursor: pointer;
+  transition: 0.2s;
+  animation-timing-function: ease-in-out;
+}
+
+.profile-button:hover {
+  background: var(--color-border);
+  transform: scale(105%);
+  filter: brightness(103%);
+}
+
+.profile-icon {
   display: flex;
   place-items: center;
-  height: 44px;
-  width: 44px;
-  padding: 0;
-  /* border: 1px black solid; */
-/* border-radius: 50%; */
-
-/* background: black; */
-/* background: var(--color-input); 
-color: var(--color-muted);
-cursor: pointer;
-}
-
-*/
-.profile-button img {
-  flex-shrink: 0;
-  height: 44px;
   object-fit: cover;
-  /* min-block-size: 44px; */
+  min-height: 44px;
+  min-width: 44px;
+  width: 100%;
+  height: 100%;
 }
 
+.profile-icon > img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
 
-/* .profile-button svg {
+.profile-button svg {
   width: 100%;
   height: 100%;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.7;
   stroke-linecap: round;
-} */
-
-.profile-button:hover {
-  background: var(--color-border);
 }
 
 /* Header popups: open below the top-right icons. */
@@ -978,7 +950,7 @@ a.primary-button {
   align-items: start;
 }
 
-.home-feed-layout>.home-section {
+.home-feed-layout > .home-section {
   min-width: 0;
 }
 
@@ -1121,7 +1093,7 @@ a.primary-button {
   font-weight: var(--font-weight-bold);
 }
 
-.post-avatar>* {
+.post-avatar > * {
   margin: auto;
 }
 
@@ -1469,12 +1441,12 @@ a.primary-button {
   list-style: none;
 }
 
-.comments>.comment-list>.comment {
+.comments > .comment-list > .comment {
   padding: 16px 0;
   border-bottom: 1px solid var(--color-border);
 }
 
-.comments>.comment-list>.comment:last-child {
+.comments > .comment-list > .comment:last-child {
   border-bottom: 0;
 }
 
@@ -1525,8 +1497,8 @@ a.primary-button {
   margin-top: 4px;
 }
 
-.reply-toggle>summary,
-.replies>summary {
+.reply-toggle > summary,
+.replies > summary {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1537,12 +1509,12 @@ a.primary-button {
   list-style: none;
 }
 
-.reply-toggle>summary::-webkit-details-marker,
-.replies>summary::-webkit-details-marker {
+.reply-toggle > summary::-webkit-details-marker,
+.replies > summary::-webkit-details-marker {
   display: none;
 }
 
-.reply-toggle>summary .post-icon {
+.reply-toggle > summary .post-icon {
   width: 16px;
   height: 16px;
 }
@@ -1551,7 +1523,7 @@ a.primary-button {
   margin: 4px 0 8px;
 }
 
-.replies>.comment-list {
+.replies > .comment-list {
   display: grid;
   gap: 16px;
   margin-top: 8px;
@@ -1618,7 +1590,7 @@ body:has(.create-dialog[open]) {
   text-decoration: none;
 }
 
-.create-tab+.create-tab {
+.create-tab + .create-tab {
   border-left: 1px solid var(--color-border);
 }
 
@@ -1674,8 +1646,8 @@ body:has(.create-dialog[open]) {
   border: 0;
 }
 
-.create-field>label,
-.create-field>legend,
+.create-field > label,
+.create-field > legend,
 .create-label {
   padding: 0;
   font-size: 0.875rem;
@@ -1778,14 +1750,14 @@ body:has(.create-dialog[open]) {
   cursor: pointer;
 }
 
-.post-type-option input:checked+span {
+.post-type-option input:checked + span {
   border-color: var(--color-tag-text);
   background: var(--color-tag-surface);
   color: var(--color-tag-text);
   font-weight: var(--font-weight-bold);
 }
 
-.post-type-option input:focus-visible+span {
+.post-type-option input:focus-visible + span {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
@@ -1864,7 +1836,7 @@ body:has(.create-dialog[open]) {
 }
 
 /* The file input itself is hidden (beats the input rule above), so the box shows its focus and error state. */
-.create-field>input[type="file"].visually-hidden {
+.create-field > input[type="file"].visually-hidden {
   width: 1px;
   min-height: 0;
   padding: 0;
@@ -2178,7 +2150,7 @@ body:has(.create-dialog[open]) {
   }
 
   .comment-box .avatar,
-  .comment>.avatar {
+  .comment > .avatar {
     display: none;
   }
 
