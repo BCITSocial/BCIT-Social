@@ -50,15 +50,15 @@ This view renders the user's profile page, including their profile information, 
                     <div class="profile-cover" aria-hidden="true"></div>
                     <div class="profile-card-content">
                         <div class="profile-card-actions">
-                            <div class="profile-avatar" aria-hidden="true">
-                                @if (!string.IsNullOrWhiteSpace(profile.ProfilePhotoStorageKey)
-                                    && !string.IsNullOrWhiteSpace(profile.ProfilePhotoContentType))
+                            <div class="profile-avatar">
+                                @if (!string.IsNullOrWhiteSpace(profile.ProfilePhotoStorageKey))
                                 {
-                                    <img src="@Url.Action("Photo", "Profile", new { id = profile.UserId })" alt="" />
+                                    <img src="@Url.Action("Photo", "Profile", new { id = profile.UserId, v = profile.ProfilePhotoUpdatedAt?.Ticks })"
+                                         alt="@($"{profile.DisplayName}'s profile photo")" />
                                 }
                                 else
                                 {
-                                    @avatarInitials
+                                    <span aria-hidden="true">@avatarInitials</span>
                                 }
                             </div>
                             @if (Model.IsOwnProfile)

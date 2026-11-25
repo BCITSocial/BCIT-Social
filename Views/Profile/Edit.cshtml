@@ -35,10 +35,17 @@
                 </div>
             </div>
 
-            <form asp-action="Edit" asp-route-userid="@Model.UserId" method="post" enctype="multipart/form-data"
-                  class="profile-edit-form">
+            <form asp-action="Edit" asp-route-userid="@Model.UserId" method="post" enctype="multipart/form-data" class="profile-edit-form">
                 <div asp-validation-summary="ModelOnly" class="profile-edit-validation" role="alert"></div>
                 <input type="hidden" asp-for="UserId" />
+
+                <div class="profile-edit-field">
+                    <label for="ProfilePhoto">Profile photo</label>
+                    <input id="ProfilePhoto" name="ProfilePhoto" type="file" accept=".png,.jpg,.jpeg,.webp"
+                           aria-describedby="profile-photo-help profile-photo-error" />
+                    <small id="profile-photo-help" class="profile-edit-help">PNG, JPG or WebP. Maximum 10 MB, at least 300 × 300 pixels. Leave empty to keep your current photo.</small>
+                    @Html.ValidationMessage("ProfilePhoto", null, new { id = "profile-photo-error", role = "alert" })
+                </div>
 
                 <div class="profile-edit-field">
                     <label asp-for="DisplayName"></label>
