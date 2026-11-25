@@ -1,41 +1,6 @@
-/* wwwroot/css/community-details.css */
-:root {
-    --details-bg-page: hsla(45, 25%, 95%, 1);
-    --details-bg-surface: rgb(255, 255, 255);
-    --details-border: hsla(214, 20%, 88%, 1);
-    --banner-bg: rgb(15, 23, 42);
-
-    --text-main: rgb(17, 24, 39);
-    --text-muted: rgb(107, 114, 128);
-    --text-secondary: rgb(75, 85, 99);
-    --text-white: rgb(255, 255, 255);
-
-    --brand-blue: rgb(37, 99, 235);
-    --accent-yellow: rgb(250, 204, 21);
-    --accent-yellow-hover: rgb(234, 179, 8);
-
-    --tag-blue-bg: hsla(217, 91%, 60%, 0.12);
-    --tag-blue-text: rgb(37, 99, 235);
-
-    --radius-md: 10px;
-    --radius-lg: 14px;
-    --radius-pill: 9999px;
-
-    /* Tag & Status Badge Tokens */
-    --tag-default-bg: hsla(217, 91%, 60%, 0.18);
-    --tag-default-text: rgb(29, 78, 216);
-    --tag-status-bg: hsla(124, 74%, 55%, 0.205);
-    --tag-status-text: rgb(68, 146, 56);
-    --tag-time-bg: hsla(38, 92%, 50%, 0.2);
-    --tag-time-text: rgb(180, 83, 9);
-    --radius-sm: 6px;
-}
-
 .details-wrapper {
     width: 100%;
-    background-color: var(--details-bg-page);
     padding: 1.5rem;
-    border-radius: var(--radius-lg);
     color: var(--text-main);
     display: flex;
     flex-direction: column;
@@ -135,11 +100,6 @@
     margin: 0;
 }
 
-.btn-members {
-    gap: 0.4rem;
-    min-height: 2.5rem;
-}
-
 .btn-joined.btn-joined-lg {
     min-height: 2.5rem;
     padding: 0.45rem 1rem;
@@ -196,16 +156,6 @@
 
 
 /* Category, Status & Time Badges */
-.category-badge {
-    background-color: var(--tag-default-bg);
-    color: var(--tag-default-text);
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.2rem 0.55rem;
-    border-radius: var(--radius-sm);
-    display: inline-block;
-}
-
 .category-badge.status-badge {
     background-color: var(--tag-status-bg);
     color: var(--tag-status-text);
@@ -214,30 +164,6 @@
 .category-badge.time-badge {
     background-color: var(--tag-time-bg);
     color: var(--tag-time-text);
-}
-
-.category-badge:empty {
-    display: none;
-}
-
-
-/* Yellow Button */
-.btn-create {
-    background-color: var(--accent-yellow);
-    color: var(--text-main);
-    font-weight: 700;
-    padding: 0.5rem 1.1rem;
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    transition: background-color 0.15s ease;
-}
-
-.btn-create:hover {
-    background-color: var(--accent-yellow-hover);
-    color: var(--text-main);
 }
 
 /* Badges */
@@ -289,15 +215,6 @@
 .section-header-row {
     gap: 1rem;
     margin-bottom: 0.75rem;
-}
-
-.section-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1.05rem;
-    font-weight: 700;
-    margin: 0;
 }
 
 /* Post count chip: white so it shows on the beige page */

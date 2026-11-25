@@ -1,0 +1,19 @@
+@*
+- Partial View: the pop-up shown when "+ Create" is pressed after reaching the community limit.
+- The Create button opens it (community-actions.js).
+- author: jaspreet bath
+*@
+
+@model BCIT_Social.ViewModels.CommunityNoticeText
+
+<dialog id="community-limit-modal" class="community-dialog confirm-dialog" aria-labelledby="community-limit-title"
+        aria-describedby="community-limit-message">
+    <div class="modal-card confirm-card">
+        <h2 id="community-limit-title" class="modal-title">@Model.Title</h2>
+        <p id="community-limit-message" class="modal-subtitle">@Model.Message</p>
+        <div class="modal-footer-actions">
+            <button type="button" class="button button-primary" data-close-modal
+                    data-autofocus>@Model.CloseButton</button>
+        </div>
+    </div>
+</dialog>

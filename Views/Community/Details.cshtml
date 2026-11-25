@@ -19,10 +19,11 @@
 }
 
 <!-- Included communities.css for shared modal styling, badges, and the Joined menu -->
+<link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/community-details.css" asp-append-version="true" />
 
-<div class="details-wrapper">
+<div class="details-wrapper page-panel">
     <!-- Hero Banner: category, community name, and location.
          The image is from settings when choosing the file. -->
     <div class="details-hero-banner @(hasBanner ? "has-image" : "")"
@@ -120,7 +121,7 @@
             else
             {
                 <form asp-action="Join" asp-route-id="@Model.Id" method="post" class="inline-join-form">
-                    <button type="submit" class="btn-create">@meta.JoinButton</button>
+                    <button type="submit" class="button button-primary">@meta.JoinButton</button>
                 </form>
             }
         </div>
@@ -148,7 +149,7 @@
             </h3>
             @if (Model.IsMember)
             {
-                <button type="button" class="btn-create btn-post"
+                <button type="button" class="button button-primary"
                         data-open-modal="community-post-modal">@discussions.PostButton</button>
             }
             else
@@ -198,8 +199,8 @@
 
         @if (Model.Posts.Count > initiallyShown)
         {
-            <button type="button" id="toggle-discussions-btn" class="link-action-btn discussions-toggle"
-                    aria-expanded="false" aria-controls="discussions-list" data-see-all="@discussions.SeeAllText"
+            <button type="button" id="toggle-discussions-btn" class="button-link discussions-toggle" aria-expanded="false"
+                    aria-controls="discussions-list" data-see-all="@discussions.SeeAllText"
                     data-show-less="@discussions.ShowLessText">
                 @discussions.SeeAllText
             </button>

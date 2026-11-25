@@ -15,11 +15,10 @@
 
 <article class="community-card" data-name="@Model.Name" data-topics="@Model.TopicsAttribute"
          data-campus="@Model.Location" data-status="@Model.Status">
+    @* cover image across the top of the card, like the banner on the community's page *@
+    <div class="community-card-cover @(hasBanner ? "has-image" : "")" aria-hidden="true"
+         style="@(hasBanner ? $"background-image: url('{Model.BannerUrl}')" : null)"></div>
     <div class="community-card-top">
-        @* cover image thumbnail, or the community's initials *@
-        <span class="community-card-icon" aria-hidden="true"
-              style="@(hasBanner ? $"background-image: url('{Model.BannerUrl}')" : null)">@(hasBanner ? "" :
-              Model.Initials)</span>
 
             <div class="community-card-main">
                 <h3 class="community-card-title">

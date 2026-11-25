@@ -10,9 +10,10 @@
     ViewData["Title"] = Model.Text.Title;
 }
 
+<link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
 
-<div class="communities-wrapper">
+<div class="communities-wrapper page-panel">
     <div class="form-page-container">
         <div class="modal-card">
             <h1 class="modal-title">@Model.Text.Title</h1>
@@ -28,13 +29,12 @@
 
                 <div class="modal-field">
                     <label for="community-banner-photo">Cover photo</label>
-                    <input id="community-banner-photo" type="file" name="BannerPhoto"
-                           accept=".png,.jpg,.jpeg,.webp" />
+                    <input id="community-banner-photo" type="file" name="BannerPhoto" accept=".png,.jpg,.jpeg,.webp" />
                 </div>
 
                 <div class="modal-footer-actions form-page-actions">
-                    <a asp-action="Index" class="btn-cancel">@Model.Text.CancelButton</a>
-                    <button type="submit" class="btn-create">@Model.Text.SubmitButton</button>
+                    <a asp-action="Index" class="button button-secondary">@Model.Text.CancelButton</a>
+                    <button type="submit" class="button button-primary">@Model.Text.SubmitButton</button>
                 </div>
             </form>
         </div>

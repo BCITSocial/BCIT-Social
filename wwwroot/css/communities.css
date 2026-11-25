@@ -1,79 +1,15 @@
-/* wwwroot/css/communities.css */
-:root {
-  /* Backgrounds */
-  --bg-page: rgb(255, 255, 255);
-  --bg-surface: rgb(255, 255, 255);
-  --bg-subtle: hsla(210, 20%, 96%, 1);
-  --bg-panel: hsla(210, 25%, 98%, 1);
-  --bg-pill-hover: hsla(215, 16%, 90%, 1);
-
-  /* Card Hover Tokens (Adjust hover shade here) */
-  --card-hover-bg: hsla(45, 25%, 97%, 1);
-  --card-hover-shadow: 0 4px 14px hsla(0, 0%, 0%, 0.08);
-  --card-hover-border: hsla(214, 20%, 80%, 1);
-
-  /* Text Colors */
-  --text-primary: rgb(17, 24, 39);
-  --text-secondary: rgb(75, 85, 99);
-  --text-muted: rgb(107, 114, 128);
-  --text-on-brand: rgb(255, 255, 255);
-
-  /* Brand & Buttons */
-  --brand-blue: rgb(37, 99, 235);
-  --brand-blue-hover: rgb(29, 78, 216);
-  --accent-yellow: rgb(250, 204, 21);
-  --accent-yellow-hover: rgb(234, 179, 8);
-  --danger-text: rgba(185, 28, 28, 0.52);
-  --danger-solid: rgb(220, 38, 38);
-  --danger-bg: hsla(0, 84%, 60%, 0.08);
-  --danger-border: hsla(0, 84%, 60%, 0.3);
-
-  /* Tags */
-  --tag-default-bg: hsla(217, 91%, 60%, 0.18);
-  --tag-default-text: rgb(29, 78, 216);
-  --tag-status-bg: hsla(124, 74%, 55%, 0.205);
-  --tag-status-text: rgb(68, 146, 56);
-  --tag-time-bg: hsla(38, 92%, 50%, 0.2);
-  --tag-time-text: rgb(180, 83, 9);
-
-  /* Layout & Borders */
-  --border-color: hsla(214, 20%, 88%, 1);
-  --shadow-card: 0 1px 3px hsla(0, 0%, 0%, 0.06);
-  --shadow-pop: 0 10px 30px hsla(222, 47%, 11%, 0.16);
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-pill: 9999px;
-
-  /* Modal */
-  --modal-overlay-bg: hsla(222, 47%, 11%, 0.55);
-  --cover-box-bg: hsla(214, 32%, 96%, 0.65);
-  --cover-border-dashed: hsla(214, 25%, 82%, 1);
-  --avatar-box-bg: hsla(214, 28%, 90%, 1);
+/* Fixed resize breaking on Communities Page. */
+@media (min-width: 641px) and (max-width: 1200px) {
+  .app-shell:has(> .shell-right):not(:has(> .shell-right > *))>main {
+    grid-row: 1 / span 2;
+  }
 }
 
-/* The Communities pages stay light in every profile theme.
-   Site-wide rules (home.css) read these theme variables, so map them to this palette here. */
-.communities-wrapper,
-.details-wrapper,
-.community-dialog {
-  --color-text: var(--text-primary);
-  --color-muted: var(--text-muted);
-  --color-border: var(--border-color);
-  --color-surface: var(--bg-surface);
-  --color-input: var(--bg-subtle);
-  --color-accent: var(--brand-blue);
-  --color-focus: var(--brand-blue);
-  color: var(--text-primary);
-  color-scheme: light;
-}
 
 /* Page Container: fills all the space right of the side nav */
 .communities-wrapper {
   width: 100%;
-  background-color: var(--bg-page);
   padding: 1.75rem 2rem 2rem;
-  border-radius: var(--radius-lg);
 }
 
 /* Header */
@@ -83,40 +19,6 @@
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1.25rem;
-}
-
-.communities-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.communities-subtitle {
-  font-size: 0.95rem;
-  color: var(--text-muted);
-  margin: 0.25rem 0 0 0;
-}
-
-.btn-create {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.5rem;
-  background-color: var(--accent-yellow);
-  color: var(--text-primary);
-  font-weight: 600;
-  padding: 0.5rem 1.1rem;
-  border: none;
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.btn-create:hover {
-  background-color: var(--accent-yellow-hover);
-  color: var(--text-primary);
 }
 
 /* Search (icon until hovered or focused) & Filter Dropdowns */
@@ -264,7 +166,7 @@
 }
 
 /* Sections: "Your communities" then "Browse communities" */
-.community-section + .community-section {
+.community-section+.community-section {
   margin-top: 2rem;
 }
 
@@ -274,15 +176,6 @@
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 0.85rem;
-}
-
-.community-section-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin: 0;
 }
 
 .section-count {
@@ -302,35 +195,6 @@
   margin: 0.25rem 0 0 0;
 }
 
-/* "See all" / "Show less" */
-.link-action-btn {
-  min-height: 0;
-  background: none;
-  border: none;
-  padding: 0.25rem 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--brand-blue);
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.link-action-btn:hover {
-  text-decoration: underline;
-}
-
-/* Badge colors */
-.category-badge {
-  background-color: var(--tag-default-bg);
-  color: var(--tag-default-text);
-  font-size: 0.72rem;
-  font-weight: 600;
-  line-height: 1.4;
-  padding: 0.12rem 0.5rem;
-  border-radius: var(--radius-sm);
-  display: inline-block;
-}
-
 .status-badge {
   background-color: var(--tag-status-bg);
   color: var(--tag-status-text);
@@ -339,10 +203,6 @@
 .time-badge {
   background-color: var(--tag-time-bg);
   color: var(--tag-time-text);
-}
-
-.category-badge:empty {
-  display: none;
 }
 
 .badge-row {
@@ -429,10 +289,31 @@
   outline-offset: 2px;
 }
 
-/* Row 1: icon | name | Join/Joined. Tags and members run under the name and the button. */
+/* Cover banner across the top of the card: */
+.community-card-cover {
+  position: relative;
+  aspect-ratio: 4 / 1;
+  max-height: 140px;
+  margin: -0.9rem -1rem 0.25rem;
+  border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+  background-color: var(--banner-bg);
+  background-image: linear-gradient(120deg, var(--banner-bg), color-mix(in srgb, var(--banner-bg) 65%, var(--brand-blue)));
+  background-position: center;
+  background-size: cover;
+}
+
+.community-card-cover.has-image::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, hsla(222, 47%, 11%, 0.85) 0%, hsla(222, 47%, 11%, 0.45) 45%, hsla(222, 47%, 11%, 0) 75%);
+}
+
+/* Row 1: name | Join/Joined. Tags and members run under the name and the button. */
 .community-card-top {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   column-gap: 0.75rem;
   row-gap: 0.3rem;
@@ -443,35 +324,19 @@
 }
 
 .community-card-top .community-card-title {
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 1;
   align-self: center;
 }
 
 .community-card-top .card-actions {
-  grid-column: 3;
+  grid-column: 2;
   grid-row: 1;
 }
 
 .community-card-top .badge-row,
 .community-card-top .member-count {
-  grid-column: 2 / -1;
-}
-
-.community-card-icon {
-  grid-column: 1;
-  grid-row: 1 / span 2;
-  display: grid;
-  place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: var(--radius-md);
-  background-color: var(--tag-default-bg);
-  background-position: center;
-  background-size: cover;
-  color: var(--brand-blue);
-  font-size: 0.95rem;
-  font-weight: 700;
+  grid-column: 1 / -1;
 }
 
 .community-card-title {
@@ -575,8 +440,7 @@
 }
 
 .btn-joined svg,
-.action-menu-item svg,
-.btn-members svg {
+.action-menu-item svg {
   flex: none;
   width: 0.95rem;
   height: 0.95rem;
@@ -931,7 +795,7 @@ body:has(.community-dialog[open]) {
   margin-bottom: 0.95rem;
 }
 
-.cover-upload-box + .cover-error + .modal-field {
+.cover-upload-box+.cover-error+.modal-field {
   margin-top: 1.1rem;
 }
 
@@ -975,30 +839,6 @@ body:has(.community-dialog[open]) {
   font-size: 0.8rem;
   color: var(--text-muted);
   margin: 0.5rem 0 1.25rem 0;
-}
-
-.btn-cancel {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.5rem;
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 0.5rem 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-cancel:hover {
-  background-color: var(--bg-subtle);
-  color: var(--text-primary);
-}
-
-a.btn-cancel {
-  text-decoration: none;
 }
 
 /* Live tag preview under form */
@@ -1070,13 +910,13 @@ a.btn-cancel {
   background-color: var(--bg-subtle);
 }
 
-.post-type-choice input:checked + span {
+.post-type-choice input:checked+span {
   background-color: var(--tag-default-bg);
   border-color: var(--brand-blue);
   color: var(--brand-blue);
 }
 
-.post-type-choice input:focus-visible + span {
+.post-type-choice input:focus-visible+span {
   outline: 3px solid var(--brand-blue);
   outline-offset: 2px;
 }
@@ -1125,26 +965,6 @@ a.btn-cancel {
   margin: 0;
   font-size: 0.8rem;
   color: var(--text-secondary);
-}
-
-.btn-danger-outline {
-  display: inline-flex;
-  align-items: center;
-  min-height: 2.25rem;
-  padding: 0.4rem 1rem;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--danger-border);
-  border-radius: var(--radius-md);
-  color: var(--danger-text);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-danger-outline:hover {
-  background-color: var(--danger-solid);
-  border-color: var(--danger-solid);
-  color: var(--text-on-brand);
 }
 
 /* "Are you sure?" pop-up */
@@ -1199,26 +1019,6 @@ a.btn-cancel {
   font-size: 0.875rem;
   color: var(--danger-text);
   font-weight: 500;
-}
-
-.btn-danger-confirm {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.5rem;
-  background-color: var(--danger-solid);
-  color: var(--text-on-brand);
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 0.5rem 1.25rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.btn-danger-confirm:hover {
-  background-color: var(--danger-text);
 }
 
 /* Delete page */
