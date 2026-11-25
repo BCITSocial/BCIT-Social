@@ -3,11 +3,6 @@ Shared base styles for site-wide HTML elements.
 Keep page and component styling in their existing stylesheets.
 */
 
-/*
-Repeated global rules from home.css: universal box sizing, body defaults,
-control typography, and focus-visible styling. site.css also sets html/body
-defaults; differing values are documented below rather than overridden here.
-*/
 *,
 *::before,
 *::after {
@@ -24,8 +19,11 @@ body {
     min-width: 320px;
     margin: 0;
     font-family: var(--font-family, Arial, Helvetica, sans-serif);
+    font-size: var(--font-size-body, 1rem);
+    font-weight: var(--font-weight-normal, 400);
     color: var(--color-text, #172033);
     background-color: var(--color-background, #f5f4ef);
+    background-image: var(--image-page-background, none);
     line-height: var(--line-height-body, 1.5);
 }
 
@@ -74,6 +72,30 @@ table {
 :focus-visible {
     outline: 3px solid var(--color-focus, #245be8);
     outline-offset: 3px;
+}
+
+h1,
+h2,
+h3,
+p {
+    margin: 0;
+}
+
+h1 {
+    font-size: var(--font-size-title, 2rem);
+    font-weight: var(--font-weight-bold, 700);
+    line-height: var(--line-height-heading, 1.3);
+}
+
+h2 {
+    margin-bottom: 16px;
+    font-size: var(--font-size-section, 1rem);
+    font-weight: var(--font-weight-bold, 700);
+    line-height: var(--line-height-heading, 1.3);
+}
+
+p {
+    color: var(--color-muted, #566579);
 }
 
 /*

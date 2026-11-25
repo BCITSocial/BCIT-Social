@@ -29,6 +29,13 @@
     background: var(--color-surface);
 }
 
+.profile-empty {
+    max-width: 720px;
+    margin: 24px auto;
+    padding: 18px;
+    text-align: center;
+}
+
 .profile-cover {
     height: 120px;
     background: linear-gradient(115deg, #eef5ff 0%, #e5ebf2 58%, #dfe5ec 100%);
@@ -491,8 +498,7 @@
     font-size: 0.75rem;
 }
 
-.profile-section-card,
-.profile-empty {
+.profile-section-card {
     padding: 18px;
 }
 
@@ -718,12 +724,6 @@
     gap: 8px;
 }
 
-.profile-empty {
-    max-width: 720px;
-    margin: 24px auto;
-    text-align: center;
-}
-
 .profile-empty p {
     margin: 0 0 16px;
     font-size: 0.875rem;
@@ -778,12 +778,6 @@
     width: 58px;
     height: 58px;
     font-size: 1.25rem;
-}
-
-.profile-edit-section-heading .profile-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
 }
 
 .profile-edit-section-heading h2 {
