@@ -3,8 +3,9 @@
 <button class="profile-button" type="button" popovertarget="profile-menu" aria-label="Account menu">
     @if (!string.IsNullOrWhiteSpace(Model?.ProfilePhotoStorageKey))
     {
-        <img src="@Url.Action("Photo", "Profile", new { id = Model.UserId })" 
-             alt="" />
+        <div class="profile-icon">
+            <img src="@Url.Action("Photo", "Profile", new { id = Model.UserId })" alt="" />
+        </div>
     }
     else
     {
