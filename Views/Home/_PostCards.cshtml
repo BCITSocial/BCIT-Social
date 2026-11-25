@@ -70,7 +70,7 @@
                 </button>
             </div>
 
-            <div class="post-photo-holder">
+            <div id="post-card-photos" class="post-photo-holder">
                 @foreach (PostPhoto photo in post.Photos.OrderBy(photo => photo.DisplayOrder))
                 {
                     <img class="post-photo" src="@Url.Action("Photo", "Post", new { id = photo.Id })"

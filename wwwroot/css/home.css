@@ -1085,17 +1085,26 @@ a.primary-button {
   background: var(--color-surface);
 }
 
+/* Post photos, post-card photos and post-details photos are separated so details has no scroll + no max height */
+
 .post-photo-holder {
   display: flex;
   flex-direction: column;
   margin: 1rem 0rem;
   align-content: center;
+}
+
+#post-card-photos {
   max-height: 625px;
-  /* Scrolling */
   scrollbar-width: thin;
   overflow-y: auto;
   overflow-x: hidden;
   scroll-snap-type: y mandatory;
+}
+
+#details-photo {
+  overflow-y: none;
+  max-height: none;
 }
 
 .post-photo-holder > img {

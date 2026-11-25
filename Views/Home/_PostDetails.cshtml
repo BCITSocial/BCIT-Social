@@ -38,7 +38,7 @@
                 <p>@paragraph</p>
             }
         </div>
-        <div class="post-photo-holder">
+        <div id="details-photos" class="post-photo-holder">
             @foreach (PostPhoto photo in post.Photos.OrderBy(photo => photo.DisplayOrder))
             {
                 <img class="post-details-photo" src="@Url.Action("Photo", "Post", new { id = photo.Id })"
@@ -93,7 +93,7 @@
 
         <div class="comment-box">
             <span class="avatar" aria-hidden="true">@(Model.CurrentUserInitials == "" ? "?" :
-                                            Model.CurrentUserInitials)</span>
+                                                            Model.CurrentUserInitials)</span>
                 @if (signedIn)
                 {
                     <form class="comment-form" method="post" asp-controller="Comment" asp-action="Create"
