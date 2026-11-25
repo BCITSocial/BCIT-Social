@@ -64,7 +64,7 @@ This view renders the user's profile page, including their profile information, 
                             @if (Model.IsOwnProfile)
                             {
                                 <div class="profile-card-button-group">
-                                    <a class="profile-button profile-button-outline"
+                                    <a class="settings-button settings-button-secondary"
                                     asp-controller="Profile"
                                     asp-action="Edit"
                                     asp-route-userid="@profile.UserId">
@@ -73,7 +73,7 @@ This view renders the user's profile page, including their profile information, 
                                         </svg>
                                         Edit profile
                                     </a>
-                                    <a class="profile-button profile-button-outline"
+                                    <a class="settings-button settings-button-secondary"
                                         asp-controller="Profile"
                                         asp-action="Settings">
                                             Settings

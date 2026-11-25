@@ -1337,6 +1337,12 @@
         align-items: flex-start;
     }
 
+    .profile-edit-actions,
+    .profile-card-actions,
+    .profile-card-button-group {
+        flex-wrap: wrap;
+    }
+
     .profile-edit-heading h1 {
         font-size: 1.5rem;
     }
@@ -1414,7 +1420,8 @@
         flex-direction: column;
     }
 
-    .settings-button {
+    .settings-page .settings-button,
+    .delete-page .settings-button {
         width: 100%;
     }
 

@@ -11,7 +11,7 @@
             <h1>Edit profile</h1>
             <p>Update how you introduce yourself to the BCIT community.</p>
         </div>
-        <a class="profile-button profile-button-outline" asp-action="Index">Cancel</a>
+        <a class="settings-button settings-button-secondary" asp-controller="Profile" asp-action="Index">Cancel</a>
     </header>
 
     <section class="profile-edit-card" aria-labelledby="profile-edit-details-heading">
@@ -89,8 +89,8 @@
                 </div>
 
                 <div class="profile-edit-actions">
-                    <a class="profile-button profile-button-outline" asp-action="Index">Cancel</a>
-                    <button class="profile-button profile-button-primary" type="submit">Save changes</button>
+                    <a class="settings-button settings-button-secondary" asp-action="Index">Cancel</a>
+                    <button class="settings-button settings-button-primary" type="submit">Save changes</button>
                 </div>
             </form>
         </div>
