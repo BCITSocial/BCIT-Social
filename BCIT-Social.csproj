@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-BCIT_Social-a8b455de-be60-4b1c-94cd-edf39797e0ff</UserSecretsId>
     <RootNamespace>BCIT_Social</RootNamespace>
+    <DefaultItemExcludes>$(DefaultItemExcludes);tests/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

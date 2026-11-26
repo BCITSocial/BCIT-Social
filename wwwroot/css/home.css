@@ -3,32 +3,12 @@ author: Andre Di Lascio
 Styles the shared Home shell, content panels, navigation, feed, post details, and responsive layout.
 */
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background-color: var(--color-background);
-  background-image: var(--image-page-background);
-  color: var(--color-text);
-  font-family: var(--font-family);
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--line-height-body);
-}
-
 body:has(.post-dialog[open]) {
   overflow: hidden;
 }
 
 a {
   color: var(--color-accent);
-}
-
-button,
-input {
-  font: inherit;
 }
 
 button,
@@ -46,30 +26,6 @@ input:disabled {
 :focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 4px;
-}
-
-h1,
-h2,
-h3,
-p {
-  margin: 0;
-}
-
-h1 {
-  font-size: var(--font-size-title);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-heading);
-}
-
-h2 {
-  font-size: var(--font-size-section);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-heading);
-  margin-bottom: 16px;
-}
-
-p {
-  color: var(--color-muted);
 }
 
 /* Header */
@@ -591,6 +547,12 @@ p {
   background: var(--color-input);
 }
 
+.sidebar-communities [aria-current="page"] {
+    background: var(--color-selected);
+    color: var(--color-accent);
+    font-weight: var(--font-weight-bold);
+}
+
 .sidebar-community-badge {
   display: grid;
   flex: none;
@@ -844,6 +806,7 @@ a.primary-button {
   stroke-linejoin: round;
 }
 
+/* Kept compact so the feed starts higher up. */
 .share-box {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -851,6 +814,17 @@ a.primary-button {
   column-gap: 20px;
   row-gap: 8px;
 }
+
+    .share-box .avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+    }
+
+    .share-box .cta-button {
+        min-height: 36px;
+        padding-block: 6px;
+    }
 
 .share-prompt {
   display: flex;

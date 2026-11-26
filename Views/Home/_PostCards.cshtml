@@ -47,12 +47,9 @@
 
                 @if (post.Tags.Count > 0)
                 {
-                    <ul class="post-tags" aria-label="Tags">
-                        @foreach (var tag in post.Tags)
-                        {
-                            <li>@tag</li>
-                        }
-                    </ul>
+                    <img style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
+                         src="@Url.Action(action: "Photo", "Profile", new { id = post.AuthorId })"
+                         alt="" />
                 }
             </div>
 
