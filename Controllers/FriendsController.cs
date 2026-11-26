@@ -53,7 +53,9 @@ public class FriendsController(ApplicationDbContext db, UserManager<ApplicationU
             {
                 RelationshipId = x.Relationship.Id,
                 UserId = x.OtherId,
-                DisplayName = DisplayNameFor(x.OtherId)
+                DisplayName = DisplayNameFor(x.OtherId),
+                HasPicture = db.Profiles
+                    .Any(profile => profile.UserId == x.OtherId && profile.ProfilePhotoStorageKey != null)
             })
             .OrderBy(x => x.DisplayName)
             .ToList();
@@ -64,6 +66,9 @@ public class FriendsController(ApplicationDbContext db, UserManager<ApplicationU
             .Select(r => new IncomingFriendRequestViewModel
             {
                 Id = r.Id,
+                RequesterId = r.RequesterId,
+                HasPicture = db.Profiles
+                    .Any(profile => profile.UserId == r.RequesterId && profile.ProfilePhotoStorageKey != null),
                 RequesterDisplayName = DisplayNameFor(r.RequesterId),
                 CreatedAt = r.CreatedAt
             })
@@ -76,7 +81,9 @@ public class FriendsController(ApplicationDbContext db, UserManager<ApplicationU
             {
                 RelationshipId = r.Id,
                 UserId = r.RecipientId,
-                DisplayName = DisplayNameFor(r.RecipientId)
+                DisplayName = DisplayNameFor(r.RecipientId),
+                HasPicture = profiles.Any(profile =>
+                    profile.UserId == r.RecipientId && profile.ProfilePhotoStorageKey != null)
             })
             .ToList();
 
@@ -110,6 +117,8 @@ public class FriendsController(ApplicationDbContext db, UserManager<ApplicationU
                 return new FriendSearchResultViewModel
                 {
                     UserId = u.Id,
+                    HasPicture = db.Profiles
+                        .Any(profile => profile.UserId == u.Id && profile.ProfilePhotoStorageKey != null),
                     DisplayName = profile?.DisplayName ?? u.UserName ?? "BCIT member",
                     Email = u.Email ?? "",
                     RelationshipStatus = FriendSearchResultViewModel.GetRelationshipStatus(

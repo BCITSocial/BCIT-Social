@@ -19,6 +19,8 @@ public class CommentViewModel
 
     // Total replies at every depth, for the "View N replies" toggle.
     public int ReplyCount => Replies.Count + Replies.Sum(reply => reply.ReplyCount);
+
+    public bool AuthorHasProfilePicture { get; internal set; }
 }
 /// <summary>
 /// Description: Contains the information displayed on the Post Details page.
@@ -46,4 +48,5 @@ public class PostDetailsViewModel
     public IReadOnlyList<CommentViewModel> Comments { get; init; } = [];
     // Initials for the signed-in user's avatar beside the comment box. Empty when signed out.
     public string CurrentUserInitials { get; init; } = "";
+    public string CurrentUserId { get; init; } = "";
 }
