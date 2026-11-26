@@ -14,6 +14,7 @@ public class HomeController : Controller
     private const int FIRSTPAGESIZE = 20;
     private const int NEXTPAGESIZE = 10;
     private const int YOURCOMMUNITIESSHOWN = 3;
+    private const int UPCOMINGEVENTSSHOWN = 3;
     private const string ALLFILTER = "all";
     private const string FRIENDSFILTER = "friends";
     private const string COMMUNITIESFILTER = "communities";
@@ -80,6 +81,11 @@ public class HomeController : Controller
             })
             .FirstOrDefaultAsync();
 
+        // The "Upcoming events" box is only shown to signed-in users.
+        IReadOnlyList<RailEventViewModel> upcomingEvents = userId is null
+            ? []
+            : await LoadUpcomingEventsAsync(userId);
+
         return View(new HomeViewModel
         {
             Posts = posts,
@@ -97,7 +103,8 @@ public class HomeController : Controller
             CurrentUserProfilePhotoOriginalFileName = currentUserProfilePhoto?.ProfilePhotoOriginalFileName,
             CurrentFilter = filter,
             CurrentTagId = tagId,
-            AvailableTags = availableTags
+            AvailableTags = availableTags,
+            UpcomingEvents = upcomingEvents
         });
     }
 
@@ -346,6 +353,32 @@ public class HomeController : Controller
         }
 
         return topLevel;
+    }
+
+    // The next few events that haven't started yet, soonest first.
+    // EventDate is saved in Vancouver time, the same as on the Events page.
+    private async Task<IReadOnlyList<RailEventViewModel>> LoadUpcomingEventsAsync(string userId)
+    {
+        var now = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "America/Vancouver");
+
+        return await _context.CommunityEvents
+            .AsNoTracking()
+            .Where(communityEvent => communityEvent.DateOfDel == null && communityEvent.EventDate >= now)
+            .OrderBy(communityEvent => communityEvent.EventDate)
+            .Take(UPCOMINGEVENTSSHOWN)
+            .Select(communityEvent => new RailEventViewModel
+            {
+                Id = communityEvent.Id,
+                Title = communityEvent.Title,
+                StartsAt = communityEvent.EventDate,
+                Location = communityEvent.Location,
+                Campus = communityEvent.Campus,
+                GoingCount = _context.EventRsvps.Count(rsvp => rsvp.EventId == communityEvent.Id && rsvp.Going),
+                Rsvp = _context.EventRsvps.Any(rsvp => rsvp.EventId == communityEvent.Id && rsvp.UserId == userId && rsvp.Going)
+                    ? RsvpStatus.Going
+                    : RsvpStatus.None,
+            })
+            .ToListAsync();
     }
 
     private async Task<string> CurrentUserInitialsAsync(string? userId)

@@ -144,7 +144,19 @@ else
                 <h2>Upcoming events</h2>
             </div>
             <section class="discovery-content" id="events-panel">
-                <p class="discovery-empty">No upcoming events to show.</p>
+                @if (Model.UpcomingEvents.Count == 0)
+                {
+                    <p class="discovery-empty">No upcoming events to show.</p>
+                }
+                else
+                {
+                    <ul class="rail-list rail-events discovery-events">
+                        @foreach (var item in Model.UpcomingEvents)
+                        {
+                            <li><partial name="~/Views/Shared/Components/RightRail/_RailEvent.cshtml" model="item" /></li>
+                        }
+                    </ul>
+                }
                 <a class="discovery-link" asp-controller="Events" asp-action="Index">View all events</a>
             </section>
         </aside>

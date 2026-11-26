@@ -28,4 +28,7 @@ public class HomeViewModel
 
     // Tags available in the Home feed filter.
     public IReadOnlyList<TagFilterViewModel> AvailableTags { get; init; } = [];
+
+    // The next few upcoming events for the "Upcoming events" box. Empty when there are none.
+    public IReadOnlyList<RailEventViewModel> UpcomingEvents { get; init; } = [];
 }

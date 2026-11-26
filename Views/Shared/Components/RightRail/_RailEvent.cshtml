@@ -20,7 +20,7 @@
             </time>
         }
         <div class="rail-event-text">
-            <h3><a asp-controller="Events" asp-action="Index">@Model.Title</a></h3>
+            <h3><a asp-controller="Events" asp-action="Details" asp-route-id="@Model.Id">@Model.Title</a></h3>
             @if (where.Length > 0)
             {
                 <p>@where</p>
