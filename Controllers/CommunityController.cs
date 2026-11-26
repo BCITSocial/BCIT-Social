@@ -1303,6 +1303,9 @@ public class CommunityController : Controller
                 Id = post.Id,
                 Title = post.Title,
                 Content = post.Content,
+                AuthorId = post.AuthorId,
+                AuthorHasProfilePhoto = _context.Profiles
+                    .Any(profile => profile.UserId == post.AuthorId && profile.ProfilePhotoStorageKey != null),
                 AuthorName = _context.Profiles
                     .Where(profile => profile.UserId == post.AuthorId)
                     .Select(profile => profile.DisplayName)

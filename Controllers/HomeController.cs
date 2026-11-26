@@ -165,6 +165,7 @@ public class HomeController : Controller
         {
             Post = post,
             Comments = await LoadCommentThreadsAsync(id, postAuthorId),
+            CurrentUserId = userId ?? "",
             CurrentUserInitials = await CurrentUserInitialsAsync(userId),
         };
 
@@ -179,13 +180,9 @@ public class HomeController : Controller
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    [HttpGet("/Error")]
     public IActionResult Error()
     {
-        return View("~/Views/Error/Index.cshtml", new ErrorViewModel
-        {
-            RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
-        });
+        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 
     // Loads one page of the feed, newest first, skipping deleted posts.
@@ -326,6 +323,8 @@ public class HomeController : Controller
                         .FirstOrDefault() ?? (comment.Author != null ? comment.Author.UserName : null) ?? "",
                     AuthorId = comment.AuthorId,
                     IsPostAuthor = comment.AuthorId == postAuthorId,
+                    AuthorHasProfilePicture = _context.Profiles
+                        .Any(profile => profile.UserId == comment.AuthorId && profile.ProfilePhotoStorageKey != null),
                     Content = comment.Content,
                     CreatedAt = comment.CreatedAt,
                 },

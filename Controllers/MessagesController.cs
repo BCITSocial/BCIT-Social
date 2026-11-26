@@ -92,7 +92,11 @@ public class MessagesController : Controller
                 UserId = isGroup ? "" : other?.UserId ?? "",
                 Name = isGroup ? GroupName(others) : other?.Name ?? "Alumni member",
                 Program = isGroup ? $"{others.Count + 1} members" : other?.Program ?? "",
-                PhotoUrl = null,
+                PhotoUrl = isGroup || other is null
+                    || !profiles.TryGetValue(other.UserId, out var otherProfile)
+                    || string.IsNullOrWhiteSpace(otherProfile.ProfilePhotoStorageKey)
+                    ? null
+                    : Url.Action("Photo", "Profile", new { id = other.UserId }),
                 IsGroup = isGroup,
                 Members = others,
                 Messages = messages,

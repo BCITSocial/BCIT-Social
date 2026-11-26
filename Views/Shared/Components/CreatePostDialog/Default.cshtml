@@ -1,7 +1,7 @@
 @model BCIT_Social.ViewModels.CreatePostViewModel
 @*
-The create post modal (Home's Create button only makes posts). Submits the post title, content, and one tag
-(TagId) to PostController.Create. Parts the backend doesn't handle yet are shown disabled: Post to and formatting.
+The create post modal (Home's Create button only makes posts). Submits the post title, content, optional community,
+and one tag (TagId) to PostController.Create.
 create-post.js checks the fields and the chosen photos, shows previews, and sends the form in the background.
 After a post is published the page reloads and shows a short "published" note, so the new post appears in the feed
 as a normal card instead of opening on its own page.
@@ -11,6 +11,7 @@ TODO(BE): with JavaScript off the form is sent normally and PostController.Creat
 <dialog class="create-dialog" id="create-post-dialog" aria-labelledby="create-post-title"
         data-published-text="Your post was published." data-view-post-text="View post" data-dismiss-text="Dismiss"
         data-deleted-text="Your post was deleted.">
+    @* Posts have their own dialog; events are created on the Events page. *@
     <div class="create-dialog-top">
         <div class="create-heading">
             <h2 class="create-title" id="create-post-title">Create post</h2>
@@ -27,12 +28,12 @@ TODO(BE): with JavaScript off the form is sent normally and PostController.Creat
             @* Filled in by create-post.js: the error summary, or why the post couldn't be published. *@
             <p class="form-message" role="alert" data-form-message hidden></p>
 
+            @* An empty selection publishes to the general feed instead of a community. *@
             <div class="create-field">
                 <label for="create-post-to">Post to</label>
-                <select id="create-post-to" disabled>
-                    <option>No community</option>
+                <select id="create-post-to" asp-for="CommunityId" asp-items="Model.Communities">
+                    <option value="">No community</option>
                 </select>
-                <p class="create-help">Posting to a community isn't available yet.</p>
             </div>
 
             @* One field for the post's tag: it used to be split into "Post type" and a separate, unused "Tags" field. *@
@@ -61,17 +62,12 @@ TODO(BE): with JavaScript off the form is sent normally and PostController.Creat
                 <p class="field-error" id="create-post-title-error" hidden></p>
             </div>
 
+            @* Plain text content, limited to 5000 characters by the form and backend. *@
             <div class="create-field">
                 <label for="create-post-content">Content</label>
                 <div class="content-editor">
-                    <textarea id="create-post-content" name="Content" rows="5" placeholder="Share your question, idea, or update..." required
+                    <textarea id="create-post-content" name="Content" rows="5" maxlength="5000" placeholder="Share your question, idea, or update..." required
                               aria-describedby="create-post-content-error" data-error="Write something for your post."></textarea>
-                    <div class="content-toolbar" aria-label="Formatting (not available yet)">
-                        <button type="button" disabled aria-label="Bold"><strong>B</strong></button>
-                        <button type="button" disabled aria-label="Italic"><em>I</em></button>
-                        <button type="button" disabled aria-label="Quote"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg></button>
-                        <button type="button" disabled aria-label="List"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 7h14M5 12h14M5 17h14" /></svg></button>
-                    </div>
                 </div>
                 <p class="field-error" id="create-post-content-error" hidden></p>
             </div>

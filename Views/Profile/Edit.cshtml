@@ -11,7 +11,7 @@
             <h1>Edit profile</h1>
             <p>Update how you introduce yourself to the BCIT community.</p>
         </div>
-        <a class="profile-button profile-button-outline" asp-action="Index">Cancel</a>
+        <a class="settings-button settings-button-secondary" asp-controller="Profile" asp-action="Index">Cancel</a>
     </header>
 
     <section class="profile-edit-card" aria-labelledby="profile-edit-details-heading">
@@ -19,7 +19,15 @@
         <div class="profile-edit-content">
             <div class="profile-edit-section-heading">
                 <div class="profile-avatar" aria-hidden="true">
-                    @(string.IsNullOrWhiteSpace(Model.DisplayName) ? "B" : Model.DisplayName[..1].ToUpperInvariant())
+                    @if (!string.IsNullOrWhiteSpace(Model.ProfilePhotoStorageKey)
+                        && !string.IsNullOrWhiteSpace(Model.ProfilePhotoContentType))
+                    {
+                        <img src="@Url.Action("Photo", "Profile", new { id = Model.UserId })" alt="" />
+                    }
+                    else
+                    {
+                        @(string.IsNullOrWhiteSpace(Model.DisplayName) ? "B" : Model.DisplayName[..1].ToUpperInvariant())
+                    }
                 </div>
                 <div>
                     <h2 id="profile-edit-details-heading">Profile information</h2>
@@ -27,19 +35,27 @@
                 </div>
             </div>
 
-            <form asp-action="Edit" asp-route-userid="@Model.UserId" method="post" class="profile-edit-form">
+            <form asp-action="Edit" asp-route-userid="@Model.UserId" method="post" enctype="multipart/form-data" class="profile-edit-form">
                 <div asp-validation-summary="ModelOnly" class="profile-edit-validation" role="alert"></div>
                 <input type="hidden" asp-for="UserId" />
 
                 <div class="profile-edit-field">
+                    <label for="ProfilePhoto">Profile photo</label>
+                    <input id="ProfilePhoto" name="ProfilePhoto" type="file" accept=".png,.jpg,.jpeg,.webp"
+                           aria-describedby="profile-photo-help profile-photo-error" />
+                    <small id="profile-photo-help" class="profile-edit-help">PNG, JPG or WebP. Maximum 10 MB, at least 300 × 300 pixels. Leave empty to keep your current photo.</small>
+                    @Html.ValidationMessage("ProfilePhoto", null, new { id = "profile-photo-error", role = "alert" })
+                </div>
+
+                <div class="profile-edit-field">
                     <label asp-for="DisplayName"></label>
-                    <input asp-for="DisplayName" autocomplete="name" />
+                    <input asp-for="DisplayName" autocomplete="name" maxlength="50" />
                     <span asp-validation-for="DisplayName"></span>
                 </div>
 
                 <div class="profile-edit-field">
                     <label asp-for="Bio">About me</label>
-                    <textarea asp-for="Bio" rows="4" placeholder="Share a little about yourself..."></textarea>
+                    <textarea asp-for="Bio" rows="4" maxlength="500" placeholder="Share a little about yourself..."></textarea>
                     <span asp-validation-for="Bio"></span>
                 </div>
 
@@ -62,10 +78,19 @@
                         <span asp-validation-for="Campus"></span>
                     </div>
                 </div>
+                <div class="profile-photo-upload">
+                    <div class="profile-photo-upload-copy">
+                        <label for="ProfilePhoto">Change profile picture</label>
+                        <p id="profile-photo-help">Choose a PNG, JPG, or WebP image.</p>
+                    
+                        <input class="profile-photo-upload-input" type="file" id="ProfilePhoto" name="ProfilePhoto"
+                               accept="image/png,image/jpeg,image/webp" aria-describedby="profile-photo-help" />
+                    </div>
+                </div>
 
                 <div class="profile-edit-actions">
-                    <a class="profile-button profile-button-outline" asp-action="Index">Cancel</a>
-                    <button class="profile-button profile-button-primary" type="submit">Save changes</button>
+                    <a class="settings-button settings-button-secondary" asp-action="Index">Cancel</a>
+                    <button class="settings-button settings-button-primary" type="submit">Save changes</button>
                 </div>
             </form>
         </div>

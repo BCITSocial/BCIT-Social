@@ -5,6 +5,8 @@ namespace BCIT_Social.Models;
 // Represents an application user account.
 public class ApplicationUser : IdentityUser
 {
+    public string FirstName { get; set; } = null!;
+    public string LastName { get; set; } = null!;
     // Records when the account was created.
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

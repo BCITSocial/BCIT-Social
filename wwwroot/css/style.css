@@ -3,11 +3,6 @@ Shared base styles for site-wide HTML elements.
 Keep page and component styling in their existing stylesheets.
 */
 
-/*
-Repeated global rules from home.css: universal box sizing, body defaults,
-control typography, and focus-visible styling. site.css also sets html/body
-defaults; differing values are documented below rather than overridden here.
-*/
 *,
 *::before,
 *::after {
@@ -24,8 +19,11 @@ body {
     min-width: 320px;
     margin: 0;
     font-family: var(--font-family, Arial, Helvetica, sans-serif);
+    font-size: var(--font-size-body, 1rem);
+    font-weight: var(--font-weight-normal, 400);
     color: var(--color-text, #172033);
     background-color: var(--color-background, #f5f4ef);
+    background-image: var(--image-page-background, none);
     line-height: var(--line-height-body, 1.5);
 }
 
@@ -76,64 +74,291 @@ table {
     outline-offset: 3px;
 }
 
+h1,
+h2,
+h3,
+p {
+    margin: 0;
+}
+
+h1 {
+    font-size: var(--font-size-title, 2rem);
+    font-weight: var(--font-weight-bold, 700);
+    line-height: var(--line-height-heading, 1.3);
+}
+
+h2 {
+    margin-bottom: 16px;
+    font-size: var(--font-size-section, 1rem);
+    font-weight: var(--font-weight-bold, 700);
+    line-height: var(--line-height-heading, 1.3);
+}
+
+p {
+    color: var(--color-muted, #566579);
+}
+
 /*
-Repeated: the shared category-badge base from communities.css and
-community-details.css. Their status/time variants remain page-specific.
+Shared colours, sizes and shadows.
+
+Sits in body cause root vars don't change. Body is overidable.
 */
+body {
+    /* Backgrounds */
+    --bg-surface: var(--color-surface, rgb(255, 255, 255));
+    --bg-subtle: var(--color-input, hsla(210, 20%, 96%, 1));
+    --bg-panel: var(--color-input, hsla(210, 25%, 98%, 1));
+    --bg-pill-hover: var(--color-selected, hsla(215, 16%, 90%, 1));
+    --details-bg-surface: var(--bg-surface);
+    --banner-bg: rgb(15, 23, 42);
+
+    /* Card hover (adjust the hover shade here) */
+    --card-hover-bg: var(--color-input, hsla(45, 25%, 97%, 1));
+    --card-hover-border: color-mix(in srgb, var(--border-color) 70%, var(--text-muted));
+    --card-hover-shadow: 0 4px 14px hsla(0, 0%, 0%, 0.08);
+
+    /* Text colours */
+    --text-primary: var(--color-text, rgb(17, 24, 39));
+    --text-main: var(--text-primary);
+    --text-secondary: var(--color-muted, rgb(75, 85, 99));
+    --text-muted: var(--color-muted, rgb(107, 114, 128));
+    --text-on-brand: var(--profile-accent-foreground, rgb(255, 255, 255));
+    --text-white: rgb(255, 255, 255);
+
+    /* Brand & buttons */
+    --brand-blue: var(--color-accent, rgb(37, 99, 235));
+    --accent-yellow: var(--color-cta, rgb(250, 204, 21));
+    --accent-yellow-hover: #ffcb45;
+    --accent-yellow-border: #efc24f;
+    --accent-yellow-text: var(--color-cta-text, rgb(17, 24, 39));
+    --danger-text: var(--color-danger, rgb(185, 28, 28));
+    --danger-solid: var(--color-danger, rgb(220, 38, 38));
+    --danger-bg: var(--color-danger-surface, hsla(0, 84%, 60%, 0.08));
+    --danger-border: hsla(0, 84%, 60%, 0.3);
+
+    /* Tags */
+    --tag-default-bg: var(--color-tag-surface, hsla(217, 91%, 60%, 0.18));
+    --tag-default-text: var(--color-tag-text, rgb(29, 78, 216));
+    --tag-status-bg: var(--color-going, hsla(124, 74%, 55%, 0.205));
+    --tag-status-text: var(--color-going-text, rgb(68, 146, 56));
+    --tag-time-bg: var(--color-hosting, hsla(38, 92%, 50%, 0.2));
+    --tag-time-text: var(--color-hosting-text, rgb(180, 83, 9));
+    --tag-blue-bg: var(--color-avatar, hsla(217, 91%, 60%, 0.12));
+    --tag-blue-text: var(--color-avatar-text, rgb(37, 99, 235));
+
+    /* Borders, corners & shadows */
+    --border-color: var(--color-border, hsla(214, 20%, 88%, 1));
+    --details-border: var(--border-color);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-pill: 9999px;
+    --shadow-card: 0 1px 3px hsla(0, 0%, 0%, 0.06);
+    --shadow-pop: 0 10px 30px hsla(222, 47%, 11%, 0.16);
+    --shadow-button: 0 1px 2px hsla(222, 47%, 11%, 0.12);
+    --shadow-button-hover: 0 6px 16px hsla(222, 47%, 11%, 0.18);
+
+    /* Pop-ups */
+    --modal-overlay-bg: hsla(222, 47%, 11%, 0.55);
+    --cover-box-bg: var(--color-input, hsla(214, 32%, 96%, 0.65));
+    --cover-border-dashed: var(--border-color);
+    --avatar-box-bg: var(--color-selected, hsla(214, 28%, 90%, 1));
+}
+
+/* ---------- Text ---------- */
+
+/* Page heading and the line under it, e.g. "Communities" and its subtitle. */
+.page-title {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.page-subtitle {
+    margin: 0.25rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+/* Section heading. A count chip or icon can sit next to the text. */
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+/* ---------- Backgrounds ---------- */
+
+/* Main content.card colour, thin border, rounded corners. */
+.page-panel {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    color: var(--text-primary);
+}
+
+/* ---------- Buttons ----------
+    class="button button-primary"          Create, Post, Publish, Save, Join
+    class="button button-secondary"        Cancel, Back, Members
+    class="button button-danger"           confirming a delete or leave
+    class="button button-danger-outline"   a delete button that shouldn't shout
+    add "button-small"                     "button button-primary button-small"
+    class="button-link"                    "See all" / "Show all"
+*/
+.button {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 40px;
+    padding: 8px 20px;
+    border: 0;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.button[hidden] {
+    display: none;
+}
+
+.button:hover {
+    text-decoration: none;
+}
+
+.button:disabled,
+.button[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Icons inside a button take the text colour. */
+.button svg {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Primary: the yellow main action, same as Home's Create button (.cta-button). */
+.button-primary {
+    background-color: var(--accent-yellow);
+    color: var(--accent-yellow-text);
+}
+
+.button-primary:hover:not(:disabled) {
+    filter: brightness(0.96);
+}
+
+/* Secondary: quiet outline for Cancel / Back. */
+.button-secondary {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+}
+
+.button-secondary:hover:not(:disabled) {
+    background-color: var(--bg-subtle);
+    color: var(--text-primary);
+}
+
+/* Danger: solid red, for the final "yes, delete". */
+.button-danger {
+    background-color: var(--danger-solid);
+    color: var(--bg-surface);
+}
+
+.button-danger:hover:not(:disabled) {
+    filter: brightness(0.96);
+}
+
+/* Danger outline: red text until hovered. */
+.button-danger-outline {
+    border: 1px solid var(--danger-border);
+    background-color: var(--bg-surface);
+    color: var(--danger-text);
+}
+
+.button-danger-outline:hover:not(:disabled) {
+    border-color: var(--danger-solid);
+    background-color: var(--danger-solid);
+    color: var(--bg-surface);
+}
+
+/* home.css greys out every disabled button, so keep each colour when disabled. */
+.button-primary:disabled {
+    color: var(--accent-yellow-text);
+}
+
+.button-secondary:disabled {
+    color: var(--text-primary);
+}
+
+.button-danger:disabled {
+    color: var(--bg-surface);
+}
+
+.button-danger-outline:disabled {
+    color: var(--danger-text);
+}
+
+.button-small {
+    min-height: 32px;
+    padding: 6px 14px;
+    font-size: 0.8125rem;
+}
+
+/* Text-only button in the brand colour. */
+.button-link {
+    min-height: 0;
+    padding: 0.25rem 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    color: var(--brand-blue);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.button-link:hover {
+    text-decoration: underline;
+}
+
+/* ---------- Tags ---------- */
+
+/* Small coloured tag, e.g. a community's category or topic. */
 .category-badge {
     display: inline-block;
     padding: 0.2rem 0.55rem;
-    border-radius: var(--radius-sm, 6px);
-    background-color: var(--tag-default-bg, hsla(217, 91%, 60%, 0.18));
-    color: var(--tag-default-text, rgb(29, 78, 216));
+    border-radius: var(--radius-sm);
+    background-color: var(--tag-default-bg);
+    color: var(--tag-default-text);
     font-size: 0.75rem;
     font-weight: 600;
+    line-height: 1.4;
 }
 
 .category-badge:empty {
     display: none;
-}
-
-/*
-Shared community page surface. Source: communities.css (.communities-wrapper)
-and community-details.css (.details-wrapper). After this rule is adopted,
-remove only their background-color declarations; retain layout, padding,
-spacing, text, and border-radius rules.
-*/
-:root {
-    --color-surface-subtle: var(--color-input, #f3f5f8);
-}
-
-.communities-wrapper,
-.details-wrapper {
-    background-color: var(--color-surface-subtle);
-}
-
-/*
-Shared action-button base from communities.css and community-details.css:
-.btn-create, .btn-join, .btn-cancel, .btn-danger-confirm, and .btn-settings.
-Once this base is adopted, remove their duplicated sizing, typography, radius,
-alignment, and transition declarations. Keep each button's semantic colors,
-borders, and state-specific hover/disabled styles in its component stylesheet.
-*/
-.btn-create,
-.btn-join,
-.btn-cancel,
-.btn-danger-confirm,
-.btn-settings {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 40px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font: inherit;
-    font-size: 0.875rem;
-    font-weight: 600;
-    line-height: 1.2;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 /*

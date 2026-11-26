@@ -9,12 +9,12 @@ Styles the Messages page: conversation list, chat header, message bubbles, and c
 .msg-panel .icon { flex: none; width: 1.125rem; height: 1.125rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Avatars: photo or initials, in three sizes. The green dot sits on the bottom-right edge. */
-.msg-avatar { position: relative; display: grid; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--color-avatar); color: var(--color-avatar-text); font-size: 0.875rem; font-weight: var(--font-weight-bold); }
-.msg-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.msg-avatar { position: relative; display: grid; flex: none; place-items: center; width: 40px; height: 40px; overflow: hidden; border-radius: 50%; background: var(--color-avatar); color: var(--color-avatar-text); font-size: 0.875rem; font-weight: var(--font-weight-bold); }
+.msg-avatar img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
 .msg-avatar.is-small { width: 32px; height: 32px; font-size: 0.75rem; }
 .msg-avatar.is-medium { width: 44px; height: 44px; }
 .msg-avatar.is-large { width: 48px; height: 48px; font-size: 1rem; }
-.msg-online-dot { position: absolute; right: -1px; bottom: -1px; width: 14px; height: 14px; border: 2px solid var(--color-surface); border-radius: 50%; background: var(--color-online); }
+.msg-online-dot { position: absolute; z-index: 1; right: 0; bottom: 0; width: 14px; height: 14px; border: 2px solid var(--color-surface); border-radius: 50%; background: var(--color-online); }
 
 /* Conversation list */
 .msg-list-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 12px; }

@@ -20,6 +20,8 @@ public class EditPostViewModel
 	public int TagId { get; set; }
 
 	[Required]
+	// Keep the same content limit when editing an existing post.
+	[StringLength(5000)]
 	public string Content { get; set; } = null!;
 
 	public List<SelectListItem> PostTypes { get; set; } = new();

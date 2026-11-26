@@ -1,7 +1,6 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-//library for image resolution and format checking
-using SixLabors.ImageSharp;
+using SkiaSharp;
 
 namespace BCIT_Social.Services;
 
@@ -84,39 +83,7 @@ public class UploadService
 
         stream.Position = 0;
 
-        ImageInfo? imageInfo;
-        try
-        {
-            imageInfo = await Image.IdentifyAsync(stream, cancellationToken);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            throw new ArgumentException("The uploaded file is not a valid image.", nameof(file), exception);
-        }
-
-        if (imageInfo is null)
-        {
-            throw new ArgumentException("The uploaded file is not a valid image.", nameof(file));
-        }
-
-        var detectedFormat = imageInfo.Metadata.DecodedImageFormat;
-        var detectedExtensions = detectedFormat?.FileExtensions
-            .Select(formatExtension => formatExtension.ToLowerInvariant());
-        if (detectedFormat is null ||
-            detectedExtensions is null ||
-            !detectedExtensions.Contains(extension.TrimStart('.')))
-        {
-            throw new ArgumentException("The file extension does not match the image content.", nameof(file));
-        }
-
-        var minimumDimensions = GetMinimumImageDimensions(purpose);
-        if (imageInfo.Width < minimumDimensions.Width || imageInfo.Height < minimumDimensions.Height)
-        {
-            throw new ArgumentException(
-                $"Image must be at least {minimumDimensions.Width}x{minimumDimensions.Height} pixels.", nameof(file));
-        }
-
-        var contentType = detectedFormat.DefaultMimeType;
+        var contentType = ValidateImage(stream, extension, purpose, cancellationToken);
 
         stream.Position = 0;
 
@@ -137,6 +104,44 @@ public class UploadService
             originalFileName,
             contentType,
             file.Length);
+    }
+
+    private static string ValidateImage(
+        Stream stream,
+        string extension,
+        string purpose,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Inspect metadata without decoding pixels or closing the stream used by Blob Storage.
+        using var managedStream = new SKManagedStream(stream, disposeManagedStream: false);
+        using var codec = SKCodec.Create(managedStream);
+        if (codec is null)
+        {
+            throw new ArgumentException("The uploaded file is not a valid image.", "file");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var contentType = codec.EncodedFormat switch
+        {
+            SKEncodedImageFormat.Png when extension == ".png" => "image/png",
+            SKEncodedImageFormat.Jpeg when extension is ".jpg" or ".jpeg" => "image/jpeg",
+            SKEncodedImageFormat.Webp when extension == ".webp" => "image/webp",
+            SKEncodedImageFormat.Gif when extension == ".gif" => "image/gif",
+            _ => throw new ArgumentException("The file extension does not match the image content.", "file")
+        };
+
+        var minimumDimensions = GetMinimumImageDimensions(purpose);
+        var imageInfo = codec.Info;
+        if (imageInfo.Width < minimumDimensions.Width || imageInfo.Height < minimumDimensions.Height)
+        {
+            throw new ArgumentException(
+                $"Image must be at least {minimumDimensions.Width}x{minimumDimensions.Height} pixels.", "file");
+        }
+
+        return contentType;
     }
 
     // Delete: uploaded blob

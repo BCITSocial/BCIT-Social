@@ -11,9 +11,12 @@ namespace BCIT_Social.ViewModels;
 public class ProfileViewModel
 {
 
+    // Profile text limits used when creating or editing a profile.
     [Required]
+    [StringLength(50)]
     public string DisplayName { get; set; } = null!;
 
+    [StringLength(500)]
     public string Bio { get; set; } = null!;
 
 

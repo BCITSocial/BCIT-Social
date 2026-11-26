@@ -4,10 +4,10 @@
 //
 // There is no site-wide search endpoint yet, so each group uses what already exists:
 // - Posts: the newest posts on the home feed ("/"), loaded once and filtered here.
-// - Events: sample events below, because events are still a mockup.
+// - Events: database-backed cards on the Events page ("/Events"), loaded once and filtered here.
 // - Communities: the cards on the Communities page ("/Community"), loaded once and filtered here.
 // - People: /Messages/FindUsers (signed-in users only).
-// TODO(BE): replace the Posts, Events and Communities sources with real search endpoints.
+// TODO(BE): replace the Posts, Events and Communities page sources with dedicated search endpoints.
 (() => {
     const root = document.querySelector("[data-header-search]");
     if (!root) return;
@@ -19,21 +19,6 @@
     const MAX_PER_GROUP = 4;
     const MIN_PEOPLE_QUERY = 2; // FindUsers ignores shorter queries.
     const PEOPLE_DELAY_MS = 200;
-
-    // TODO(BE): sample events until events come from the database.
-    const SAMPLE_EVENTS = [
-        { title: "Hackathon Kickoff Night", host: "BCIT Computing Society", when: "Fri, 6:00 PM", campus: "Burnaby" },
-        { title: "Resume Review Drop-in", host: "Career Services", when: "Tue, 12:30 PM", campus: "Downtown" },
-        { title: "Intramural Volleyball", host: "BCIT Rec Club", when: "Wed, 7:00 PM", campus: "Burnaby" },
-        { title: "Study Jam: Final Exams", host: "CST Study Group", when: "Mon, 4:00 PM", campus: "Burnaby" },
-        { title: "Board Games Social", host: "Tabletop Club", when: "Thu, 5:30 PM", campus: "Downtown" },
-        { title: "Industry Night: Tech Careers", host: "BCIT Alumni", when: "Sat, 6:30 PM", campus: "Downtown" },
-    ].map(event => ({
-        title: event.title,
-        meta: `${event.host} · ${event.when} · ${event.campus}`,
-        href: `/Events?q=${encodeURIComponent(event.title)}`,
-        fields: { title: event.title, tags: `${event.host} ${event.campus}` },
-    }));
 
     const groups = [
         { key: "posts", label: "Posts" },
@@ -51,9 +36,15 @@
     const pageLoaders = {};
     function loadFromPage(url, parse) {
         pageLoaders[url] ??= fetch(url, { credentials: "same-origin" })
-            .then(response => (response.ok ? response.text() : ""))
+            .then(response => {
+                if (!response.ok) throw new Error(`Could not load ${url}`);
+                return response.text();
+            })
             .then(html => parse(new DOMParser().parseFromString(html, "text/html")))
-            .catch(() => []);
+            .catch(() => {
+                delete pageLoaders[url]; // Let the next search retry a temporary failure.
+                return [];
+            });
         return pageLoaders[url];
     }
 
@@ -72,6 +63,28 @@
                 href: `/Home/Post/${card.dataset.postId}`,
                 fields: { title, tags, body: content },
             };
+        }));
+
+    const loadEvents = () => loadFromPage("/Events", doc =>
+        [...doc.querySelectorAll(".event-card")].flatMap(card => {
+            const link = card.querySelector(".event-title a");
+            const href = link?.getAttribute("href");
+            if (!href) return [];
+            const title = clean(link.textContent);
+            const host = clean(card.querySelector(".event-host dd")?.textContent);
+            const where = clean(card.querySelector(".event-where dd")?.textContent);
+            const date = clean(card.querySelector(".event-date")?.textContent);
+            const time = clean(card.querySelector(".event-time dd")?.textContent);
+            return [{
+                title,
+                meta: [host, date, time, where].filter(Boolean).join(" · "),
+                href,
+                fields: {
+                    title,
+                    tags: `${host} ${where}`,
+                    body: clean(card.querySelector(".event-description")?.textContent),
+                },
+            }];
         }));
 
     const loadCommunities = () => loadFromPage("/Community", doc => {
@@ -263,6 +276,7 @@
     }
 
     function render(queryWords, results, { loading = false } = {}) {
+        const selectedHref = options()[activeIndex]?.getAttribute("href");
         panel.replaceChildren();
         let count = 0;
         for (const group of groups) {
@@ -290,7 +304,7 @@
             empty.textContent = loading ? "Searching..." : `No results for "${clean(input.value)}"`;
             panel.append(empty);
         }
-        setActive(-1);
+        setActive(selectedHref ? options().findIndex(item => item.getAttribute("href") === selectedHref) : -1);
         open();
     }
 
@@ -302,7 +316,10 @@
     function setActive(index) {
         const items = options();
         activeIndex = items.length === 0 ? -1 : Math.max(-1, Math.min(index, items.length - 1));
-        items.forEach((item, i) => item.classList.toggle("is-active", i === activeIndex));
+        items.forEach((item, i) => {
+            item.classList.toggle("is-active", i === activeIndex);
+            item.setAttribute("aria-selected", String(i === activeIndex));
+        });
         const active = items[activeIndex];
         if (active) {
             input.setAttribute("aria-activedescendant", active.id);
@@ -318,6 +335,9 @@
     }
 
     function close() {
+        ++version; // Pending responses must not reopen a dismissed dropdown.
+        clearTimeout(peopleTimer);
+        peopleRequest?.abort();
         panel.hidden = true;
         input.setAttribute("aria-expanded", "false");
         setActive(-1);
@@ -340,12 +360,13 @@
             return;
         }
 
-        const [posts, communities] = await Promise.all([loadPosts(), loadCommunities()]);
+        render(queryWords, {}, { loading: true });
+        const [posts, events, communities] = await Promise.all([loadPosts(), loadEvents(), loadCommunities()]);
         if (current !== version) return;
 
         const results = {
             posts: rank(posts, queryWords),
-            events: rank(SAMPLE_EVENTS, queryWords),
+            events: rank(events, queryWords),
             communities: rank(communities, queryWords),
             people: [],
         };
@@ -359,7 +380,7 @@
             try {
                 results.people = rank(await searchPeople(queryWords, peopleRequest.signal), queryWords);
             } catch {
-                return; // Aborted by newer typing, or the request failed: keep the other groups.
+                // Keep the other groups, but finish the loading state on a failed request.
             }
             if (current === version) render(queryWords, results);
         }, PEOPLE_DELAY_MS);
@@ -369,6 +390,7 @@
     input.addEventListener("focus", () => {
         // Start loading the page data early so the first results appear quickly.
         loadPosts();
+        loadEvents();
         loadCommunities();
         if (clean(input.value)) search();
     });
@@ -381,7 +403,8 @@
             else setActive(activeIndex + 1 >= items.length ? 0 : activeIndex + 1);
         } else if (event.key === "ArrowUp") {
             event.preventDefault();
-            setActive(activeIndex <= 0 ? items.length - 1 : activeIndex - 1);
+            if (panel.hidden && clean(input.value)) search();
+            else setActive(activeIndex <= 0 ? items.length - 1 : activeIndex - 1);
         } else if (event.key === "Enter") {
             const target = items[activeIndex] ?? items[0];
             if (target && !panel.hidden) {

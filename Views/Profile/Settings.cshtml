@@ -38,7 +38,7 @@
 
                 <div class="settings-field">
                     <label asp-for="DisplayName">Display name</label>
-                    <input asp-for="DisplayName" autocomplete="name" required />
+                    <input asp-for="DisplayName" autocomplete="name" maxlength="50" required />
                     <span asp-validation-for="DisplayName"></span>
                 </div>
 

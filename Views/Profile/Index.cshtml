@@ -50,11 +50,21 @@ This view renders the user's profile page, including their profile information, 
                     <div class="profile-cover" aria-hidden="true"></div>
                     <div class="profile-card-content">
                         <div class="profile-card-actions">
-                            <div class="profile-avatar" aria-hidden="true">@avatarInitials</div>
+                            <div class="profile-avatar">
+                                @if (!string.IsNullOrWhiteSpace(profile.ProfilePhotoStorageKey))
+                                {
+                                    <img src="@Url.Action("Photo", "Profile", new { id = profile.UserId, v = profile.ProfilePhotoUpdatedAt?.Ticks })"
+                                         alt="@($"{profile.DisplayName}'s profile photo")" />
+                                }
+                                else
+                                {
+                                    <span aria-hidden="true">@avatarInitials</span>
+                                }
+                            </div>
                             @if (Model.IsOwnProfile)
                             {
                                 <div class="profile-card-button-group">
-                                    <a class="profile-button profile-button-outline"
+                                    <a class="settings-button settings-button-secondary"
                                     asp-controller="Profile"
                                     asp-action="Edit"
                                     asp-route-userid="@profile.UserId">
@@ -63,7 +73,7 @@ This view renders the user's profile page, including their profile information, 
                                         </svg>
                                         Edit profile
                                     </a>
-                                    <a class="profile-button profile-button-outline"
+                                    <a class="settings-button settings-button-secondary"
                                         asp-controller="Profile"
                                         asp-action="Settings">
                                             Settings
@@ -72,38 +82,42 @@ This view renders the user's profile page, including their profile information, 
                             }
                             else if (Model.CanSendFriendRequest)
                             {
-                                @if (TempData["FriendRequestMessage"] is string friendRequestMessage)
-                                {
-                                    <span class="profile-friend-inline-status" role="status">@friendRequestMessage</span>
-                                }
-                                else if (Model.FriendRelationshipStatus == "Accepted")
-                                {
-                                    <span class="profile-button profile-button-outline" aria-label="You are friends">Friends</span>
-                                }
-                                else if (Model.FriendRelationshipStatus == "PendingSent")
-                                {
-                                    <span class="profile-button profile-button-outline" aria-label="Friend request pending">Request sent</span>
-                                }
-                                else if (Model.FriendRelationshipStatus == "PendingReceived")
-                                {
-                                    <span class="profile-friend-inline-status">They sent you a request. Respond from your profile.</span>
-                                }
-                                else
-                                {
-                                    <form asp-action="AddFriend" method="post">
-                                        <input type="hidden" name="userId" value="@profile.UserId" />
-                                        <button class="profile-button profile-button-primary" type="submit">Add friend</button>
+                                <div class="profile-card-button-group">
+                                    @if (TempData["FriendRequestMessage"] is string friendRequestMessage)
+                                    {
+                                        <span class="profile-friend-inline-status" role="status">@friendRequestMessage</span>
+                                    }
+                                    else if (Model.FriendRelationshipStatus == "Accepted")
+                                    {
+                                        <span class="profile-button profile-button-outline" aria-label="You are friends">Friends</span>
+                                    }
+                                    else if (Model.FriendRelationshipStatus == "PendingSent")
+                                    {
+                                        <span class="profile-button profile-button-outline" aria-label="Friend request pending">Request sent</span>
+                                    }
+                                    else if (Model.FriendRelationshipStatus == "PendingReceived")
+                                    {
+                                        <span class="profile-friend-inline-status">They sent you a request. Respond from your profile.</span>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="AddFriend" method="post">
+                                            <input type="hidden" name="userId" value="@profile.UserId" />
+                                            <button class="profile-button profile-button-primary" type="submit">Add friend</button>
+                                        </form>
+                                    }
+                                    <form asp-controller="Messages" asp-action="StartConversation" method="post">
+                                        <input type="hidden" name="recipientId" value="@profile.UserId" />
+                                        <button class="settings-button settings-button-secondary" type="submit"
+                                                aria-label="Message @profile.DisplayName">
+                                            Message
+                                        </button>
                                     </form>
-                                }
+                                </div>
                             }
                         </div>
 
                         <h1 id="profile-heading" class="profile-name">@profile.DisplayName</h1>
-                        @if (!string.IsNullOrWhiteSpace(Model.Email))
-                        {
-                            <span class="profile-email">@Model.Email</span>
-                        }
-
                         <div class="profile-tags" aria-label="Profile information">
                             @if (!string.IsNullOrWhiteSpace(profile.Program))
                             {
@@ -121,7 +135,7 @@ This view renders the user's profile page, including their profile information, 
                                 : profile.Bio)
                         </p>
 
-                        <div class="profile-stats" aria-label="Profile activity">
+                        <div class="profile-stats">
                             <span><strong>@Model.Posts.Count</strong> Posts</span>
                             <span><strong>@Model.Communities.Count</strong> Communities</span>
                             @if (Model.IsOwnProfile)
