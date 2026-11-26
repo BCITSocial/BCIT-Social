@@ -101,10 +101,10 @@
 }
 
 .btn-joined.btn-joined-lg {
-    min-height: 2.5rem;
-    padding: 0.45rem 1rem;
-    font-size: 0.85rem;
-    border-radius: var(--radius-md);
+    min-height: 40px;
+    padding: 0 1rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
 }
 
 .community-icon-box {
@@ -133,25 +133,37 @@
     color: var(--text-muted);
 }
 
+/* Members button: same look as the shared Cancel-style button (.button-secondary in style.css). */
 .btn-settings {
     display: inline-flex;
     align-items: center;
-    padding: 0.45rem 0.95rem;
-    border-radius: var(--radius-md);
+    gap: 0.45rem;
+    min-height: 40px;
+    padding: 0 1rem;
+    border-radius: 6px;
     background-color: var(--details-bg-surface);
     border: 1px solid var(--details-border);
     color: var(--text-main);
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: 0.875rem;
+    white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    transition: background-color 0.15s ease;
 }
 
 .btn-settings:hover {
-    background-color: var(--details-bg-surface);
-    border-color: var(--brand-blue);
-    color: var(--brand-blue);
+    background-color: var(--bg-subtle);
+}
+
+.btn-members svg {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 
@@ -190,12 +202,13 @@
 .tab-link {
     background: none;
     border: none;
-    padding: 0.5rem 0.25rem;
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--brand-blue);
     cursor: default;
     border-bottom: 2px solid var(--brand-blue);
+    margin-bottom: -1px;
+    padding: 0.5rem 0.25rem;
 }
 
 /* 4. Discussions Layout */
@@ -215,6 +228,10 @@
 .section-header-row {
     gap: 1rem;
     margin-bottom: 0.75rem;
+}
+
+.about-heading {
+    margin-bottom: 0.4rem;
 }
 
 /* Post count chip: white so it shows on the beige page */
@@ -248,6 +265,26 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+}
+
+/* Post author's photo, or their initials when there's no photo. The photo's inline style copies the
+   card's corners (border-radius: inherit), so !important is what keeps it round. */
+.discussion-card>.post-avatar,
+.discussion-card>span[aria-hidden="true"] {
+    display: block;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50% !important;
+}
+
+.discussion-card>span[aria-hidden="true"] {
+    display: grid;
+    place-items: center;
+    background-color: var(--tag-blue-bg);
+    color: var(--brand-blue);
+    font-size: 0.8rem;
+    font-weight: 700;
 }
 
 .discussion-card {
@@ -427,6 +464,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     .members-dialog,
     .members-dialog::backdrop {
         transition-duration: 0.1s;
@@ -524,7 +562,7 @@
     transition: background-color 0.15s ease;
 }
 
-.member-row + .member-row {
+.member-row+.member-row {
     border-top: 1px solid var(--color-border);
 }
 
@@ -682,6 +720,7 @@ a.member-name:hover {
 }
 
 @media (pointer: coarse) {
+
     .member-action-btn,
     .members-close-btn {
         min-block-size: 2.75rem;
@@ -690,6 +729,7 @@ a.member-name:hover {
 }
 
 @media (forced-colors: active) {
+
     .members-dialog,
     .members-dialog .category-badge,
     .member-avatar {
@@ -716,14 +756,15 @@ a.member-name:hover {
 }
 
 /* In the shared page shell the wrapper lines up with the column edges, like Events and Communities. */
-main > .details-wrapper {
-    padding: 0;
+main>.details-wrapper {
+    padding: 1.5rem;
 }
 
 /* Phone layout: tighter padding, the banner's accent box drops out, and the header actions wrap below. */
 @media (max-width: 640px) {
-    main > .details-wrapper {
+    main>.details-wrapper {
         gap: 0.9rem;
+        padding: 1rem;
     }
 
     .details-hero-banner {
