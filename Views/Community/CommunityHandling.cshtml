@@ -1,46 +1,69 @@
 @model BCIT_Social.ViewModels.CommunityHandlingViewModel
 
 @{
-    ViewData["Title"] = "Leave";
+    ViewData["Title"] = "Manage Communities";
 }
 
-<h1>@ViewData["Title"]</h1>
+<div class="page-panel m-4 p-4">
+    <header class="mb-4">
+        <h1 class="page-title">Manage your communities</h1>
+        <p class="page-subtitle">
+            Delete communities you own or transfer ownership to another member.
+        </p>
+    </header>
 
-<h3>Delete or Transfer Ownership of the Communites you Own</h3>
-
-<div>
-    
-    @foreach (var community in Model.Communities)
-    {
-        <hr />
-        <h4>@community.Name</h4>
-        @if (community.Members.Count == 1)
+    <div class="d-flex flex-column gap-3">
+        @foreach (var community in Model.Communities)
         {
-            <p>This Community has no Members.</p>
-            <form asp-action="LeaveCreatorSolo" asp-route-id="@community.Id" asp-route-returnToHandling="true">
-                <input type="submit" value="Delete" class="btn btn-primary" />
-            </form>
-        }
-        else
-        {
-            <form asp-controller="Community" asp-action="LeaveCreatorMultiFromDeletionPage" asp-route-id="@community.Id" method="post">
-                @Html.AntiForgeryToken()
-                <select name="CreatorId">
-                    @foreach (var member in community.Members)
-                    {
-                        if (member.UserId != community.CreatorId)
-                        {
-                            <option value="@member.UserId">
-                                @member.User.UserName
-                            </option>
-                        }
-                    }
-                </select>
+            var headingId = $"community-{community.Id}-heading";
 
-                <input type="submit" value="Assign" class="btn btn-primary" />
-            </form>
-            <a asp-action="Delete" asp-route-id="@community.Id" asp-route-returnToHandling="true">Or Delete the Community</a>
+            <section class="border rounded p-3" aria-labelledby="@headingId">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                    <h2 id="@headingId" class="section-title">@community.Name</h2>
+                    <span class="category-badge">
+                        @(community.Members.Count == 1 ? "Only you" : $"{community.Members.Count} members")
+                    </span>
+                </div>
+
+                @if (community.Members.Count == 1)
+                {
+                    <p class="mb-3">This community has no other members. Deleting it cannot be undone.</p>
+                    <form asp-action="LeaveCreatorSolo" asp-route-id="@community.Id"
+                          asp-route-returnToHandling="true" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="button button-danger">Delete community</button>
+                    </form>
+                }
+                else
+                {
+                    <form asp-controller="Community" asp-action="LeaveCreatorMultiFromDeletionPage"
+                          asp-route-id="@community.Id" method="post"
+                          class="row align-items-end g-3">
+                        @Html.AntiForgeryToken()
+                        <div class="col-12 col-md">
+                            <label for="creator-@community.Id" class="form-label">Transfer ownership to</label>
+                            <select id="creator-@community.Id" name="CreatorId" class="form-select">
+                                @foreach (var member in community.Members)
+                                {
+                                    if (member.UserId != community.CreatorId)
+                                    {
+                                        <option value="@member.UserId">@member.User.UserName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-auto">
+                            <button type="submit" class="button button-primary w-100">Assign owner</button>
+                        </div>
+                    </form>
+
+                    <div class="mt-3 pt-3 border-top">
+                        <a asp-action="Delete" asp-route-id="@community.Id"
+                           asp-route-returnToHandling="true"
+                           class="button button-danger-outline">Delete community instead</a>
+                    </div>
+                }
+            </section>
         }
-        <br>
-    }
+    </div>
 </div>
