@@ -105,34 +105,34 @@
 
         <div class="comment-box">
             <div class="post-avatar" aria-hidden="true" asp-controller="Profile" asp-action="Details">
-            @if (!Model.CurrentUserId.IsNullOrEmpty())
-            {
-                <img class="post-avatar" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
-                     src="@Url.Action(action: "Photo", "Profile", new { id = Model.CurrentUserId })"
-                     alt="@($"{@Model.CurrentUserId}'s profile photo")" />
-            }
-            else
-            {
-                 <span class="avatar" aria-hidden="true">@(Model.CurrentUserInitials == "" ? "?" :
-                    Model.CurrentUserInitials)</span>            
-            }
-            </div>
-            @if (signedIn)
-            {
-                <form class="comment-form" method="post" asp-controller="Comment" asp-action="Create"
-                        asp-route-returnUrl="@returnUrl">
-                    <input type="hidden" name="postId" value="@post.Id" />
-                    <label class="visually-hidden" for="new-comment-@post.Id">Write a comment</label>
-                    <input class="comment-input" id="new-comment-@post.Id" name="content" placeholder="Write a comment..."
-                            autocomplete="off" required />
-                    <button class="cta-button" type="submit">Comment</button>
-                </form>
-            }
-            else
-            {
-                <a class="comment-input comment-login" asp-area="Identity" asp-page="/Account/Login"
-                    asp-route-returnUrl="@returnUrl">Log in to write a comment...</a>
-            }
+                @if (!Model.CurrentUserId.IsNullOrEmpty())
+                {
+                    <img class="post-avatar" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
+                         src="@Url.Action(action: "Photo", "Profile", new { id = Model.CurrentUserId })"
+                         alt="@($"{@Model.CurrentUserId}'s profile photo")" />
+                }
+                else
+                {
+                    <span class="avatar" aria-hidden="true">@(Model.CurrentUserInitials == "" ? "?" :
+                                                                    Model.CurrentUserInitials)</span>
+                    }
+                </div>
+                @if (signedIn)
+                {
+                    <form class="comment-form" method="post" asp-controller="Comment" asp-action="Create"
+                          asp-route-returnUrl="@returnUrl">
+                        <input type="hidden" name="postId" value="@post.Id" />
+                        <label class="visually-hidden" for="new-comment-@post.Id">Write a comment</label>
+                        <input class="comment-input" id="new-comment-@post.Id" name="content" placeholder="Write a comment..."
+                               autocomplete="off" maxlength="1000" required />
+                        <button class="cta-button" type="submit">Comment</button>
+                    </form>
+                }
+                else
+                {
+                    <a class="comment-input comment-login" asp-area="Identity" asp-page="/Account/Login"
+                       asp-route-returnUrl="@returnUrl">Log in to write a comment...</a>
+                }
             </div>
 
             @if (Model.Comments.Count == 0)
@@ -149,3 +149,5 @@
                 </ul>
             }
         </section>
+
+        <partial name="_BlankCommentDialog" />
