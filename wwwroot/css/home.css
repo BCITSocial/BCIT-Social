@@ -280,7 +280,7 @@ input:disabled {
   stroke-linejoin: round;
 }
 
-.profile-button {
+.profile-button-icon {
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -290,7 +290,7 @@ input:disabled {
   animation-timing-function: ease-in-out;
 }
 
-.profile-button:hover {
+.profile-button-icon:hover {
   background: var(--color-border);
   transform: scale(105%);
   filter: brightness(103%);
@@ -547,6 +547,12 @@ input:disabled {
   background: var(--color-input);
 }
 
+.sidebar-communities [aria-current="page"] {
+    background: var(--color-selected);
+    color: var(--color-accent);
+    font-weight: var(--font-weight-bold);
+}
+
 .sidebar-community-badge {
   display: grid;
   flex: none;
@@ -800,6 +806,7 @@ a.primary-button {
   stroke-linejoin: round;
 }
 
+/* Kept compact so the feed starts higher up. */
 .share-box {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -807,6 +814,17 @@ a.primary-button {
   column-gap: 20px;
   row-gap: 8px;
 }
+
+    .share-box .avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+    }
+
+    .share-box .cta-button {
+        min-height: 36px;
+        padding-block: 6px;
+    }
 
 .share-prompt {
   display: flex;
@@ -910,7 +928,7 @@ a.primary-button {
   align-items: start;
 }
 
-.home-feed-layout>.home-section {
+.home-feed-layout > .home-section {
   min-width: 0;
 }
 
@@ -1039,6 +1057,41 @@ a.primary-button {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-surface);
+}
+
+/* Post photos, post-card photos and post-details photos are separated so details has no scroll + no max height */
+
+.post-photo-holder {
+  display: flex;
+  flex-direction: column;
+  margin: 1rem 0rem;
+  align-content: center;
+}
+
+#post-card-photos {
+  max-height: 625px;
+  scrollbar-width: thin;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+}
+
+#details-photo {
+  overflow-y: none;
+  max-height: none;
+}
+
+.post-photo-holder > img {
+  max-width: 100%;
+  margin: 2px auto;
+  filter: drop-shadow(0rem 0rem 0.2rem rgba(0, 0, 0, 0.1));
+  scroll-snap-align: center;
+}
+.post-photo {
+  max-height: 600px;
+}
+.post-details-photo {
+  max-height: none;
 }
 
 .post-avatar {
@@ -1401,12 +1454,12 @@ a.primary-button {
   list-style: none;
 }
 
-.comments>.comment-list>.comment {
+.comments > .comment-list > .comment {
   padding: 16px 0;
   border-bottom: 1px solid var(--color-border);
 }
 
-.comments>.comment-list>.comment:last-child {
+.comments > .comment-list > .comment:last-child {
   border-bottom: 0;
 }
 
@@ -1457,8 +1510,8 @@ a.primary-button {
   margin-top: 4px;
 }
 
-.reply-toggle>summary,
-.replies>summary {
+.reply-toggle > summary,
+.replies > summary {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1469,12 +1522,12 @@ a.primary-button {
   list-style: none;
 }
 
-.reply-toggle>summary::-webkit-details-marker,
-.replies>summary::-webkit-details-marker {
+.reply-toggle > summary::-webkit-details-marker,
+.replies > summary::-webkit-details-marker {
   display: none;
 }
 
-.reply-toggle>summary .post-icon {
+.reply-toggle > summary .post-icon {
   width: 16px;
   height: 16px;
 }
@@ -1483,7 +1536,7 @@ a.primary-button {
   margin: 4px 0 8px;
 }
 
-.replies>.comment-list {
+.replies > .comment-list {
   display: grid;
   gap: 16px;
   margin-top: 8px;
@@ -1550,7 +1603,7 @@ body:has(.create-dialog[open]) {
   text-decoration: none;
 }
 
-.create-tab+.create-tab {
+.create-tab + .create-tab {
   border-left: 1px solid var(--color-border);
 }
 
@@ -1606,8 +1659,8 @@ body:has(.create-dialog[open]) {
   border: 0;
 }
 
-.create-field>label,
-.create-field>legend,
+.create-field > label,
+.create-field > legend,
 .create-label {
   padding: 0;
   font-size: 0.875rem;
@@ -1710,14 +1763,14 @@ body:has(.create-dialog[open]) {
   cursor: pointer;
 }
 
-.post-type-option input:checked+span {
+.post-type-option input:checked + span {
   border-color: var(--color-tag-text);
   background: var(--color-tag-surface);
   color: var(--color-tag-text);
   font-weight: var(--font-weight-bold);
 }
 
-.post-type-option input:focus-visible+span {
+.post-type-option input:focus-visible + span {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
@@ -1796,7 +1849,7 @@ body:has(.create-dialog[open]) {
 }
 
 /* The file input itself is hidden (beats the input rule above), so the box shows its focus and error state. */
-.create-field>input[type="file"].visually-hidden {
+.create-field > input[type="file"].visually-hidden {
   width: 1px;
   min-height: 0;
   padding: 0;
@@ -2110,7 +2163,7 @@ body:has(.create-dialog[open]) {
   }
 
   .comment-box .avatar,
-  .comment>.avatar {
+  .comment > .avatar {
     display: none;
   }
 

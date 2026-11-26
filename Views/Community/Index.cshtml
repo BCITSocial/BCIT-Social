@@ -19,32 +19,38 @@ frontend view for Communities page.
     var signedIn = User.Identity?.IsAuthenticated == true;
 }
 
+<link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
 
-<div class="communities-wrapper">
+<div class="communities-wrapper page-panel">
     @* header *@
     <div class="communities-header">
         <div>
-            <h1 class="communities-title">@text.PageTitle</h1>
-            <p class="communities-subtitle">@text.PageSubtitle</p>
+            <h1 class="page-title">@text.PageTitle</h1>
+            <p class="page-subtitle">@text.PageSubtitle</p>
         </div>
         <p></p>
         @* Creating a community needs an account, so signed-out visitors don't see the button. *@
         @if (signedIn && ViewBag.UserCommunityCount < 3)
         {
-            <button type="button" class="btn-create" data-open-modal="create-community-modal">@text.CreateButton</button>
+            <button type="button" class="button button-primary"
+                    data-open-modal="create-community-modal">@text.CreateButton</button>
         }
         else if (signedIn)
         {
-            <button type="button" class="btn-create" onclick='alert("TODO");'>@text.CreateButton</button>
+            <button type="button" class="button button-primary"
+                    data-open-modal="community-limit-modal">@text.CreateButton</button>
         }
     </div>
 
-    @* search (an icon until hovered/focused) & filter dropdowns. communities.js hides cards that don't match. *@
+    @* filter dropdowns, communities.js hides cards that don't match. *@
     <form id="community-filters" class="community-filters" method="get" role="search" aria-label="@filters.Label">
         <div class="filter-search">
             <label for="community-search" class="filter-search-icon" title="@filters.SearchLabel">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="11" cy="11" r="6.5" />
+                    <path d="m16 16 4 4" />
+                </svg>
                 <span class="visually-hidden">@filters.SearchLabel</span>
             </label>
             <input type="search" id="community-search" class="search-input" autocomplete="off"
@@ -91,7 +97,7 @@ frontend view for Communities page.
     {
         <section class="community-section" aria-labelledby="your-heading">
             <div class="community-section-header">
-                <h2 id="your-heading" class="community-section-title">
+                <h2 id="your-heading" class="section-title">
                     @text.YourHeading <span id="your-count" class="section-count">@yours.Count</span>
                 </h2>
             </div>
@@ -103,24 +109,24 @@ frontend view for Communities page.
                 }
             </div>
 
-            <p id="your-empty" class="browse-empty" hidden="@(yours.Count > 0)"
-               data-empty-none="@text.YourEmpty" data-empty-filtered="@filters.EmptyMessage">@text.YourEmpty</p>
+            <p id="your-empty" class="browse-empty" hidden="@(yours.Count > 0)" data-empty-none="@text.YourEmpty"
+               data-empty-filtered="@filters.EmptyMessage">@text.YourEmpty</p>
         </section>
     }
 
     @* browse: 3 cards, then "See all" turns it into pages of 8 with a pager (communities.js) *@
     <section class="community-section" aria-labelledby="browse-heading">
         <div class="community-section-header">
-            <h2 id="browse-heading" class="community-section-title">
+            <h2 id="browse-heading" class="section-title">
                 @text.BrowseHeading <span id="browse-count" class="section-count">@browse.Count</span>
             </h2>
-            <button type="button" id="browse-toggle" class="link-action-btn" aria-expanded="false" aria-controls="browse-page"
-                    data-see-all="@text.SeeAllButton" data-show-less="@text.ShowLessButton"
+            <button type="button" id="browse-toggle" class="button-link" aria-expanded="false"
+                    aria-controls="browse-page" data-see-all="@text.SeeAllButton" data-show-less="@text.ShowLessButton"
                     hidden="@(browse.Count <= text.BrowsePreviewCount)">@text.SeeAllButton</button>
         </div>
 
-        <div id="browse-page" class="browse-page"
-             data-preview-count="@text.BrowsePreviewCount" data-page-size="@text.BrowsePageSize">
+        <div id="browse-page" class="browse-page" data-preview-count="@text.BrowsePreviewCount"
+             data-page-size="@text.BrowsePageSize">
             <div id="browse-grid" class="browse-grid">
                 @foreach (var item in browse)
                 {
@@ -132,8 +138,8 @@ frontend view for Communities page.
                  data-prev="@text.Pager.Previous" data-next="@text.Pager.Next" data-end="@text.Pager.End"></nav>
         </div>
 
-        <p id="browse-empty" class="browse-empty" hidden="@(browse.Count > 0)"
-           data-empty-none="@text.BrowseNone" data-empty-filtered="@filters.EmptyMessage">@text.BrowseNone</p>
+        <p id="browse-empty" class="browse-empty" hidden="@(browse.Count > 0)" data-empty-none="@text.BrowseNone"
+           data-empty-filtered="@filters.EmptyMessage">@text.BrowseNone</p>
     </section>
 </div>
 
@@ -141,6 +147,7 @@ frontend view for Communities page.
 @if (signedIn)
 {
     <partial name="_CreateCommunityModal" model="Model.CreateForm" />
+    <partial name="_CommunityLimitModal" model="text.LimitNotice" />
 }
 <partial name="_ConfirmDialog" />
 

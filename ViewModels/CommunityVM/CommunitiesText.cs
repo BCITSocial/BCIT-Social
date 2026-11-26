@@ -9,6 +9,7 @@ public class CommunitiesText
     public string PageSubtitle { get; init; } = "Join any of the communities listed below.";
     public string CreateButton { get; init; } = "+ Create";
     public string AlertMessage { get; set; } = "You have created the maximum amount of communities (3)!";
+    public CommunityNoticeText LimitNotice { get; init; } = new();
 
     // "Your communities" section (joined communities, shown first).
     public string YourHeading { get; init; } = "Your communities";
@@ -83,6 +84,15 @@ public class CommunityConfirmText
     public string CancelButton { get; init; } = "Cancel";
 
     public string MessageFor(string communityName) => Message.Replace("{name}", communityName);
+}
+
+
+// A pop-up with one button that only closes it, e.g. the community limit on Create.
+public class CommunityNoticeText
+{
+    public string Title { get; init; } = "Community limit reached";
+    public string Message { get; init; } = "You have created the maximum amount of communities (3)!";
+    public string CloseButton { get; init; } = "Got it";
 }
 
 // Search, filter dropdowns, and the message shown when nothing matches.
