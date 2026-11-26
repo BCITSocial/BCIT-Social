@@ -7,7 +7,18 @@
 }
 <li class="comment">
     <a class="avatar" aria-hidden="true" asp-controller="Profile" asp-action="Details"
-         asp-route-userId="@Model.AuthorId">@Model.AuthorInitials</a>
+        asp-route-userId="@Model.AuthorId">
+        @if (Model.AuthorHasProfilePicture)
+        {
+            <img class="post-avatar" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
+                    src="@Url.Action(action: "Photo", "Profile", new { id = Model.AuthorId })"
+                    alt="@($"{@Model.AuthorName}'s profile photo")" />
+        }
+        else
+        {
+            <span aria-hidden="true">@Model.AuthorInitials</span>
+        }
+    </a>
     <div class="comment-body">
         <p class="comment-meta">
             <a class="comment-author" asp-controller="Profile" asp-action="Details"

@@ -5,4 +5,6 @@ public class FriendListItemViewModel
     public int RelationshipId { get; init; }
     public string UserId { get; init; } = "";
     public string DisplayName { get; init; } = "";
+    public bool HasPicture { get; init; }
+
 }

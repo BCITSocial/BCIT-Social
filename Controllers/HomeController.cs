@@ -165,6 +165,7 @@ public class HomeController : Controller
         {
             Post = post,
             Comments = await LoadCommentThreadsAsync(id, postAuthorId),
+            CurrentUserId = userId ?? "",
             CurrentUserInitials = await CurrentUserInitialsAsync(userId),
         };
 
@@ -322,6 +323,8 @@ public class HomeController : Controller
                         .FirstOrDefault() ?? (comment.Author != null ? comment.Author.UserName : null) ?? "",
                     AuthorId = comment.AuthorId,
                     IsPostAuthor = comment.AuthorId == postAuthorId,
+                    AuthorHasProfilePicture = _context.Profiles
+                        .Any(profile => profile.UserId == comment.AuthorId && profile.ProfilePhotoStorageKey != null),
                     Content = comment.Content,
                     CreatedAt = comment.CreatedAt,
                 },

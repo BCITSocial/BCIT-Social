@@ -71,4 +71,183 @@ document.addEventListener("DOMContentLoaded", function () {
         // Runs when the pop-up opens (the list gets a size) and when the window is resized.
         new ResizeObserver(checkOverflow).observe(list);
     });
+
+    // Members pop-up: top-layer exit animation fallback, declarative invokers fallback,
+    // light-dismiss fallback, and #members hash sync.
+    let supportsDisplayTransition;
+    function canTransitionDisplay() {
+        if (supportsDisplayTransition !== undefined) return supportsDisplayTransition;
+        if (!window.CSS?.supports?.("transition-behavior", "allow-discrete") || !document.body) {
+            return false;
+        }
+        const probe = document.createElement("div");
+        probe.style.cssText = "transition: display 1s allow-discrete !important; display: block;";
+        document.body.appendChild(probe);
+        getComputedStyle(probe).display;
+        probe.style.display = "none";
+        supportsDisplayTransition = getComputedStyle(probe).display === "block";
+        probe.remove();
+        return supportsDisplayTransition;
+    }
+
+    function supportsTopLayerExit() {
+        return Boolean(window.CSS?.supports?.("overlay", "auto") && canTransitionDisplay());
+    }
+
+    async function closeTopLayer(dialog) {
+        if (!dialog.open || dialog.hasAttribute("data-closing")) return;
+        if (!supportsTopLayerExit()) {
+            dialog.setAttribute("data-closing", "");
+            const animations = dialog.getAnimations({ subtree: true });
+            if (animations.length > 0) {
+                await Promise.race([
+                    Promise.allSettled(animations.map((a) => a.finished)),
+                    new Promise((r) => setTimeout(r, 2000)),
+                ]);
+            }
+            if (!dialog.hasAttribute("data-closing")) return;
+            dialog.removeAttribute("data-closing");
+        }
+        if (dialog.open) dialog.close();
+    }
+
+    if (!("commandForElement" in HTMLButtonElement.prototype)) {
+        let polyfillLoaded = false;
+        import("https://esm.run/invokers-polyfill")
+            .then(() => {
+                polyfillLoaded = true;
+            })
+            .catch(() => {});
+
+        document.addEventListener("click", (event) => {
+            if (polyfillLoaded || "commandForElement" in HTMLButtonElement.prototype) return;
+            const button = event.target.closest("button[command][commandfor]");
+            if (!button) return;
+            const target = document.getElementById(button.getAttribute("commandfor"));
+            if (!(target instanceof HTMLDialogElement)) return;
+            const command = button.getAttribute("command");
+            if (command === "show-modal" && !target.open) target.showModal();
+            else if (command === "close" && target.open) closeTopLayer(target);
+        });
+    }
+
+    const membersDialog = document.getElementById("community-members-modal");
+    if (membersDialog) {
+        membersDialog.addEventListener("cancel", (event) => {
+            if (!supportsTopLayerExit()) {
+                event.preventDefault();
+                closeTopLayer(membersDialog);
+            }
+        });
+
+        membersDialog.addEventListener("command", (event) => {
+            if (event.command === "close" && !supportsTopLayerExit()) {
+                event.preventDefault();
+                closeTopLayer(membersDialog);
+            }
+        });
+
+        if (!("closedBy" in HTMLDialogElement.prototype)) {
+            const outside = (event) => {
+                const rect = membersDialog.getBoundingClientRect();
+                return event.clientX < rect.left
+                    || event.clientX > rect.right
+                    || event.clientY < rect.top
+                    || event.clientY > rect.bottom;
+            };
+            let pressedOutside = false;
+            membersDialog.addEventListener("pointerdown", (event) => {
+                pressedOutside = outside(event);
+            });
+            membersDialog.addEventListener("pointerup", (event) => {
+                if (pressedOutside && outside(event)) {
+                    closeTopLayer(membersDialog);
+                }
+                pressedOutside = false;
+            });
+        }
+
+        membersDialog.addEventListener("close", () => {
+            membersDialog.removeAttribute("data-closing");
+            membersDialog.returnValue = "";
+            if (window.location.hash === "#members") {
+                history.replaceState(null, "", window.location.pathname + window.location.search);
+            }
+        });
+
+        function openMembersFromHash() {
+            if (window.location.hash === "#members" && !membersDialog.open) {
+                membersDialog.showModal();
+            }
+        }
+        openMembersFromHash();
+        window.addEventListener("hashchange", openMembersFromHash);
+
+        const confirmDialog = document.getElementById("community-confirm");
+        const confirmForm = confirmDialog?.querySelector("[data-confirm-form]");
+        let pendingMemberForm = null;
+
+        async function submitMemberActionForm(form) {
+            const submitButton = form.querySelector("button[type='submit']");
+            if (submitButton) submitButton.disabled = true;
+            try {
+                const response = await fetch(form.action, {
+                    method: "POST",
+                    body: new FormData(form),
+                    credentials: "same-origin",
+                });
+                if (response.redirected && response.url.includes("/Account/Login")) {
+                    window.location.href = response.url;
+                    return;
+                }
+                if (response.ok) {
+                    history.replaceState(null, "", window.location.pathname + window.location.search + "#members");
+                    window.location.reload();
+                    return;
+                }
+            } catch (error) {
+                console.error("Failed to update community member.", error);
+            }
+            if (submitButton) submitButton.disabled = false;
+        }
+
+        membersDialog.addEventListener("submit", (event) => {
+            const form = event.target.closest("form[data-member-action-form]");
+            if (!form) return;
+            event.preventDefault();
+
+            if (form.dataset.confirmTitle && confirmDialog && confirmForm) {
+                pendingMemberForm = form;
+                confirmDialog.querySelector("[data-confirm-title]").textContent = form.dataset.confirmTitle;
+                confirmDialog.querySelector("[data-confirm-message]").textContent = form.dataset.confirmMessage || "";
+                confirmDialog.querySelector("[data-confirm-submit]").textContent = form.dataset.confirmButton || "Confirm";
+                confirmDialog.querySelector("[data-confirm-cancel]").textContent = form.dataset.confirmCancel || "Cancel";
+                confirmDialog.returnFocusTo = event.submitter || form.querySelector("button[type='submit']");
+                confirmDialog.showModal();
+                confirmDialog.querySelector("[data-confirm-cancel]")?.focus();
+                return;
+            }
+
+            submitMemberActionForm(form);
+        });
+
+        if (confirmDialog && confirmForm) {
+            confirmForm.addEventListener("submit", (event) => {
+                if (!pendingMemberForm) return;
+                event.preventDefault();
+                const formToSubmit = pendingMemberForm;
+                pendingMemberForm = null;
+                confirmDialog.close();
+                submitMemberActionForm(formToSubmit);
+            });
+
+            confirmDialog.querySelector("[data-confirm-cancel]")?.addEventListener("click", () => {
+                if (pendingMemberForm) confirmDialog.close();
+            });
+
+            confirmDialog.addEventListener("close", () => {
+                pendingMemberForm = null;
+            });
+        }
+    }
 });

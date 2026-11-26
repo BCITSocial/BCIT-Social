@@ -11,22 +11,22 @@
             <h1>Edit profile</h1>
             <p>Update how you introduce yourself to the BCIT community.</p>
         </div>
-        <a class="profile-button profile-button-outline" asp-action="Index">Cancel</a>
+        <a class="settings-button settings-button-secondary" asp-controller="Profile" asp-action="Index">Cancel</a>
     </header>
 
     <section class="profile-edit-card" aria-labelledby="profile-edit-details-heading">
         <div class="profile-edit-cover" aria-hidden="true"></div>
         <div class="profile-edit-content">
             <div class="profile-edit-section-heading">
-                <div class="profile-avatar">
-                    @if (!string.IsNullOrWhiteSpace(Model.ProfilePhotoStorageKey))
+                <div class="profile-avatar" aria-hidden="true">
+                    @if (!string.IsNullOrWhiteSpace(Model.ProfilePhotoStorageKey)
+                        && !string.IsNullOrWhiteSpace(Model.ProfilePhotoContentType))
                     {
-                        <img src="@Url.Action("Photo", "Profile", new { id = Model.UserId, v = Model.ProfilePhotoUpdatedAt?.Ticks })"
-                             alt="@($"{Model.DisplayName}'s profile photo")" />
+                        <img src="@Url.Action("Photo", "Profile", new { id = Model.UserId })" alt="" />
                     }
                     else
                     {
-                        <span aria-hidden="true">@(string.IsNullOrWhiteSpace(Model.DisplayName) ? "B" : Model.DisplayName[..1].ToUpperInvariant())</span>
+                        @(string.IsNullOrWhiteSpace(Model.DisplayName) ? "B" : Model.DisplayName[..1].ToUpperInvariant())
                     }
                 </div>
                 <div>
@@ -78,10 +78,19 @@
                         <span asp-validation-for="Campus"></span>
                     </div>
                 </div>
+                <div class="profile-photo-upload">
+                    <div class="profile-photo-upload-copy">
+                        <label for="ProfilePhoto">Change profile picture</label>
+                        <p id="profile-photo-help">Choose a PNG, JPG, or WebP image.</p>
+                    
+                        <input class="profile-photo-upload-input" type="file" id="ProfilePhoto" name="ProfilePhoto"
+                               accept="image/png,image/jpeg,image/webp" aria-describedby="profile-photo-help" />
+                    </div>
+                </div>
 
                 <div class="profile-edit-actions">
-                    <a class="profile-button profile-button-outline" asp-action="Index">Cancel</a>
-                    <button class="profile-button profile-button-primary" type="submit">Save changes</button>
+                    <a class="settings-button settings-button-secondary" asp-action="Index">Cancel</a>
+                    <button class="settings-button settings-button-primary" type="submit">Save changes</button>
                 </div>
             </form>
         </div>

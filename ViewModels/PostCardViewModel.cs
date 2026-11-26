@@ -31,5 +31,7 @@ public class PostCardViewModel
     public string? AuthorProfilePhotoOriginalFileName { get; init; }
     public string AuthorInitials => DisplayFormat.Initials(AuthorName);
 
+    public string? CurrentUserId { get; internal set; }
+
     public string TimeAgo(DateTime utcNow) => DisplayFormat.TimeAgo(CreatedAt, utcNow);
 }
