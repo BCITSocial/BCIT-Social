@@ -3,7 +3,7 @@
 @model ManageEventsViewModel
 @{
     ViewData["Title"] = "Manage event";
-    Layout = null;
+    Layout = "_HomeLayout";
     var item = Model.Event;
     var format = "yyyy-MM-dd'T'HH:mm";
     var minimumDate = Model.MinimumEventDate.ToString(format, CultureInfo.InvariantCulture);
@@ -11,52 +11,60 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"]</title>
 </head>
+
 <body>
-<main>
-    <a asp-action="Index">Back to events</a>
-    <h1>Manage @item.Title</h1>
-    @if (TempData["EventMessage"] is string message)
-    {
-        <p role="alert">@message</p>
-    }
-    <p>Dates and times use Vancouver time. Choose tomorrow or later.</p>
-    <form method="post" asp-action="UpdateFromPage" data-event-date-range>
-        <input name="id" type="hidden" value="@item.Id" />
-        <p><label>Community
-            <select name="communityId" required>
-                <option value="">Choose a community</option>
-                @foreach (var community in Model.OwnedCommunities)
-                {
-                    <option value="@community.Id" selected="@(community.Id == item.CommunityId)">@community.Name</option>
-                }
-            </select>
-        </label></p>
-        <p><label>Title <input name="title" value="@item.Title" maxlength="150" required /></label></p>
-        <p><label>Start <input name="eventDate" type="datetime-local" min="@minimumDate" value="@item.EventDate.ToString(format, CultureInfo.InvariantCulture)" required /></label></p>
-        <p><label>End <input name="endsAt" type="datetime-local" min="@item.EventDate.ToString(format, CultureInfo.InvariantCulture)" value="@(item.EndsAt?.ToString(format, CultureInfo.InvariantCulture))" /></label></p>
-        <p><label>Campus
-            <select name="campus">
-                <option value="">Choose a campus</option>
-                @foreach (var campus in EventsViewModel.campuses)
-                {
-                    <option value="@campus" selected="@(campus == item.Campus)">@campus</option>
-                }
-            </select>
-        </label></p>
-        <p><label>Location <input name="location" maxlength="100" value="@item.Location" /></label></p>
-        <p><label>Description <textarea name="description" maxlength="2000" rows="4">@item.Description</textarea></label></p>
-        <button type="submit">Save changes</button>
-    </form>
-    <form method="post" asp-action="DeleteFromPage">
-        <input name="id" type="hidden" value="@item.Id" />
-        <button type="submit">Delete event</button>
-    </form>
-</main>
-<script src="~/js/events.js" asp-append-version="true" defer></script>
-</body>
-</html>
+    <main>
+        <a asp-action="Index">Back to events</a>
+        <h1>Manage @item.Title</h1>
+        @if (TempData["EventMessage"] is string message)
+        {
+            <p role="alert">@message</p>
+        }
+        <p>Dates and times use Vancouver time. Choose tomorrow or later.</p>
+        <form method="post" asp-action="UpdateFromPage" data-event-date-range>
+            <input name="id" type="hidden" value="@item.Id" />
+            <p><label>Community
+                <select name="communityId" required>
+                    <option value="">Choose a community</option>
+                    @foreach (var community in Model.OwnedCommunities)
+                    {
+                        <option value="@community.Id" selected="@(community.Id == item.CommunityId)">@community.Name
+                        </option>
+                    }
+                </select>
+            </label></p>
+            <p><label>Title <input name="title" value="@item.Title" maxlength="150" required /></label></p>
+            <p><label>Start <input name="eventDate" type="datetime-local" min="@minimumDate"
+                                       value="@item.EventDate.ToString(format, CultureInfo.InvariantCulture)" required /></label></p>
+                <p><label>End <input name="endsAt" type="datetime-local"
+                                         min="@item.EventDate.ToString(format, CultureInfo.InvariantCulture)"
+                                         value="@(item.EndsAt?.ToString(format, CultureInfo.InvariantCulture))" /></label></p>
+                    <p><label>Campus
+                        <select name="campus">
+                            <option value="">Choose a campus</option>
+                            @foreach (var campus in EventsViewModel.campuses)
+                            {
+                                <option value="@campus" selected="@(campus == item.Campus)">@campus</option>
+                            }
+                        </select>
+                    </label></p>
+                    <p><label>Location <input name="location" maxlength="100" value="@item.Location" /></label></p>
+                    <p><label>Description <textarea name="description" maxlength="2000"
+                                                        rows="4">@item.Description</textarea></label></p>
+                        <button type="submit">Save changes</button>
+                    </form>
+                    <form method="post" asp-action="DeleteFromPage">
+                        <input name="id" type="hidden" value="@item.Id" />
+                        <button type="submit">Delete event</button>
+                    </form>
+                </main>
+                <script src="~/js/events.js" asp-append-version="true" defer></script>
+            </body>
+
+        </html>

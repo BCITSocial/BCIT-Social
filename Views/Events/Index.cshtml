@@ -89,7 +89,7 @@
                         @foreach (var (value, label) in EventsViewModel.ranges)
                         {
                             <option value="@value" selected="@(value == Model.Range)">@EventsText.Pick(text.Ranges, value,
-                                                                                        label)</option>
+                                                                                                                                                        label)</option>
                             }
                         </select>
                     </label>
@@ -99,7 +99,7 @@
                             @foreach (var (value, label) in EventsViewModel.sorts)
                             {
                                 <option value="@value" selected="@(value == Model.Sort)">@EventsText.Format(text.SortOption,
-                                                                                                EventsText.Pick(text.Sorts, value, label))</option>
+                                                                                                                                                                        EventsText.Pick(text.Sorts, value, label))</option>
                                 }
                             </select>
                         </label>
