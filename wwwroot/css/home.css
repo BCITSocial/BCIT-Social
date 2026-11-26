@@ -3,32 +3,12 @@ author: Andre Di Lascio
 Styles the shared Home shell, content panels, navigation, feed, post details, and responsive layout.
 */
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background-color: var(--color-background);
-  background-image: var(--image-page-background);
-  color: var(--color-text);
-  font-family: var(--font-family);
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--line-height-body);
-}
-
 body:has(.post-dialog[open]) {
   overflow: hidden;
 }
 
 a {
   color: var(--color-accent);
-}
-
-button,
-input {
-  font: inherit;
 }
 
 button,
@@ -46,30 +26,6 @@ input:disabled {
 :focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 4px;
-}
-
-h1,
-h2,
-h3,
-p {
-  margin: 0;
-}
-
-h1 {
-  font-size: var(--font-size-title);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-heading);
-}
-
-h2 {
-  font-size: var(--font-size-section);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-heading);
-  margin-bottom: 16px;
-}
-
-p {
-  color: var(--color-muted);
 }
 
 /* Header */
