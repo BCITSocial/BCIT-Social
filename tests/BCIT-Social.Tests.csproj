@@ -1,0 +1,70 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>BCIT_Social.Tests</RootNamespace>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CS1591;NU1902;NU1903</NoWarn>
+    <WebProjectDir Condition="'$(WebProjectDir)' == ''">$(MSBuildThisFileDirectory)..\</WebProjectDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Microsoft.Playwright" Version="1.51.0" />
+    <PackageReference Include="Shouldly" Version="4.3.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Shouldly" />
+    <Using Include="Microsoft.AspNetCore.Http" />
+  </ItemGroup>
+
+  <!--
+    Standalone test compilation: explicitly opt in only the ViewModels exercised by tests
+    (with Visible="false" so Solution Explorer stays clean) without locking a running BCIT-Social.exe.
+    Using an allowlist instead of a wildcard guarantees that new ViewModels added under ViewModels/
+    (including ones referencing BCIT_Social.Models) never break the test build.
+    When adding unit tests for a new ViewModel, add its <Compile Include="..." /> line here.
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="$(WebProjectDir)ViewModels\AttendeeViewModel.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\ChatMessageViewModel.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\CommunityVM\CommunityLinkViewModel.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\ConversationViewModel.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\CreateEventText.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\CreatePostViewModel.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\DisplayFormat.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\EventCardViewModel.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\EventsContent.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\EventsQuery.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\EventsText.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\EventsViewModel.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\FriendSearchResultViewModel.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\MessagesContent.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\MessagesViewModel.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\PostCardViewModel.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\PostDetailsViewModel.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\RsvpStatus.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\SendFriendRequestViewModel.cs" Visible="false" />
+    <Compile Include="$(WebProjectDir)ViewModels\SharedMediaViewModel.cs" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>WebProjectDir</_Parameter1>
+      <_Parameter2>$(WebProjectDir)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>

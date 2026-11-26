@@ -487,3 +487,12 @@ obj/
 
 # Community cover images saved locally when Azure Blob storage isn't set up
 App_Data/
+
+# Tests project (xUnit, Coverlet, Playwright)
+*.trx
+*.cobertura.xml
+coverage/
+coveragereport/
+playwright-report/
+playwright/.cache/
+.playwright/
