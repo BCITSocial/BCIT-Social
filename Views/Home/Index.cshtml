@@ -134,9 +134,11 @@ else
     </section>
 </div>
 
+@* Nov 26th 4:45pm Joshua Trepanier: Removed the events thing in the top right deemed not needed
+as it's not being used in the events page anymore with the calendar being implemented*@
 @* The Events/Communities box sits in the layout's right column, pinned to the right edge.
    Signed-out visitors get a call to action there instead. *@
-@section RightPanel {
+@* @section RightPanel {
     @if (signedIn)
     {
         <aside class="panel home-section discovery-panel" aria-label="Discover events">
@@ -149,7 +151,7 @@ else
             </section>
         </aside>
     }
-}
+} *@
 @* Post details open here when a card is clicked. post-details.js fills the body from /Home/Post/{id}. *@
 <dialog class="post-dialog" id="post-dialog" aria-labelledby="post-dialog-title">
     <div class="post-dialog-header">
