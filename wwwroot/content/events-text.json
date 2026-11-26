@@ -2,10 +2,6 @@
   "text": {
     "pageTitle": "Events",
 
-    "bannerLabel": "Events introduction",
-    "bannerTitle": "Find your next campus connection.",
-    "bannerText": "Discover events from across your BCIT communities.",
-
     "heading": "Events",
     "subheading": "Find events from across your BCIT communities.",
 
@@ -36,6 +32,8 @@
     "activeFilters": "{0} filters on",
     "activeFiltersOne": "{0} filter on",
     "resetFilters": "Reset filters",
+    "resultCount": "{0} events",
+    "resultCountOne": "{0} event",
 
     "allCommunities": "All communities",
     "allCampuses": "All campuses",

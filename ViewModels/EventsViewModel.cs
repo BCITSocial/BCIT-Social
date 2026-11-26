@@ -7,20 +7,21 @@ public class EventsViewModel
     public const string DISCOVER = "discover";
     public const string CALENDAR = "calendar";
 
-    // The time range and sort used when the URL does not pick one.
+    // The status, time range and sort used when the URL does not pick one.
+    public const string DEFAULTSTATUS = "all";
     public const string DEFAULTRANGE = "all";
     public const string DEFAULTSORT = "soonest";
 
     // Option lists for the page. Value is what goes in the URL, Label is what the user sees.
     public static readonly IReadOnlyList<(string Value, string Label)> views =
     [
-        (DISCOVER, "Discover events"),
         (CALENDAR, "My calendar"),
+        (DISCOVER, "Discover events"),
     ];
 
     public static readonly IReadOnlyList<(string Value, string Label)> statuses =
     [
-        ("all", "All events"),
+        (DEFAULTSTATUS, "All events"),
         ("interested", "Interested"),
         ("going", "Going"),
         ("hosting", "Hosting"),
@@ -85,8 +86,9 @@ public class EventsViewModel
         Campus = campuses.FirstOrDefault(c => c == query.Campus);
         Range = Pick(ranges, query.Range, DEFAULTRANGE);
         Sort = Pick(sorts, query.Sort, DEFAULTSORT);
-        Status = Pick(statuses, query.Status, "all");
-        View = Pick(views, query.View, DISCOVER);
+        Status = Pick(statuses, query.Status, DEFAULTSTATUS);
+        // The calendar opens first; Discover is the other tab.
+        View = Pick(views, query.View, CALENDAR);
         _requestedTag = string.IsNullOrWhiteSpace(query.Tag) ? null : query.Tag.Trim();
         Month = DateOnly.TryParseExact((query.Month ?? "") + "-01", "yyyy-MM-dd", out var month) ? month : ThisMonth;
     }
@@ -116,14 +118,15 @@ public class EventsViewModel
         return values.Where(v => !string.IsNullOrEmpty(v.Value)).ToDictionary(v => v.Key, v => v.Value!);
     }
 
-    // How many filter menu settings differ from the defaults. Shown as a number on the menu button.
+    // How many Discover dropdowns differ from the defaults. "Reset filters" shows only when this is above 0.
     public int ActiveFilterCount =>
-        (Community is null ? 0 : 1) + (Campus is null ? 0 : 1) + (Range == DEFAULTRANGE ? 0 : 1) + (Sort == DEFAULTSORT ? 0 : 1);
+        (Status == DEFAULTSTATUS ? 0 : 1) + (Community is null ? 0 : 1) + (Campus is null ? 0 : 1)
+        + (Range == DEFAULTRANGE ? 0 : 1) + (Sort == DEFAULTSORT ? 0 : 1);
 
-    // Link parameters for "Reset filters": keeps the search, the status chip, the tab and the tag chip, drops the menu settings.
+    // Link parameters for "Reset filters": keeps the search, the tab and the tag chip, drops every dropdown setting.
     public Dictionary<string, string> ResetRouteValues()
     {
-        var values = new Dictionary<string, string?> { ["q"] = Query, ["status"] = Status, ["view"] = View, ["tag"] = Tag };
+        var values = new Dictionary<string, string?> { ["q"] = Query, ["view"] = View, ["tag"] = Tag };
         return values.Where(v => !string.IsNullOrEmpty(v.Value)).ToDictionary(v => v.Key, v => v.Value!);
     }
 
