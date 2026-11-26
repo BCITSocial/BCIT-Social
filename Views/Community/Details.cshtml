@@ -167,7 +167,16 @@
                 var isHiddenByDefault = i >= initiallyShown;
                 <article class="discussion-card @(isHiddenByDefault ? "discussion-extra is-hidden" : "")"
                          aria-labelledby="post-title-@post.Id">
-                    <div class="avatar-initials" aria-hidden="true">@post.AuthorInitials</div>
+            @if (post.AuthorHasProfilePhoto)
+            {
+                <img class="post-avatar" style="border-radius: inherit; object-fit: cover;"
+                     src="@Url.Action(action: "Photo", "Profile", new { id = post.AuthorId })"
+                     alt="@($"{@post.AuthorName}'s profile photo")" />
+            }
+            else
+            {
+                <span aria-hidden="true">@post.AuthorInitials</span>
+            }
                     <div class="discussion-content">
                         <div class="discussion-top-row">
                             <h4 class="discussion-title" id="post-title-@post.Id">
