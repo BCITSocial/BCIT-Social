@@ -7,6 +7,7 @@ public class FriendSearchResultViewModel
     public string Program { get; init; } = "";
     public string Campus { get; init; } = "";
     public string Email { get; init; } = "";
+    public bool HasPicture { get; init; }
     public string? RelationshipStatus { get; init; }
 
     /// <summary>Describes what the viewer can do with a search result.</summary>

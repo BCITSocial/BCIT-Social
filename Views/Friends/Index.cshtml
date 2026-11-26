@@ -57,11 +57,20 @@
                 else
                 {
                     <ul class="friends-list">
-                        @foreach (var person in results)
+                        @foreach (FriendSearchResultViewModel person in results)
                         {
                             <li class="friends-list-item">
                                 <a class="friends-person people-result-profile" asp-controller="Profile" asp-action="Details" asp-route-userid="@person.UserId">
-                                    <span class="friend-avatar" aria-hidden="true">@Initials(person.DisplayName)</span>
+                                    @if (person.HasPicture)
+                                        {
+                                        <img class="friend-avatar" aria-hidden="true" style="object-fit: cover;"
+                                            src="@Url.Action(action: "Photo", "Profile", new { id = person.UserId })"
+                                            alt="@($"{person.DisplayName}'s profile photo")" />
+                                        }
+                                        else
+                                        {
+                                            <span aria-hidden="true">@Initials(person.DisplayName)</span>
+                                        }
                                     <span><strong>@person.DisplayName</strong><small>@person.Email</small></span>
                                 </a>
                                 @if (person.RelationshipStatus == "None")
@@ -95,12 +104,21 @@
         else
         {
             <ul class="friends-grid">
-                @foreach (var friend in friends)
+                @foreach (FriendListItemViewModel friend in friends)
                 {
                     var details = friendDetails != null && friendDetails.TryGetValue(friend.UserId, out var value) ? value : default;
                     <li class="friend-card">
                         <a class="friend-card-profile" asp-controller="Profile" asp-action="Details" asp-route-userid="@friend.UserId">
-                            <span class="friend-avatar" aria-hidden="true">@Initials(friend.DisplayName)</span>
+                            @if (friend.HasPicture)
+                            {
+                            <img class="friend-avatar" aria-hidden="true" style="object-fit: cover;"
+                                src="@Url.Action(action: "Photo", "Profile", new { id = friend.UserId })"
+                                alt="@($"{friend.DisplayName}'s profile photo")" />
+                            }
+                            else
+                            {
+                                <span aria-hidden="true">@Initials(friend.DisplayName)</span>
+                            }
                             <span class="friend-card-names">
                                 <strong>@friend.DisplayName</strong>
                                 <small>@(string.IsNullOrWhiteSpace(details.Program) ? "BCIT student" : details.Program)</small>
@@ -133,11 +151,20 @@
         else
         {
             <ul class="friends-list">
-                @foreach (var request in incomingRequests)
+                @foreach (IncomingFriendRequestViewModel request in incomingRequests)
                 {
                     <li class="friends-list-item">
                         <div class="friends-person">
+                            @if (request.HasPicture)
+                            {
+                            <img class="friend-avatar" aria-hidden="true" style="object-fit: cover;"
+                                src="@Url.Action(action: "Photo", "Profile", new { id = request.RequesterId })"
+                                alt="@($"{request.RequesterDisplayName}'s profile photo")" />
+                            }
+                            else
+                            {
                             <span class="friend-avatar" aria-hidden="true">@Initials(request.RequesterDisplayName)</span>
+                            }
                             <span><strong>@request.RequesterDisplayName</strong><small>Wants to connect</small></span>
                         </div>
                         <div class="friends-request-actions">
@@ -172,7 +199,16 @@
                 {
                     <li class="friends-list-item">
                         <a class="friends-person people-result-profile" asp-controller="Profile" asp-action="Details" asp-route-userid="@request.UserId">
-                            <span class="friend-avatar" aria-hidden="true">@Initials(request.DisplayName)</span>
+                            @if (request.HasPicture)
+                            {
+                                <img class="friend-avatar" aria-hidden="true" style="object-fit: cover;"
+                                     src="@Url.Action(action: "Photo", "Profile", new { id = request.UserId })"
+                                     alt="@($"{request.DisplayName}'s profile photo")" />
+                            }
+                            else
+                            {
+                                <span class="friend-avatar" aria-hidden="true">@Initials(request.DisplayName)</span>
+                            }
                             <span><strong>@request.DisplayName</strong><small>Request pending</small></span>
                         </a>
                         <form asp-controller="Profile" asp-action="CancelFriendRequest" method="post" data-cancel-request data-recipient-name="@request.DisplayName">
