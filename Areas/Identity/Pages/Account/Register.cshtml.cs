@@ -69,6 +69,14 @@ public class RegisterModel(UserManager<ApplicationUser> userManager,
         OnGet(returnUrl);
         if (!ModelState.IsValid) return Page();
 
+        // Keep the generated display name within the profile name limit.
+        var displayName = $"{Input.FirstName} {Input.LastName}";
+        if (displayName.Length > 50)
+        {
+            ModelState.AddModelError("Input.LastName", "Your combined display name must be at most 50 characters.");
+            return Page();
+        }
+
         if (!Input.Email.EndsWith("@bcit.ca", StringComparison.OrdinalIgnoreCase)
             && !Input.Email.EndsWith("@my.bcit.ca", StringComparison.OrdinalIgnoreCase))
         {
@@ -93,7 +101,7 @@ public class RegisterModel(UserManager<ApplicationUser> userManager,
         var profile = new Profile
         {
             UserId = user.Id,
-            DisplayName = $"{Input.FirstName} {Input.LastName}",
+            DisplayName = displayName,
             Bio = "",
             Program = "",
             Campus = "",

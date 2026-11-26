@@ -12,7 +12,9 @@ namespace BCIT_Social.ViewModels;
 public class CommunityViewModel
 {
     public int Id { get; set; }
+    // Community name limit shared by the create and edit forms.
     [Required]
+    [StringLength(50)]
     public string Name { get; set; } = null!;
     [Required]
     public string Type { get; set; } = null!;
@@ -20,6 +22,8 @@ public class CommunityViewModel
 
     // Author: Jaspreet Bath
     // Ensure's modal description doesn't delete itself.
+    // Limit the length of the optional community description.
+    [StringLength(1000)]
     public string? Description { get; set; }
     // Cover image picked in the create pop-up or Settings. Null keeps the current one.
     public IFormFile? BannerImage { get; set; }

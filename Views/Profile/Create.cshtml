@@ -15,13 +15,13 @@
 
             <div class="form-group">
                 <label asp-for="DisplayName" class="control-label"></label>
-                <input asp-for="DisplayName" class="form-control" />
+                <input asp-for="DisplayName" class="form-control" maxlength="50" />
                 <span asp-validation-for="DisplayName" class="text-danger"></span>
             </div>
 
             <div class="form-group">
                 <label asp-for="Bio" class="control-label"></label>
-                <input asp-for="Bio" class="form-control" />
+                <input asp-for="Bio" class="form-control" maxlength="500" />
                 <span asp-validation-for="Bio" class="text-danger"></span>
             </div>
 

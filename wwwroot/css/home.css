@@ -1578,6 +1578,16 @@ body:has(.create-dialog[open]) {
   padding: 24px 16px 0 30px;
 }
 
+/* Post dialog header without tabs; keep the event dialog styles unchanged. */
+#create-post-dialog .create-dialog-top {
+  justify-content: space-between;
+  align-items: center;
+}
+
+#create-post-dialog .create-subtitle {
+  margin-top: 0;
+}
+
 .create-tabs {
   display: grid;
   flex: 1;

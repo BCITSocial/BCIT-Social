@@ -21,7 +21,13 @@ public class CreatePostViewModel
 
 	public List<SelectListItem> PostTypes { get; set; } = new();
 
+    // Optional community for the post and the available dropdown choices.
+    public int? CommunityId { get; set; }
+    public List<SelectListItem> Communities { get; set; } = new();
+
 	[Required]
+	// Matches the content limit in the create post form.
+	[StringLength(5000)]
 	public string Content { get; set; } = null!;
 	
 	[Display(Name = "Photos")]

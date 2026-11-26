@@ -153,6 +153,20 @@ public class PostController : Controller
         CreatePostViewModel viewModel,
         CancellationToken cancellationToken)
     {
+        string? authorId = _userManager.GetUserId(User);
+        if (authorId == null)
+        {
+            return Challenge();
+        }
+
+        // A community post can only be created by an owner or member of an active community.
+        // A null CommunityId allows the user to post to the general feed instead.
+        if (viewModel.CommunityId is int communityId &&
+            !await _context.PostableCommunities(authorId).AnyAsync(community => community.Id == communityId, cancellationToken))
+        {
+            ModelState.AddModelError(string.Empty, "You can only post to an active community you belong to.");
+        }
+
         if (!ModelState.IsValid)
         {
             viewModel.PostTypes = await _context.Tags
@@ -167,17 +181,10 @@ public class PostController : Controller
             return View(viewModel);
         }
 
-        string? authorId = _userManager.GetUserId(User);
-
-        if (authorId == null)
-        {
-            return Challenge();
-        }
-
         var post = new Post
         {
             AuthorId = authorId,
-            CommunityId = null,
+            CommunityId = viewModel.CommunityId,
             Title = viewModel.Title,
             Content = viewModel.Content,
             CreatedAt = DateTime.UtcNow,

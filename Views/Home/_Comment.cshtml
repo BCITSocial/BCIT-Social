@@ -31,12 +31,13 @@
         </p>
         <p class="comment-content">@Model.Content</p>
 
-        @* Delete for the comment's own author. Shown disabled until deleting comments is supported.
-           TODO(BE): add a POST action (e.g. CommentController.Delete, [Authorize] + [ValidateAntiForgeryToken]) that soft-deletes
-           the comment, then make this a form posting to it with confirm('Delete this comment?') like the post Delete button. *@
+        @* Only show Delete to the comment's author. CommentController also checks ownership. *@
         @if (signedIn && Model.AuthorId == currentUserId)
         {
-            <button class="link-action comment-delete" type="button" disabled title="Deleting comments isn't available yet">Delete</button>
+            <form method="post" asp-controller="Comment" asp-action="Delete" asp-route-id="@Model.Id"
+                  asp-route-returnUrl="@returnUrl" onsubmit="return confirm('Delete this comment?');">
+                <button class="link-action comment-delete" type="submit">Delete</button>
+            </form>
         }
 
         @if (signedIn)
@@ -50,7 +51,7 @@
                     <input type="hidden" name="postId" value="@ViewData["PostId"]" />
                     <input type="hidden" name="parentCommentId" value="@Model.Id" />
                     <label class="visually-hidden" for="reply-@Model.Id">Reply to @Model.AuthorName</label>
-                    <input class="comment-input" id="reply-@Model.Id" name="content" placeholder="Write a reply..." autocomplete="off" required />
+                    <input class="comment-input" id="reply-@Model.Id" name="content" placeholder="Write a reply..." autocomplete="off" maxlength="1000" required />
                     <button class="cta-button" type="submit">Reply</button>
                 </form>
             </details>
