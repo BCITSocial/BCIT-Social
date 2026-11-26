@@ -114,16 +114,19 @@ frontend view for Communities page.
         </section>
     }
 
-    @* browse: every community is always shown (no "See all" preview or pages). communities.js still filters them. *@
+    @* browse: 3 cards, then "See all" turns it into pages of 8 with a pager (communities.js) *@
     <section class="community-section" aria-labelledby="browse-heading">
         <div class="community-section-header">
             <h2 id="browse-heading" class="section-title">
                 @text.BrowseHeading <span id="browse-count" class="section-count">@browse.Count</span>
             </h2>
+            <button type="button" id="browse-toggle" class="button-link" aria-expanded="false"
+                    aria-controls="browse-page" data-see-all="@text.SeeAllButton" data-show-less="@text.ShowLessButton"
+                    hidden="@(browse.Count <= text.BrowsePreviewCount)">@text.SeeAllButton</button>
         </div>
 
-        <div id="browse-page" class="browse-page"
-             data-preview-count="@Math.Max(browse.Count, 1)" data-page-size="@text.BrowsePageSize">
+        <div id="browse-page" class="browse-page" data-preview-count="@text.BrowsePreviewCount"
+             data-page-size="@text.BrowsePageSize">
             <div id="browse-grid" class="browse-grid">
                 @foreach (var item in browse)
                 {
