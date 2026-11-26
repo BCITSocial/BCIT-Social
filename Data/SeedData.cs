@@ -55,7 +55,7 @@ public static class SeedData
                 await SeedUsersAsync(
                     userManager,
                     seedNow);
-            
+
             await SeedAdministratorsAsync(
                 userManager,
                 roleManager,
@@ -200,13 +200,12 @@ public static class SeedData
         if (!Directory.Exists(assetRoot))
         {
             throw new DirectoryNotFoundException(
-                $"The seed asset directory was not found: {assetRoot}");
+                $"Seed asset directory not found: {assetRoot}");
         }
 
         var pendingAssets =
             new List<(SeedAsset Asset, string FullPath)>();
 
-        // Validate every asset before uploading anything.
         foreach (var relativePath in
                  SeedDataCatalog.ImageFiles)
         {
@@ -244,6 +243,11 @@ public static class SeedData
                     "communities/",
                     StringComparison.OrdinalIgnoreCase);
 
+            var isPostImage =
+                relativePath.StartsWith(
+                    "posts/",
+                    StringComparison.OrdinalIgnoreCase);
+
             var minimumWidth =
                 isCommunityBanner ? 800 : 300;
 
@@ -260,6 +264,19 @@ public static class SeedData
                     $"{minimumWidth}x{minimumHeight}.");
             }
 
+            var maximumBytes =
+                isPostImage
+                    ? 20L * 1024 * 1024
+                    : 10L * 1024 * 1024;
+
+            if (fileInfo.Length > maximumBytes)
+            {
+                throw new InvalidOperationException(
+                    $"Seed image '{relativePath}' is too large. " +
+                    $"Its maximum size is " +
+                    $"{maximumBytes / (1024 * 1024)} MiB.");
+            }
+
             var normalizedRelativePath =
                 relativePath.Replace('\\', '/');
 
@@ -267,15 +284,14 @@ public static class SeedData
                 $"{SEED_BLOB_FOLDER}/" +
                 normalizedRelativePath;
 
-            var asset =
+            pendingAssets.Add((
                 new SeedAsset(
                     normalizedRelativePath,
                     storageKey,
                     Path.GetFileName(fullPath),
                     contentType,
-                    fileInfo.Length);
-
-            pendingAssets.Add((asset, fullPath));
+                    fileInfo.Length),
+                fullPath));
         }
 
         var container =
@@ -375,7 +391,7 @@ public static class SeedData
                     LastName = seed.LastName,
                     CreatedAt =
                         seedNow.AddDays(
-                            -(180 - index * 4))
+                            -(180 - index * 3))
                 };
 
                 var result =
@@ -383,19 +399,9 @@ public static class SeedData
                         user,
                         SeedDataCatalog.DEMO_PASSWORD);
 
-                if (!result.Succeeded)
-                {
-                    var errors =
-                        string.Join(
-                            "; ",
-                            result.Errors.Select(
-                                error =>
-                                    error.Description));
-
-                    throw new InvalidOperationException(
-                        $"Could not create seed user " +
-                        $"'{seed.Email}': {errors}");
-                }
+                ThrowIfIdentityFailed(
+                    result,
+                    $"create seed user '{seed.Email}'");
             }
             else
             {
@@ -409,19 +415,9 @@ public static class SeedData
                 var result =
                     await userManager.UpdateAsync(user);
 
-                if (!result.Succeeded)
-                {
-                    var errors =
-                        string.Join(
-                            "; ",
-                            result.Errors.Select(
-                                error =>
-                                    error.Description));
-
-                    throw new InvalidOperationException(
-                        $"Could not update seed user " +
-                        $"'{seed.Email}': {errors}");
-                }
+                ThrowIfIdentityFailed(
+                    result,
+                    $"update seed user '{seed.Email}'");
             }
 
             users[seed.Key] = user;
@@ -437,21 +433,13 @@ public static class SeedData
     {
         if (!await roleManager.RoleExistsAsync(ADMIN_ROLE))
         {
-            var createRoleResult =
+            var result =
                 await roleManager.CreateAsync(
                     new IdentityRole(ADMIN_ROLE));
 
-            if (!createRoleResult.Succeeded)
-            {
-                var errors =
-                    string.Join(
-                        "; ",
-                        createRoleResult.Errors.Select(
-                            error => error.Description));
-
-                throw new InvalidOperationException(
-                    $"Could not create the '{ADMIN_ROLE}' role: {errors}");
-            }
+            ThrowIfIdentityFailed(
+                result,
+                $"create the '{ADMIN_ROLE}' role");
         }
 
         string[] administratorKeys =
@@ -471,24 +459,34 @@ public static class SeedData
                 continue;
             }
 
-            var addToRoleResult =
+            var result =
                 await userManager.AddToRoleAsync(
                     user,
                     ADMIN_ROLE);
 
-            if (!addToRoleResult.Succeeded)
-            {
-                var errors =
-                    string.Join(
-                        "; ",
-                        addToRoleResult.Errors.Select(
-                            error => error.Description));
-
-                throw new InvalidOperationException(
-                    $"Could not assign '{user.Email}' to " +
-                    $"the '{ADMIN_ROLE}' role: {errors}");
-            }
+            ThrowIfIdentityFailed(
+                result,
+                $"assign '{user.Email}' to '{ADMIN_ROLE}'");
         }
+    }
+
+    private static void ThrowIfIdentityFailed(
+        IdentityResult result,
+        string operation)
+    {
+        if (result.Succeeded)
+        {
+            return;
+        }
+
+        var errors =
+            string.Join(
+                "; ",
+                result.Errors.Select(
+                    error => error.Description));
+
+        throw new InvalidOperationException(
+            $"Could not {operation}: {errors}");
     }
 
     private static async Task SeedProfilesAsync(
@@ -587,12 +585,8 @@ public static class SeedData
                     relationship);
             }
 
-            relationship.RequesterId =
-                requester.Id;
-
-            relationship.RecipientId =
-                recipient.Id;
-
+            relationship.RequesterId = requester.Id;
+            relationship.RecipientId = recipient.Id;
             relationship.Status = seed.Status;
             relationship.CreatedAt = createdAt;
 
@@ -649,15 +643,12 @@ public static class SeedData
 
             community.Name = seed.Name;
             community.Type = seed.Type;
-            community.Description =
-                seed.Description;
-
+            community.Description = seed.Description;
             community.DateOfDel = null;
 
             if (seed.BannerFile is not null)
             {
-                var asset =
-                    assets[seed.BannerFile];
+                var asset = assets[seed.BannerFile];
 
                 community.BannerPhotoStorageKey =
                     asset.StorageKey;
@@ -682,12 +673,11 @@ public static class SeedData
         return communities;
     }
 
-    private static async Task
-        SeedCommunityMembersAsync(
-            ApplicationDbContext db,
-            IReadOnlyDictionary<string, ApplicationUser> users,
-            IReadOnlyDictionary<string, Community> communities,
-            DateTime seedNow)
+    private static async Task SeedCommunityMembersAsync(
+        ApplicationDbContext db,
+        IReadOnlyDictionary<string, ApplicationUser> users,
+        IReadOnlyDictionary<string, Community> communities,
+        DateTime seedNow)
     {
         foreach (var seed in
                  SeedDataCatalog.Communities)
@@ -724,17 +714,13 @@ public static class SeedData
                         new CommunityMember
                         {
                             UserId = user.Id,
-                            CommunityId =
-                                community.Id,
-
+                            CommunityId = community.Id,
                             JoinedAt =
                                 seedNow.AddDays(
-                                    -(95 -
-                                      memberIndex * 3))
+                                    -(95 - memberIndex * 3))
                         };
 
-                    db.CommunityMembers.Add(
-                        membership);
+                    db.CommunityMembers.Add(membership);
                 }
 
                 membership.IsModerator =
@@ -749,15 +735,13 @@ public static class SeedData
 
     private static async Task<
         Dictionary<string, Tags>>
-        SeedTagsAsync(
-            ApplicationDbContext db)
+        SeedTagsAsync(ApplicationDbContext db)
     {
         var tags =
             new Dictionary<string, Tags>(
                 StringComparer.OrdinalIgnoreCase);
 
-        foreach (var name in
-                 SeedDataCatalog.Tags)
+        foreach (var name in SeedDataCatalog.Tags)
         {
             var tag =
                 await db.Tags.FirstOrDefaultAsync(
@@ -796,8 +780,7 @@ public static class SeedData
         {
             var post =
                 await db.Posts.FirstOrDefaultAsync(
-                    item =>
-                        item.Title == seed.Title);
+                    item => item.Title == seed.Title);
 
             if (post is null)
             {
@@ -898,16 +881,11 @@ public static class SeedData
                 }
 
                 photo.PostId = post.Id;
-
                 photo.OriginalFileName =
                     asset.OriginalFileName;
-
-                photo.ContentType =
-                    asset.ContentType;
-
+                photo.ContentType = asset.ContentType;
                 photo.FileSizeBytes =
                     asset.FileSizeBytes;
-
                 photo.DisplayOrder = index;
                 photo.CreatedAt = seedNow;
             }
@@ -925,25 +903,19 @@ public static class SeedData
             new Dictionary<string, Comments>(
                 StringComparer.OrdinalIgnoreCase);
 
-        var topLevelSeeds =
-            SeedDataCatalog.Comments
-                .Where(
-                    item =>
-                        item.ParentKey is null);
-
-        foreach (var seed in topLevelSeeds)
+        foreach (var seed in SeedDataCatalog.Comments
+                     .Where(item =>
+                         item.ParentKey is null))
         {
             var post = posts[seed.PostKey];
             var user = users[seed.AuthorKey];
 
             var comment =
-                await db.Comments
-                    .FirstOrDefaultAsync(
-                        item =>
-                            item.PostId == post.Id &&
-                            item.AuthorId == user.Id &&
-                            item.Content ==
-                            seed.Content);
+                await db.Comments.FirstOrDefaultAsync(
+                    item =>
+                        item.PostId == post.Id &&
+                        item.AuthorId == user.Id &&
+                        item.Content == seed.Content);
 
             if (comment is null)
             {
@@ -960,34 +932,25 @@ public static class SeedData
                     seed.HoursAfterPost);
 
             comment.ParentCommentId = null;
-
             comments[seed.Key] = comment;
         }
 
         await db.SaveChangesAsync();
 
-        var replySeeds =
-            SeedDataCatalog.Comments
-                .Where(
-                    item =>
-                        item.ParentKey is not null);
-
-        foreach (var seed in replySeeds)
+        foreach (var seed in SeedDataCatalog.Comments
+                     .Where(item =>
+                         item.ParentKey is not null))
         {
             var post = posts[seed.PostKey];
             var user = users[seed.AuthorKey];
-
-            var parent =
-                comments[seed.ParentKey!];
+            var parent = comments[seed.ParentKey!];
 
             var comment =
-                await db.Comments
-                    .FirstOrDefaultAsync(
-                        item =>
-                            item.PostId == post.Id &&
-                            item.AuthorId == user.Id &&
-                            item.Content ==
-                            seed.Content);
+                await db.Comments.FirstOrDefaultAsync(
+                    item =>
+                        item.PostId == post.Id &&
+                        item.AuthorId == user.Id &&
+                        item.Content == seed.Content);
 
             if (comment is null)
             {
@@ -998,9 +961,7 @@ public static class SeedData
             comment.PostId = post.Id;
             comment.AuthorId = user.Id;
             comment.Content = seed.Content;
-
-            comment.ParentCommentId =
-                parent.Id;
+            comment.ParentCommentId = parent.Id;
 
             comment.CreatedAt =
                 post.CreatedAt.AddHours(
@@ -1018,8 +979,7 @@ public static class SeedData
         IReadOnlyDictionary<string, Post> posts,
         DateTime seedNow)
     {
-        foreach (var seed in
-                 SeedDataCatalog.Bookmarks)
+        foreach (var seed in SeedDataCatalog.Bookmarks)
         {
             var user = users[seed.UserKey];
             var post = posts[seed.PostKey];
@@ -1096,48 +1056,37 @@ public static class SeedData
             communityEvent.CommunityId =
                 community.Id;
 
-            communityEvent.Title =
-                seed.Title;
-
-            communityEvent.EventDate =
-                startsAt;
+            communityEvent.Title = seed.Title;
+            communityEvent.EventDate = startsAt;
 
             communityEvent.EndsAt =
                 startsAt.AddMinutes(
                     seed.DurationMinutes);
 
-            communityEvent.Campus =
-                seed.Campus;
-
-            communityEvent.Location =
-                seed.Location;
-
+            communityEvent.Campus = seed.Campus;
+            communityEvent.Location = seed.Location;
             communityEvent.Description =
                 seed.Description;
 
             communityEvent.DateOfDel = null;
 
-            events[seed.Key] =
-                communityEvent;
+            events[seed.Key] = communityEvent;
         }
 
         await db.SaveChangesAsync();
         return events;
     }
 
-    private static async Task
-        SeedEventRsvpsAsync(
-            ApplicationDbContext db,
-            IReadOnlyDictionary<string, ApplicationUser> users,
-            IReadOnlyDictionary<string, CommunityEvent> events)
+    private static async Task SeedEventRsvpsAsync(
+        ApplicationDbContext db,
+        IReadOnlyDictionary<string, ApplicationUser> users,
+        IReadOnlyDictionary<string, CommunityEvent> events)
     {
         foreach (var seed in SeedDataCatalog.Events)
         {
-            var communityEvent =
-                events[seed.Key];
+            var communityEvent = events[seed.Key];
 
-            foreach (var userKey in
-                     seed.GoingUserKeys)
+            foreach (var userKey in seed.GoingUserKeys)
             {
                 await AddOrUpdateRsvpAsync(
                     db,
