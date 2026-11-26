@@ -14,7 +14,14 @@
     ViewData["Title"] = Model.Name;
     var hasBanner = !string.IsNullOrEmpty(Model.BannerUrl);
     var initiallyShown = Math.Max(discussions.InitiallyShown, 1);
+    var activeMemberCount = Model.Members.Count(m => m.User != null && m.User.DateOfDel == null);
     var now = DateTime.UtcNow;
+    // When you're a member, the left nav highlights this community under "Your communities"
+    // instead of the Communities link (_Navigation and the SidebarCommunities view read this).
+    if (Model.IsMember)
+    {
+        ViewData["ActiveCommunityId"] = Model.Id;
+    }
 }
 
 <!-- Included communities.css for shared modal styling, badges, and the Joined menu -->
@@ -58,7 +65,8 @@
         </div>
 
         <div class="meta-right-actions">
-            <a asp-action="Members" asp-route-id="@Model.Id" class="button button-secondary">
+            <button type="button" class="btn-settings btn-members"
+                    command="show-modal" commandfor="community-members-modal">
                 @* This svg is for the members icon. *@
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <circle cx="9" cy="8" r="3.2" />
@@ -66,8 +74,8 @@
                     <circle cx="17" cy="9" r="2.5" />
                     <path d="M16 13.2c2.7.3 5 2.4 5 5.3" />
                 </svg>
-                @Model.Members.Count @meta.MembersLabel
-            </a>
+                @activeMemberCount @meta.MembersLabel
+            </button>
 
             @if (Model.IsMember)
             {
@@ -215,7 +223,8 @@
     </section>
 </div>
 
-<!-- Pop-ups: create post (members), Settings with Delete at the bottom (creator), "Are you sure?" -->
+<!-- Pop-ups: members, create post (members), Settings with Delete at the bottom (creator), "Are you sure?" -->
+<partial name="_MembersModal" model="Model" />
 @if (Model.IsMember)
 {
     <partial name="_CreatePostModal" model="Model" />

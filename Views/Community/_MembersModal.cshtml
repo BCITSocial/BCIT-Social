@@ -1,0 +1,205 @@
+@*
+- Partial View: the Members pop-up on a community's page.
+- Opened by the Members button in the community header or by visiting #members.
+*@
+
+@model BCIT_Social.ViewModels.CommunityDetailsViewModel
+
+@{
+    string DisplayNameOf(BCIT_Social.Models.CommunityMember member)
+    {
+        var fullName = $"{member.User?.FirstName} {member.User?.LastName}".Trim();
+        return string.IsNullOrWhiteSpace(fullName)
+            ? member.User?.UserName ?? "BCIT member"
+            : fullName;
+    }
+
+    bool IsMemberCreator(BCIT_Social.Models.CommunityMember member)
+    {
+        if (member.Community != null && member.UserId == member.Community.CreatorId)
+        {
+            return true;
+        }
+        if (string.Equals(member.User?.UserName, Model.Creator, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    var activeMembers = new List<BCIT_Social.Models.CommunityMember>();
+    var creators = new List<BCIT_Social.Models.CommunityMember>();
+    var moderators = new List<BCIT_Social.Models.CommunityMember>();
+    var regularMembers = new List<BCIT_Social.Models.CommunityMember>();
+
+    foreach (var member in Model.Members)
+    {
+        if (member.User == null || member.User.DateOfDel != null)
+        {
+            continue;
+        }
+
+        activeMembers.Add(member);
+
+        if (IsMemberCreator(member))
+        {
+            creators.Add(member);
+        }
+        else if (member.IsModerator)
+        {
+            moderators.Add(member);
+        }
+        else
+        {
+            regularMembers.Add(member);
+        }
+    }
+
+    int CompareByName(BCIT_Social.Models.CommunityMember a, BCIT_Social.Models.CommunityMember b)
+    {
+        return string.Compare(DisplayNameOf(a), DisplayNameOf(b), StringComparison.OrdinalIgnoreCase);
+    }
+
+    creators.Sort(CompareByName);
+    moderators.Sort(CompareByName);
+    regularMembers.Sort(CompareByName);
+
+    var admins = new List<BCIT_Social.Models.CommunityMember>();
+    admins.AddRange(creators);
+    admins.AddRange(moderators);
+
+    var groups = new List<(string Heading, List<BCIT_Social.Models.CommunityMember> Items)>();
+    if (admins.Count > 0)
+    {
+        groups.Add(("Admins & Moderators", admins));
+    }
+    groups.Add(("Members", regularMembers));
+}
+
+<dialog id="community-members-modal" class="members-dialog" closedby="any" aria-labelledby="members-modal-title">
+    <div class="members-modal-header">
+        <div class="modal-top-bar">
+            <h1 id="members-modal-title" class="modal-title">
+                Members <span class="section-count">@activeMembers.Count</span>
+            </h1>
+            <button type="button" class="modal-close-btn members-close-btn"
+                    command="close" commandfor="community-members-modal" aria-label="Close members" autofocus>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M6 6l12 12M18 6 6 18" />
+                </svg>
+            </button>
+        </div>
+        <p class="modal-subtitle members-modal-subtitle">@Model.Name</p>
+    </div>
+
+    <div class="members-modal-body">
+        @if (activeMembers.Count == 0)
+        {
+            <p class="members-empty">No members yet.</p>
+        }
+        else
+        {
+            @foreach (var group in groups)
+            {
+                <div class="members-group">
+                    <h2 class="members-group-title">
+                        @group.Heading <span class="section-count">@group.Items.Count</span>
+                    </h2>
+                    @if (group.Items.Count == 0)
+                    {
+                        <p class="members-empty">No other members yet.</p>
+                    }
+                    else
+                    {
+                        <ul class="members-list" role="list">
+                            @foreach (var member in group.Items)
+                            {
+                                var displayName = DisplayNameOf(member);
+                                var memberIsCreator = IsMemberCreator(member);
+                                var memberIsMod = memberIsCreator || member.IsModerator;
+                                var canToggleMod = Model.IsCreator && !memberIsCreator;
+                                var canPassCreator = Model.IsCreator && !memberIsCreator;
+                                var canKick = (Model.IsCreator && !memberIsCreator) || (Model.IsMod && !memberIsMod);
+
+                                <li class="member-row">
+                                    <div class="member-info">
+                                        <span class="member-avatar"
+                                              aria-hidden="true">@BCIT_Social.ViewModels.DisplayFormat.Initials(displayName)</span>
+                                        <div class="member-details">
+                                            <div class="member-name-line">
+                                                <a class="member-name" asp-controller="Profile" asp-action="Details"
+                                                   asp-route-userid="@member.UserId">@displayName</a>
+                                                @if (memberIsCreator)
+                                                {
+                                                    <span class="category-badge time-badge">Creator</span>
+                                                }
+                                                else if (memberIsMod)
+                                                {
+                                                    <span class="category-badge">Moderator</span>
+                                                }
+                                            </div>
+                                            <span class="member-meta">
+                                                Joined
+                                                <time datetime="@member.JoinedAt.ToString("yyyy-MM-dd")">@member.JoinedAt.ToString("MMM d, yyyy")</time>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    @if (canToggleMod || canPassCreator || canKick)
+                                    {
+                                        <div class="member-actions">
+                                            @if (canToggleMod)
+                                            {
+                                                <form asp-action="EditStatus" asp-route-id="@Model.Id" asp-route-userid="@member.UserId" method="post"
+                                                      class="member-action-form" data-member-action-form>
+                                                    <input type="hidden" name="Id" value="@member.UserId" />
+                                                    <input type="hidden" name="DisplayName" value="@displayName" />
+                                                    <input type="hidden" name="IsModerator" value="@(member.IsModerator ? "false" : "true")" />
+                                                    <input type="hidden" name="CommunityName" value="@Model.Name" />
+                                                    <input type="hidden" name="CommunityId" value="@Model.Id" />
+                                                    <button type="submit" class="member-action-btn">
+                                                        @(member.IsModerator ? "Remove mod" : "Make mod")
+                                                        <span class="visually-hidden">@displayName</span>
+                                                    </button>
+                                                </form>
+                                            }
+                                            @if (canPassCreator)
+                                            {
+                                                <form asp-action="PassCreator" asp-route-id="@Model.Id" asp-route-userid="@member.UserId" method="post"
+                                                      class="member-action-form" data-member-action-form
+                                                      data-confirm-title="Transfer ownership?"
+                                                      data-confirm-message="Make @displayName the creator of this community? You'll stay a moderator, and only the creator can manage settings or delete it."
+                                                      data-confirm-button="Transfer ownership" data-confirm-cancel="Cancel">
+                                                    <button type="submit" class="member-action-btn">
+                                                        Make creator
+                                                        <span class="visually-hidden">@displayName</span>
+                                                    </button>
+                                                </form>
+                                            }
+                                            @if (canKick)
+                                            {
+                                                <form asp-action="Kick" asp-route-id="@Model.Id" asp-route-userid="@member.UserId" method="post"
+                                                      class="member-action-form" data-member-action-form data-confirm-title="Remove member?"
+                                                      data-confirm-message="Remove @displayName from this community? They can join again later."
+                                                      data-confirm-button="Remove" data-confirm-cancel="Cancel">
+                                                    <input type="hidden" name="Id" value="@member.UserId" />
+                                                    <input type="hidden" name="DisplayName" value="@displayName" />
+                                                    <input type="hidden" name="IsModerator" value="@(member.IsModerator ? "true" : "false")" />
+                                                    <input type="hidden" name="CommunityName" value="@Model.Name" />
+                                                    <input type="hidden" name="CommunityId" value="@Model.Id" />
+                                                    <button type="submit" class="member-action-btn is-danger">
+                                                        Remove
+                                                        <span class="visually-hidden">@displayName</span>
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            }
+        }
+    </div>
+</dialog>
