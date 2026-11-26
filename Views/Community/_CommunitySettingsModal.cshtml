@@ -1,0 +1,44 @@
+@*
+- Partial View: the Settings pop-up on a community's page (creator only).
+- Opened from the "Joined" menu, or by visiting the page with #settings.
+- author: jaspreet bath
+*@
+
+@model BCIT_Social.ViewModels.CommunityDetailsViewModel
+
+@{
+    var settings = Model.Text.Settings;
+    var deleteConfirm = Model.Text.DeleteConfirm;
+    var form = Model.SettingsForm!;
+}
+
+<dialog id="community-settings-modal" class="community-dialog" aria-labelledby="settings-modal-title">
+    <div class="modal-card">
+        <div class="modal-top-bar">
+            <h2 id="settings-modal-title" class="modal-title">@settings.Title</h2>
+            <button type="button" class="modal-close-btn" data-close-modal aria-label="Close">&times;</button>
+        </div>
+        <p class="modal-subtitle">@settings.Subtitle</p>
+
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data"
+              data-community-form>
+            <partial name="_CommunityFormFields" model="form" />
+
+            <div class="modal-footer-actions">
+                <button type="reset" class="button button-secondary" data-close-modal>@form.Text.CancelButton</button>
+                <button type="submit" class="button button-primary">@form.Text.SubmitButton</button>
+            </div>
+        </form>
+
+        @* delete at the bottom, away from "save". *@
+        <div class="danger-zone">
+            <p class="danger-zone-text">@settings.DangerText</p>
+            <button type="button" class="button button-danger-outline button-small"
+                    data-confirm-action="@Url.Action("Delete", new { id = Model.Id })"
+                    data-confirm-title="@deleteConfirm.Title" data-confirm-message="@deleteConfirm.MessageFor(Model.Name)"
+                    data-confirm-button="@deleteConfirm.ConfirmButton" data-confirm-cancel="@deleteConfirm.CancelButton">
+                @settings.DeleteButton
+            </button>
+        </div>
+    </div>
+</dialog>

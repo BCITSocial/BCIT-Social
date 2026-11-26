@@ -1,52 +1,101 @@
 @model BCIT_Social.Models.Profile
 
 @{
-    ViewData["Title"] = "Delete Profile";
+    ViewData["Title"] = "Delete account";
     Layout = "_HomeLayout";
 }
 
-<div class="profile-page-shell">
-    <header class="profile-edit-heading">
-        <div>
-            <h1>Delete profile</h1>
-            <p>This action will also delete the account associated with this profile.</p>
+<section class="delete-page">
+    <header class="settings-header delete-header">
+        <div class="settings-heading">
+            <h1>Delete account</h1>
+            <p>Review your profile before deleting your account.</p>
         </div>
-        <a class="profile-button profile-button-outline" asp-action="Index">Cancel</a>
+
+        <a class="settings-button settings-button-secondary"
+           asp-controller="Profile"
+           asp-action="Settings">
+            Back
+        </a>
     </header>
 
-    <section class="profile-edit-card" aria-labelledby="profile-delete-heading">
-        <div class="profile-edit-cover" aria-hidden="true"></div>
-        <div class="profile-edit-content">
-            <div class="profile-edit-section-heading">
-                <div class="profile-avatar" aria-hidden="true">
-                    @(string.IsNullOrWhiteSpace(Model.DisplayName) ? "B" : Model.DisplayName[..1].ToUpperInvariant())
-                </div>
-                <div>
-                    <h2 id="profile-delete-heading">Delete @Model.DisplayName’s profile?</h2>
-                    <p>This cannot be undone.</p>
-                </div>
+    <article class="delete-card">
+        <div class="delete-warning">
+            <span class="delete-warning-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 9v4"></path>
+                    <path d="M12 17h.01"></path>
+                    <path d="M10.3 3.6 2.5 17.1A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.9L13.7 3.6a2 2 0 0 0-3.4 0Z"></path>
+                </svg>
+            </span>
+
+            <div>
+                <h2>Are you sure?</h2>
+                <p>
+                    After deleting your account you will have seven days 
+                    to reactivate your account. After seven days, your account will
+                    be deleted permanently.
+                </p>
+            </div>
+        </div>
+
+        <dl class="delete-details">
+            <div class="delete-detail-row">
+                <dt>Name</dt>
+                <dd>
+                    @(string.IsNullOrWhiteSpace(Model.DisplayName)
+                        ? "Not provided"
+                        : Model.DisplayName)
+                </dd>
             </div>
 
-            <dl class="profile-detail-list">
-                <div>
-                    <dt>About me</dt>
-                    <dd>@(string.IsNullOrWhiteSpace(Model.Bio) ? "No bio added yet." : Model.Bio)</dd>
-                </div>
-                <div>
-                    <dt>Program</dt>
-                    <dd>@(string.IsNullOrWhiteSpace(Model.Program) ? "Not specified" : Model.Program)</dd>
-                </div>
-                <div>
-                    <dt>Campus</dt>
-                    <dd>@(string.IsNullOrWhiteSpace(Model.Campus) ? "Not specified" : Model.Campus)</dd>
-                </div>
-            </dl>
+            <div class="delete-detail-row">
+                <dt>Bio</dt>
+                <dd>
+                    @(string.IsNullOrWhiteSpace(Model.Bio)
+                        ? "Not provided"
+                        : Model.Bio)
+                </dd>
+            </div>
 
-            <form asp-action="Delete" asp-route-userid="@Model.UserId" method="post" class="profile-edit-actions">
-                <input type="hidden" asp-for="UserId" />
-                <a class="profile-button profile-button-outline" asp-action="Index">Keep profile</a>
-                <button class="profile-button profile-button-danger" type="submit">Delete profile</button>
+            <div class="delete-detail-row">
+                <dt>Program</dt>
+                <dd>
+                    @(string.IsNullOrWhiteSpace(Model.Program)
+                        ? "Not provided"
+                        : Model.Program)
+                </dd>
+            </div>
+
+            <div class="delete-detail-row">
+                <dt>Campus</dt>
+                <dd>
+                    @(string.IsNullOrWhiteSpace(Model.Campus)
+                        ? "Not provided"
+                        : Model.Campus)
+                </dd>
+            </div>
+        </dl>
+
+        <div class="delete-actions">
+            <a class="settings-button settings-button-secondary"
+               asp-controller="Profile"
+               asp-action="Settings">
+                Cancel
+            </a>
+
+            <form asp-controller="Profile"
+                  asp-action="Delete"
+                  method="post">
+                <input type="hidden"
+                       name="userid"
+                       value="@Model.UserId" />
+
+                <button class="settings-button settings-button-danger-solid"
+                        type="submit">
+                    Delete account
+                </button>
             </form>
         </div>
-    </section>
-</div>
+    </article>
+</section>

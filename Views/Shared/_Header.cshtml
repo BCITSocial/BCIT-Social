@@ -5,24 +5,42 @@ Renders the shared brand, centered search placeholder, notifications popup, and 
 
 <header class="site-header">
     
-    <a class="brand" asp-area="" asp-controller="Home" asp-action="Index">
-        <span class="brand-badge brand-logo" aria-hidden="true">
-            <img src="~/images/brandLogo.png" alt="" />
-        </span>BCIT Social
-    </a>
+    <div class="header-start">
+        @* Phones and tablets only: opens the left nav as a slide-out menu (nav-drawer.js). *@
+        <button class="icon-button nav-toggle" type="button" aria-label="Open menu" aria-controls="app-nav"
+                aria-expanded="false" data-nav-toggle>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+        </button>
+        <a class="brand" asp-area="" asp-controller="Home" asp-action="Index">
+            <span class="brand-badge brand-logo" aria-hidden="true">
+                <img src="~/images/brandLogo.png" alt="" />
+            </span><span class="brand-name">BCIT Social</span>
+        </a>
+    </div>
 
-    <label class="header-search">
-        <span class="visually-hidden">Search BCIT Social (unavailable)</span>
+    @* Typing shows a dropdown of matches grouped as Posts, Events, Communities, People (header-search.js). *@
+    <div class="header-search" role="search" data-header-search
+         data-signed-in="@(User.Identity?.IsAuthenticated == true ? "true" : "false")">
+        <label class="visually-hidden" for="header-search-input">Search BCIT Social</label>
         <svg class="header-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <circle cx="11" cy="11" r="6.5" />
             <path d="m16 16 4 4" />
         </svg>
-        <input type="search" placeholder="Search posts, communities, people..." disabled />
-    </label>
+        <input id="header-search-input" type="search" placeholder="Search posts, events, communities..."
+               autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false"
+               aria-controls="header-search-panel" data-header-search-input />
+        <div class="header-search-panel" id="header-search-panel" role="listbox" aria-label="Search results"
+             data-header-search-panel hidden></div>
+    </div>
 
     @if (User.Identity?.IsAuthenticated == true)
     {
         <div class="header-actions">
+            @* Phones only: the search box folds into this icon. *@
+            <button class="icon-button header-icon header-search-toggle" type="button" aria-label="Search"
+                    aria-expanded="false" data-search-toggle>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+            </button>
             <button class="icon-button header-icon" type="button" popovertarget="notifications-panel"
                     aria-label="Notifications">
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -60,9 +78,11 @@ Renders the shared brand, centered search placeholder, notifications popup, and 
         </div>
         <div class="header-popover profile-menu" id="profile-menu" popover>
             <p class="profile-menu-name">@User.Identity.Name</p>
+            @* A real link, so it isn't sent as part of the logout form. *@
+            <a class="profile-menu-item" asp-area="" asp-controller="Profile" asp-action="Index">View profile</a>
+            <a class="profile-menu-item" asp-area="" asp-controller="Profile" asp-action="Settings">Settings</a>
             <form asp-area="Identity" asp-page="/Account/Logout"
                   asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
-                <button class="profile-menu-item" asp-controller="Profile" asp-action="Index">View profile</button>
                 <button class="profile-menu-item" type="submit">Log out</button>
             </form>
         </div>
@@ -70,6 +90,11 @@ Renders the shared brand, centered search placeholder, notifications popup, and 
     else
     {
         <div class="header-actions header-auth-actions">
+            @* Phones only: the search box folds into this icon. *@
+            <button class="icon-button header-icon header-search-toggle" type="button" aria-label="Search"
+                    aria-expanded="false" data-search-toggle>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+            </button>
             <a class="header-auth-button header-auth-login" asp-area="Identity" asp-page="/Account/Login">Log in</a>
             <a class="header-auth-button header-auth-signup" asp-area="Identity" asp-page="/Account/Register">Sign up</a>
         </div>

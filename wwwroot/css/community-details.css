@@ -1,40 +1,6 @@
-/* wwwroot/css/community-details.css */
-:root {
-    --details-bg-page: hsla(45, 25%, 95%, 1);
-    --details-bg-surface: rgb(255, 255, 255);
-    --details-border: hsla(214, 20%, 88%, 1);
-    --banner-bg: rgb(15, 23, 42);
-
-    --text-main: rgb(17, 24, 39);
-    --text-muted: rgb(107, 114, 128);
-    --text-secondary: rgb(75, 85, 99);
-    --text-white: rgb(255, 255, 255);
-
-    --brand-blue: rgb(37, 99, 235);
-    --accent-yellow: rgb(250, 204, 21);
-    --accent-yellow-hover: rgb(234, 179, 8);
-
-    --tag-blue-bg: hsla(217, 91%, 60%, 0.12);
-    --tag-blue-text: rgb(37, 99, 235);
-
-    --radius-md: 10px;
-    --radius-lg: 14px;
-    --radius-pill: 9999px;
-
-    /* Tag & Status Badge Tokens */
-    --tag-default-bg: hsla(217, 91%, 60%, 0.18);
-    --tag-default-text: rgb(29, 78, 216);
-    --tag-status-bg: hsla(124, 74%, 55%, 0.205);
-    --tag-status-text: rgb(68, 146, 56);
-    --tag-time-bg: hsla(38, 92%, 50%, 0.2);
-    --tag-time-text: rgb(180, 83, 9);
-    --radius-sm: 6px;
-}
-
 .details-wrapper {
-    background-color: var(--details-bg-page);
+    width: 100%;
     padding: 1.5rem;
-    border-radius: var(--radius-lg);
     color: var(--text-main);
     display: flex;
     flex-direction: column;
@@ -50,6 +16,27 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Cover image from the create/Settings pop-up, with a dark fade so the text stays readable. */
+.details-hero-banner.has-image {
+    min-height: 220px;
+    background-position: center;
+    background-size: cover;
+}
+
+.details-hero-banner.has-image::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, hsla(222, 47%, 11%, 0.85) 0%, hsla(222, 47%, 11%, 0.45) 45%, hsla(222, 47%, 11%, 0) 75%);
+}
+
+.banner-text {
+    position: relative;
+    z-index: 1;
 }
 
 .details-hero-banner h1 {
@@ -101,6 +88,23 @@
 
 .details-meta-row {
     justify-content: space-between;
+    align-items: center;
+}
+
+.meta-right-actions {
+    margin-left: auto;
+    gap: 0.5rem;
+}
+
+.meta-right-actions form {
+    margin: 0;
+}
+
+.btn-joined.btn-joined-lg {
+    min-height: 2.5rem;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    border-radius: var(--radius-md);
 }
 
 .community-icon-box {
@@ -124,55 +128,12 @@
     margin: 0;
 }
 
-.pill-joined {
-    background-color: var(--tag-status-bg);
-    color: var(--tag-status-text);
-    border: 1px solid hsla(124, 74%, 55%, 0.4);
-    padding: 0.25rem 0.75rem;
-    border-radius: var(--radius-pill);
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-}
-
 .meta-sub-row {
     font-size: 0.825rem;
     color: var(--text-muted);
 }
 
-.btn-settings {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.45rem 0.95rem;
-    border-radius: var(--radius-md);
-    background-color: var(--details-bg-surface);
-    border: 1px solid var(--details-border);
-    color: var(--text-main);
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-
-.btn-settings:hover {
-    background-color: var(--details-bg-subtle);
-    border-color: var(--brand-blue);
-    color: var(--brand-blue);
-}
-
-
 /* Category, Status & Time Badges */
-.category-badge {
-    background-color: var(--tag-default-bg);
-    color: var(--tag-default-text);
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.2rem 0.55rem;
-    border-radius: var(--radius-sm);
-    display: inline-block;
-}
-
 .category-badge.status-badge {
     background-color: var(--tag-status-bg);
     color: var(--tag-status-text);
@@ -181,30 +142,6 @@
 .category-badge.time-badge {
     background-color: var(--tag-time-bg);
     color: var(--tag-time-text);
-}
-
-.category-badge:empty {
-    display: none;
-}
-
-
-/* Yellow Button */
-.btn-create {
-    background-color: var(--accent-yellow);
-    color: var(--text-main);
-    font-weight: 700;
-    padding: 0.5rem 1.1rem;
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    transition: background-color 0.15s ease;
-}
-
-.btn-create:hover {
-    background-color: var(--accent-yellow-hover);
-    color: var(--text-main);
 }
 
 /* Badges */
@@ -254,31 +191,35 @@
 }
 
 .section-header-row {
+    gap: 1rem;
     margin-bottom: 0.75rem;
 }
 
-.section-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    margin: 0;
+/* Post count chip: white so it shows on the beige page */
+.details-wrapper .section-count {
+    background-color: var(--details-bg-surface);
+    border: 1px solid var(--details-border);
 }
 
-/* In-place expand button */
-.link-action-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--brand-blue);
-    cursor: pointer;
-    text-decoration: none;
-    transition: opacity 0.15s ease;
+.join-to-post {
+    font-size: 0.825rem;
+    color: var(--text-muted);
 }
 
-.link-action-btn:hover {
-    text-decoration: underline;
-    opacity: 0.85;
+.discussions-empty {
+    padding: 1.5rem;
+    background-color: var(--details-bg-surface);
+    border: 1px dashed var(--details-border);
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* "See all" / "Show less" under the posts */
+.discussions-toggle {
+    align-self: center;
+    margin-top: 0.75rem;
 }
 
 .discussions-list {
@@ -317,12 +258,51 @@
 
 .discussion-content {
     width: 100%;
+    min-width: 0;
+}
+
+.discussion-top-row {
+    gap: 0.75rem;
+    align-items: baseline;
+}
+
+.discussion-title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.discussion-title a {
+    color: var(--text-main);
+    text-decoration: none;
+}
+
+.discussion-title a:hover {
+    color: var(--brand-blue);
+    text-decoration: underline;
+}
+
+.discussion-time {
+    flex: none;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.discussion-tags {
+    margin-top: 0.35rem;
 }
 
 .discussion-content p {
     font-size: 0.825rem;
     color: var(--text-secondary);
     margin: 0.25rem 0 0.4rem 0;
+    white-space: pre-line;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
 }
 
 .discussion-footer {
@@ -351,4 +331,45 @@
 
 .delete-summary .delete-summary-count {
     margin: 0;
+}
+/* In the shared page shell the wrapper lines up with the column edges, like Events and Communities. */
+main > .details-wrapper {
+    padding: 0;
+}
+
+/* Phone layout: tighter padding, the banner's accent box drops out, and the header actions wrap below. */
+@media (max-width: 640px) {
+    main > .details-wrapper {
+        gap: 0.9rem;
+    }
+
+    .details-hero-banner {
+        padding: 1.25rem;
+    }
+
+    .details-hero-banner h1 {
+        font-size: 1.3rem;
+    }
+
+    .banner-solid-accent {
+        display: none;
+    }
+
+    .community-icon-box {
+        width: 44px;
+        height: 44px;
+        font-size: 1rem;
+    }
+
+    .community-main-title {
+        font-size: 1.2rem;
+    }
+
+    .meta-right-actions {
+        width: 100%;
+    }
+
+    .details-tabs {
+        overflow-x: auto;
+    }
 }

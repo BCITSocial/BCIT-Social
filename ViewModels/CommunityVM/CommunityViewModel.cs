@@ -21,6 +21,9 @@ public class CommunityViewModel
     // Author: Jaspreet Bath
     // Ensure's modal description doesn't delete itself.
     public string? Description { get; set; }
+    // Cover image picked in the create pop-up or Settings. Null keeps the current one.
+    public IFormFile? BannerImage { get; set; }
+    // ----------------------
     public bool IsJoined { get; set; }
     public int MembersCount { get; set; }
     public IFormFile? BannerPhoto { get; set; }

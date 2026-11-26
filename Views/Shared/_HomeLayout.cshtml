@@ -21,8 +21,12 @@ Provides the shared page structure, styles, header, navigation, and script secti
     @{ var rightRail = ViewData["RightRail"] as IReadOnlyList<string>; }
     <a class="skip-link" href="#main-content">Skip to content</a>
     <partial name="_Header" />
+    @* Three columns: the nav pinned to the left edge, the page centred, and a right column pinned to the right
+       edge. A page fills the right column with @section RightPanel { ... }, or lists right-rail cards in ViewData["RightRail"]. *@
     <div class="app-shell@(rightRail is null ? "" : " has-rail")">
         <partial name="_Navigation" />
+        @* Dims the page behind the slide-out menu on phones; a tap closes the menu. *@
+        <div class="nav-backdrop" hidden data-nav-backdrop></div>
         <main id="main-content" tabindex="-1">
             @RenderBody()
         </main>
@@ -30,12 +34,21 @@ Provides the shared page structure, styles, header, navigation, and script secti
         {
             @await Component.InvokeAsync("RightRail", new { cards = rightRail })
         }
+        else
+        {
+            <div class="shell-right">
+                @await RenderSectionAsync("RightPanel", required: false)
+            </div>
+        }
     </div>
     @if (ViewData["UseMinimalSiteShell"] as bool? != true)
     {
         @await Component.InvokeAsync("CreatePostDialog")
         <script src="~/js/create-post.js" asp-append-version="true" defer></script>
     }
+    <script src="~/js/nav-drawer.js" asp-append-version="true" defer></script>
+    <script src="~/js/profile-theme.js" asp-append-version="true" defer></script>
+    <script src="~/js/header-search.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -5,7 +5,6 @@ using BCIT_Social.Services;
 using BCIT_Social.Data;
 using Microsoft.AspNetCore.Identity;
 using BCIT_Social.ViewModels;
-
 public class ProfileController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -39,6 +38,7 @@ public class ProfileController : Controller
 
         var profile = await _context.Profiles
             .AsNoTracking()
+            .Where(item => item.User.DateOfDel == null)
             .FirstOrDefaultAsync(item => item.UserId == userId);
 
         if (profile == null)
@@ -52,6 +52,12 @@ public class ProfileController : Controller
     private async Task<ProfilePageViewModel> BuildProfilePageViewModel(Profile profile, string? viewerId, string? friendSearch = null)
     {
         var profileUserId = profile.UserId;
+        // Get the email of the profile owner - Jonathan
+        var email = await _context.Users
+            .AsNoTracking()
+            .Where(user => user.Id == profileUserId)
+            .Select(user => user.Email)
+            .FirstOrDefaultAsync();
         var posts = await ProjectProfileCards(
                 _context.Posts
                     .Where(post => post.AuthorId == profileUserId && post.DateOfDel == null)
@@ -167,6 +173,7 @@ public class ProfileController : Controller
         return new ProfilePageViewModel
         {
             Profile = profile,
+            Email = email,
             IsOwnProfile = isOwnProfile,
             Posts = posts,
             Bookmarks = bookmarkedPosts,
@@ -398,7 +405,10 @@ public class ProfileController : Controller
         }
         var profile = await _context.Profiles
             .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.UserId == requestedUserId);
+            .Where(m => m.UserId == requestedUserId)
+            .Include(m => m.User)
+            .Where(m => m.User.DateOfDel == null)
+            .FirstOrDefaultAsync();
         if (profile == null)
         {
             return NotFound();
@@ -491,8 +501,8 @@ public class ProfileController : Controller
         .AsNoTracking()
         .FirstOrDefaultAsync(profile => profile.UserId == id, cancellationToken);
 
-        if (string.IsNullOrWhiteSpace(id) || 
-            profile?.ProfilePhotoStorageKey == null || 
+        if (string.IsNullOrWhiteSpace(id) ||
+            profile?.ProfilePhotoStorageKey == null ||
             profile.ProfilePhotoContentType == null)
         {
             return NotFound();
@@ -658,10 +668,11 @@ public class ProfileController : Controller
 
     // POST: PROFILES/Delete/5
     /// <summary>
-    /// Author: Joshua Trepanier
-    /// Last Revised: Oct 21, 2026
+    /// Author: Joshua Trepanier, Tin Trinh
+    /// Last Revised: Nov 18, 2026
     /// Description: Delete the existing profile (Also deletes the account from the database).
     /// Signs user out once account is deleted.
+    /// Checks if user does not own any communities first
     /// </summary>
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
@@ -678,10 +689,19 @@ public class ProfileController : Controller
         }
         var profile = await _context.Profiles.FindAsync(userid);
         var account = await _context.Users.FindAsync(userid);
-        if (profile != null && account != null)
+        var communities = await _context.Communities
+                            .Where(c => c.CreatorId == currentUserID)
+                            .Where(c => c.DateOfDel == null)
+                            .ToListAsync();
+        if (communities.Count > 0)
         {
-            _context.Profiles.Remove(profile);
-            _context.Users.Remove(account);
+            return RedirectToAction(nameof(CommunityController.CommunityHandling), "Community");
+        }
+        
+        if (profile != null && account != null && communities.Count == 0)
+        {
+            account.DateOfDel = DateTime.Now.AddDays(7);
+            _context.Users.Update(account);
         }
         await _context.SaveChangesAsync();
         await _signInManager.SignOutAsync();
@@ -692,4 +712,27 @@ public class ProfileController : Controller
     {
         return _context.Profiles.Any(e => e.UserId == userid);
     }
+    // Author: Cameron Morris
+    public async Task<IActionResult> Settings()
+    {
+        string? userId = _userManager.GetUserId(User);
+
+        if (userId == null)
+        {
+            return Challenge();
+        }
+
+        var profile = await _context.Profiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(profile => profile.UserId == userId);
+
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        return View(profile);
+    }
+
 }
+

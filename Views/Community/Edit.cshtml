@@ -10,15 +10,17 @@
     ViewData["Title"] = Model.Text.Title;
 }
 
+<link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/communities.css" asp-append-version="true" />
 
-<div class="communities-wrapper">
+<div class="communities-wrapper page-panel">
     <div class="form-page-container">
         <div class="modal-card">
             <h1 class="modal-title">@Model.Text.Title</h1>
             <p class="modal-subtitle">@Model.Text.Subtitle</p>
 
-            <form asp-action="Edit" asp-route-id="@Model.Id" method="post" data-community-form>
+            <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data"
+                  data-community-form>
                 @if (!ViewData.ModelState.IsValid)
                 {
                     <div asp-validation-summary="All" class="text-danger form-errors"></div>
@@ -27,8 +29,8 @@
                 <partial name="_CommunityFormFields" model="Model" />
 
                 <div class="modal-footer-actions form-page-actions">
-                    <a asp-action="Index" class="btn-cancel">@Model.Text.CancelButton</a>
-                    <button type="submit" class="btn-create">@Model.Text.SubmitButton</button>
+                    <a asp-action="Index" class="button button-secondary">@Model.Text.CancelButton</a>
+                    <button type="submit" class="button button-primary">@Model.Text.SubmitButton</button>
                 </div>
             </form>
         </div>

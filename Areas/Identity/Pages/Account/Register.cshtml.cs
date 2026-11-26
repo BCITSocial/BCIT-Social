@@ -38,6 +38,10 @@ public class RegisterModel(UserManager<ApplicationUser> userManager,
 
     public class InputModel
     {
+        [Required, Display(Name = "First Name"), MaxLength(35)]
+        public string FirstName { get; set; } = "";
+        [Required, Display(Name = "Last Name"), MaxLength(35)]
+        public string LastName { get; set; } = "";
         [Required, EmailAddress]
         public string Email { get; set; } = "";
         [Required, DataType(DataType.Password)]
@@ -72,7 +76,13 @@ public class RegisterModel(UserManager<ApplicationUser> userManager,
             return Page();
         }
 
-        var user = new ApplicationUser { UserName = Input.Email, Email = Input.Email };
+        var user = new ApplicationUser
+        {
+            FirstName = Input.FirstName,
+            LastName = Input.LastName,
+            UserName = $"{Input.Email}",
+            Email = Input.Email
+        };
         var result = await userManager.CreateAsync(user, Input.Password);
         if (!result.Succeeded)
         {
@@ -83,7 +93,7 @@ public class RegisterModel(UserManager<ApplicationUser> userManager,
         var profile = new Profile
         {
             UserId = user.Id,
-            DisplayName = user.UserName,
+            DisplayName = $"{Input.FirstName} {Input.LastName}",
             Bio = "",
             Program = "",
             Campus = "",
