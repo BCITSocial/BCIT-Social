@@ -465,7 +465,9 @@ public class EventsController : Controller
 
     public sealed class EventInput
     {
+        // Match the event title limit in the create and manage forms.
         [Required]
+        [StringLength(150)]
         public string Title { get; init; } = string.Empty;
 
         [Required]

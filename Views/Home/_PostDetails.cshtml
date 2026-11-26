@@ -101,7 +101,7 @@
                         <input type="hidden" name="postId" value="@post.Id" />
                         <label class="visually-hidden" for="new-comment-@post.Id">Write a comment</label>
                         <input class="comment-input" id="new-comment-@post.Id" name="content" placeholder="Write a comment..."
-                               autocomplete="off" required />
+                               autocomplete="off" maxlength="1000" required />
                         <button class="cta-button" type="submit">Comment</button>
                     </form>
                 }

@@ -35,14 +35,14 @@
 @* community name (required) *@
 <div class="modal-field">
     <label for="@prefix-name" class="modal-label">@text.NameLabel</label>
-    <input type="text" id="@prefix-name" name="Name" class="modal-input" value="@Model.Name" required
+    <input type="text" id="@prefix-name" name="Name" class="modal-input" value="@Model.Name" maxlength="50" required
            placeholder="@text.NamePlaceholder" />
 </div>
 
 @* description *@
 <div class="modal-field">
     <label for="@prefix-description" class="modal-label">@text.DescriptionLabel</label>
-    <textarea id="@prefix-description" name="Description" rows="3" class="modal-input"
+    <textarea id="@prefix-description" name="Description" rows="3" class="modal-input" maxlength="1000"
               placeholder="@text.DescriptionPlaceholder">@Model.Description</textarea>
 </div>
 

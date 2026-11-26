@@ -49,13 +49,13 @@
 
                 <div class="profile-edit-field">
                     <label asp-for="DisplayName"></label>
-                    <input asp-for="DisplayName" autocomplete="name" />
+                    <input asp-for="DisplayName" autocomplete="name" maxlength="50" />
                     <span asp-validation-for="DisplayName"></span>
                 </div>
 
                 <div class="profile-edit-field">
                     <label asp-for="Bio">About me</label>
-                    <textarea asp-for="Bio" rows="4" placeholder="Share a little about yourself..."></textarea>
+                    <textarea asp-for="Bio" rows="4" maxlength="500" placeholder="Share a little about yourself..."></textarea>
                     <span asp-validation-for="Bio"></span>
                 </div>
 
