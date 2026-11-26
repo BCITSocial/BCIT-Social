@@ -215,6 +215,17 @@ class GitHub:
             url = resp.links.get("next", {}).get("url")
             params = None  # the next URL already carries the query string
 
+    def commit_detail(self, repo, sha):
+        """File list and line counts for one commit, or None when GitHub can't give them.
+        A branch force-pushed or deleted during the run can make GitHub answer 404/422 for a
+        commit it just listed; the digest then shows that commit without file details instead of failing."""
+        resp = request_with_retry(self.session, "GET", f"{GITHUB_API}{repo}/commits/{sha}")
+        if resp.status_code in (404, 409, 422):
+            print(f"warning: skipped details for commit {sha[:7]} (GitHub returned {resp.status_code})", file=sys.stderr)
+            return None
+        resp.raise_for_status()
+        return resp.json()
+
     def collect(self, since, roster, branch_team):
         repo = f"/repos/{self.repo}"
         since_iso = since.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -242,12 +253,13 @@ class GitHub:
                 "merge": is_merge,
             }
             if not is_merge and i < MAX_COMMIT_DETAILS:
-                detail = self.get(f"{repo}/commits/{c['sha']}").json()
-                files = detail.get("files") or []
-                row["additions"] = detail.get("stats", {}).get("additions", 0)
-                row["deletions"] = detail.get("stats", {}).get("deletions", 0)
-                row["files"] = [f["filename"] for f in files[:12]]
-                row["more_files"] = max(0, len(files) - 12)
+                detail = self.commit_detail(repo, c["sha"])
+                if detail is not None:
+                    files = detail.get("files") or []
+                    row["additions"] = detail.get("stats", {}).get("additions", 0)
+                    row["deletions"] = detail.get("stats", {}).get("deletions", 0)
+                    row["files"] = [f["filename"] for f in files[:12]]
+                    row["more_files"] = max(0, len(files) - 12)
             commit_rows.append(row)
 
         # Pull requests: everything updated in the window + every open PR (= work in progress).
