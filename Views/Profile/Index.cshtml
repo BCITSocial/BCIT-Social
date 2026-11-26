@@ -131,12 +131,29 @@ This view renders the user's profile page, including their profile information, 
                                 : profile.Bio)
                         </p>
 
-                        <div class="profile-stats" aria-label="Profile activity">
+                        <div class="profile-stats">
                             <span><strong>@Model.Posts.Count</strong> Posts</span>
                             <span><strong>@Model.Communities.Count</strong> Communities</span>
                             @if (Model.IsOwnProfile)
                             {
                                 <span><strong>@Model.Bookmarks.Count</strong> Bookmarks</span>
+                            }
+                            @if (!Model.IsOwnProfile && !string.IsNullOrEmpty(currentUserId))
+                            {
+                                <form class="profile-message-form"
+                                      asp-controller="Messages"
+                                      asp-action="StartConversation"
+                                      method="post">
+                                    <input type="hidden" name="recipientId" value="@profile.UserId" />
+                                    <button class="profile-button profile-button-outline profile-message-button"
+                                            type="submit"
+                                            aria-label="Message @profile.DisplayName">
+                                        Message
+                                        <svg aria-hidden="true" focusable="false">
+                                            <use href="#icon-message" />
+                                        </svg>
+                                    </button>
+                                </form>
                             }
                         </div>
                     </div>

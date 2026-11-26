@@ -286,6 +286,7 @@
 .profile-stats {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 18px;
     padding-top: 12px;
     border-top: 1px solid var(--color-border);
@@ -295,6 +296,34 @@
 
 .profile-stats strong {
     color: var(--color-text);
+}
+
+.profile-message-form {
+    margin: 0;
+    margin-inline-start: auto;
+}
+
+.profile-message-button {
+    --message-button-min-height: 2rem;
+    --message-button-touch-height: 2.75rem;
+    --message-button-padding-y: 0.3125rem;
+    --message-button-padding-x: 0.8125rem;
+    --message-button-icon-size: 0.9375rem;
+    min-block-size: var(--message-button-min-height);
+    padding: var(--message-button-padding-y) var(--message-button-padding-x);
+    cursor: pointer;
+}
+
+.profile-message-button svg {
+    flex: none;
+    width: var(--message-button-icon-size);
+    height: var(--message-button-icon-size);
+}
+
+@media (pointer: coarse) {
+    .profile-message-button {
+        min-block-size: var(--message-button-touch-height);
+    }
 }
 
 .profile-feed-toolbar {
