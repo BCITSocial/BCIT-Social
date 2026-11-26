@@ -52,8 +52,11 @@ Renders sidebar navigation, marks the active controller route, and lists the use
             <li>
                 <a asp-controller="Messages" asp-action="Index"
                    aria-current="@(currentController == "Messages" ? "page" : null)">
-                    <svg class="sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 5h16v11H9l-5 4Z" />
+                    <svg class="sidebar-icon" aria-hidden="true" focusable="false">
+                        <symbol id="icon-message" viewBox="0 0 24 24">
+                            <path d="M4 5h16v11H9l-5 4Z" />
+                        </symbol>
+                        <use href="#icon-message" />
                     </svg>
                     Messages
                 </a>
