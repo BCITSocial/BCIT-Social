@@ -80,7 +80,9 @@ public class MessagesController : Controller
                 UserId = otherId,
                 Name = displayName,
                 Program = profile?.Program ?? "",
-                PhotoUrl = null,
+                PhotoUrl = string.IsNullOrWhiteSpace(profile?.ProfilePhotoStorageKey)
+                    ? null
+                    : Url.Action("Photo", "Profile", new { id = otherId }),
                 Messages = messages,
             };
         }).OrderByDescending(conversation => conversation.LastMessage?.SentAt ?? DateTime.MinValue).ToList();
