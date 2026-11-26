@@ -6,18 +6,12 @@
     Layout = "_HomeLayout";
     // The event cards read their badge and button text from here.
     ViewData[nameof(EventsText)] = text;
-    // Card slots in the right rail, top to bottom. The entries come from right-rail-text.json.
-    ViewData["RightRail"] = new[] { RightRailCards.Events, RightRailCards.Links };
+    // No right rail here: its "Upcoming events" card would repeat this page.
 }
 
-@* Events page: banner, heading with the Create button, tabs (My calendar first), then the calendar or the Discover filters and cards.
+@* Events page: heading with the Create button, tabs (My calendar first), then the calendar or the Discover filters and cards.
    All wording comes from Model.Text (the "text" section of events-text.json); this file only places it. *@
 <link rel="stylesheet" href="~/css/events.css" asp-append-version="true" />
-
-<section class="events-banner" aria-label="@text.BannerLabel">
-    <p class="events-banner-title">@text.BannerTitle</p>
-    <p class="events-banner-text">@text.BannerText</p>
-</section>
 
 @* Shown once after an event is created. TODO(BE): the Create action sets TempData["EventCreated"] = true before redirecting here. *@
 @if (TempData["EventCreated"] is true)
@@ -41,7 +35,7 @@
                 aria-haspopup="dialog">@text.CreateEvent.OpenButton</button>
     </div>
 
-    @* My calendar is the default tab; Discover lists every event with the status chips and filters. *@
+    @* My calendar is the default tab; Discover lists every event with the filter toolbar. *@
     <nav class="events-tabs" aria-label="@text.LabelEventsView">
         @foreach (var (value, label) in EventsViewModel.views)
         {
@@ -52,24 +46,25 @@
 
     @if (Model.View == EventsViewModel.DISCOVER)
     {
-        <div class="events-filter-bar">
-            @* Status chips. Each link keeps the other filters and changes only "status". *@
-            <nav class="chip-group" aria-label="@text.LabelMyEvents">
-                @foreach (var (value, label) in EventsViewModel.statuses)
-                {
-                    <a asp-action="Index" asp-all-route-data="@Model.RouteValues(status: value)"
-                       aria-current="@(Model.Status == value ? "page" : null)">@EventsText.Pick(text.Statuses, value, label)</a>
-                }
-            </nav>
-
-            @* Plain GET form. The field names match EventsQuery. events.js submits it when a dropdown changes;
-               the Apply button appears only when JavaScript is off. No search box: the header search covers the site. *@
-            <form class="events-toolbar" method="get" asp-action="Index" data-events-filters>
-                <input type="hidden" name="view" value="@Model.View" />
-                <input type="hidden" name="status" value="@Model.Status" />
+        @* One toolbar of dropdowns: which events (status) and the filters on the left, the sort on the right.
+           A dropdown that differs from its default gets "is-active" so it stands out.
+           Plain GET form. The field names match EventsQuery. events.js submits it when a dropdown changes;
+           the Apply button appears only when JavaScript is off. No search box: the header search covers the site. *@
+        <form class="events-filter-bar" method="get" asp-action="Index" data-events-filters>
+            <input type="hidden" name="view" value="@Model.View" />
+            <div class="events-filters">
+                <label>
+                    <span class="visually-hidden">@text.LabelMyEvents</span>
+                    <select name="status" class="@(Model.Status == EventsViewModel.DEFAULTSTATUS ? null : "is-active")">
+                        @foreach (var (value, label) in EventsViewModel.statuses)
+                        {
+                            <option value="@value" selected="@(value == Model.Status)">@EventsText.Pick(text.Statuses, value, label)</option>
+                        }
+                    </select>
+                </label>
                 <label>
                     <span class="visually-hidden">@text.LabelCommunity</span>
-                    <select name="community">
+                    <select name="community" class="@(Model.Community is null ? null : "is-active")">
                         <option value="">@text.AllCommunities</option>
                         @foreach (var community in Model.Communities)
                         {
@@ -79,7 +74,7 @@
                 </label>
                 <label>
                     <span class="visually-hidden">@text.LabelCampus</span>
-                    <select name="campus">
+                    <select name="campus" class="@(Model.Campus is null ? null : "is-active")">
                         <option value="">@text.AllCampuses</option>
                         @foreach (var campus in EventsViewModel.campuses)
                         {
@@ -89,24 +84,36 @@
                 </label>
                 <label>
                     <span class="visually-hidden">@text.LabelRange</span>
-                    <select name="range">
+                    <select name="range" class="@(Model.Range == EventsViewModel.DEFAULTRANGE ? null : "is-active")">
                         @foreach (var (value, label) in EventsViewModel.ranges)
                         {
                             <option value="@value" selected="@(value == Model.Range)">@EventsText.Pick(text.Ranges, value, label)</option>
                         }
                     </select>
                 </label>
-                <label>
-                    <span class="visually-hidden">@text.LabelSort</span>
-                    <select name="sort">
-                        @foreach (var (value, label) in EventsViewModel.sorts)
-                        {
-                            <option value="@value" selected="@(value == Model.Sort)">@EventsText.Format(text.SortOption, EventsText.Pick(text.Sorts, value, label))</option>
-                        }
-                    </select>
-                </label>
-                <noscript><button class="primary-button" type="submit">@text.Apply</button></noscript>
-            </form>
+            </div>
+            <label class="events-sort">
+                <span>@text.LabelSort</span>
+                <select name="sort" class="@(Model.Sort == EventsViewModel.DEFAULTSORT ? null : "is-active")">
+                    @foreach (var (value, label) in EventsViewModel.sorts)
+                    {
+                        <option value="@value" selected="@(value == Model.Sort)">@EventsText.Format(text.SortOption, EventsText.Pick(text.Sorts, value, label))</option>
+                    }
+                </select>
+            </label>
+            <noscript><button class="primary-button" type="submit">@text.Apply</button></noscript>
+        </form>
+
+        @* How many events match, and a way back to the defaults once any dropdown is changed. *@
+        <div class="events-results">
+            @if (Model.Events.Count > 0)
+            {
+                <p>@EventsText.Format(Model.Events.Count == 1 ? text.ResultCountOne : text.ResultCount, Model.Events.Count)</p>
+            }
+            @if (Model.ActiveFilterCount > 0)
+            {
+                <a class="filter-reset" asp-action="Index" asp-all-route-data="@Model.ResetRouteValues()">@text.ResetFilters</a>
+            }
         </div>
     }
 
