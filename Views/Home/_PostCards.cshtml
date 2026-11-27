@@ -10,27 +10,26 @@
     <article class="post-card" data-post-id="@post.Id" data-created-ticks="@post.CreatedAt.Ticks"
              aria-labelledby="post-title-@post.Id">
 
-        <a class="post-avatar" aria-hidden="true" asp-controller="Profile" asp-action="Details"
-           asp-route-userId="@post.AuthorId">
+        @* The avatar and name open the author's popout: View profile and a quick "Message" box (user-popout.js). *@
+        <button class="post-avatar user-trigger" type="button" data-user-popout data-user-id="@post.AuthorId"
+                data-user-name="@post.AuthorName" aria-label="Open @post.AuthorName's profile card">
             @if (post.AuthorHasProfilePhoto)
             {
                 <img class="post-avatar" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
-                     src="@Url.Action(action: "Photo", "Profile", new { id = post.AuthorId })"
-                     alt="@($"{@post.AuthorName}'s profile photo")" />
+                     src="@Url.Action(action: "Photo", "Profile", new { id = post.AuthorId })" alt="" />
             }
             else
             {
                 <span aria-hidden="true">@post.AuthorInitials</span>
             }
-        </a>
+        </button>
 
         <div class="post-body">
 
             <div class="post-card-top">
                 <p class="post-meta">
-                    <a class="post-author" asp-controller="Profile" asp-action="Details" asp-route-userId="@post.AuthorId">
-                        @post.AuthorName
-                    </a>
+                    <button class="post-author user-trigger user-trigger-text" type="button" data-user-popout
+                            data-user-id="@post.AuthorId" data-user-name="@post.AuthorName">@post.AuthorName</button>
 
                     @if (post.CommunityName is not null)
                     {

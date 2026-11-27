@@ -139,14 +139,23 @@ else
 @section RightPanel {
     @if (signedIn)
     {
-        <aside class="panel home-section discovery-panel" aria-label="Discover events">
-            <div class="discovery-tabs" role="tablist" aria-label="Discover">
-                <h2>Upcoming events</h2>
-            </div>
-            <section class="discovery-content" id="events-panel">
-                <p class="discovery-empty">No upcoming events to show.</p>
-                <a class="discovery-link" asp-controller="Events" asp-action="Index">View all events</a>
-            </section>
+        @* Upcoming events only. "Your communities" is already in the left nav, so there is no Communities tab. *@
+        <aside class="panel home-section discovery-panel" aria-labelledby="discovery-heading">
+            <h2 id="discovery-heading">Upcoming events</h2>
+            <p class="discovery-empty">No upcoming events to show.</p>
+            <a class="discovery-link" asp-controller="Events" asp-action="Index" asp-route-view="discover">View all events</a>
+        </aside>
+    }
+    else
+    {
+        <aside class="panel home-section guest-cta-panel" aria-labelledby="guest-cta-heading">
+            <h2 id="guest-cta-heading">Find your people</h2>
+            <p>Make an account to RSVP to events, join communities, and message classmates.</p>
+            <ul class="guest-cta-list">
+                <li>Join clubs and program communities</li>
+                <li>See what's happening on campus</li>
+                <li>Chat with friends and classmates</li>
+            </ul>
         </aside>
     }
 }
