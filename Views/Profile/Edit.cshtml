@@ -43,63 +43,54 @@
                       class="profile-edit-form">
                     <div asp-validation-summary="ModelOnly" class="profile-edit-validation" role="alert"></div>
                     <input type="hidden" asp-for="UserId" />
+                    <div class="profile-photo-upload">
+                        <div class="profile-photo-upload-copy">
+                            <label for="ProfilePhoto">Change profile picture</label>
+                            <p id="profile-photo-help">Choose a PNG, JPG, or WebP image.</p>
+                    
+                            <input class="profile-photo-upload-input" type="file" id="ProfilePhoto" name="ProfilePhoto"
+                                   accept="image/png,image/jpeg,image/webp" aria-describedby="profile-photo-help" />
+                        </div>
+                    </div>
 
                     <div class="profile-edit-field">
-                        <label for="ProfilePhoto">Profile photo</label>
-                        <input id="ProfilePhoto" name="ProfilePhoto" type="file" accept=".png,.jpg,.jpeg,.webp"
-                               aria-describedby="profile-photo-help profile-photo-error" />
-                        <small id="profile-photo-help" class="profile-edit-help">PNG, JPG or WebP. Maximum 10 MB, at least
-                            300 × 300 pixels. Leave empty to keep your current photo.</small>
-                            @Html.ValidationMessage("ProfilePhoto", null, new { id = "profile-photo-error", role = "alert" })
+                        <label asp-for="DisplayName">Display Name</label>
+                        <input asp-for="DisplayName" autocomplete="name" maxlength="50" />
+                        <span asp-validation-for="DisplayName"></span>
+                    </div>
+
+                    <div class="profile-edit-field">
+                        <label asp-for="Bio">About me</label>
+                        <textarea asp-for="Bio" rows="4" maxlength="500"
+                                  placeholder="Share a little about yourself..."></textarea>
+                        <span asp-validation-for="Bio"></span>
+                    </div>
+
+                    <div class="profile-edit-fields-row">
+                        <div class="profile-edit-field">
+                            <label asp-for="Program"></label>
+                            <input asp-for="Program" autocomplete="organization-title" />
+                            <span asp-validation-for="Program"></span>
                         </div>
 
                         <div class="profile-edit-field">
-                            <label asp-for="DisplayName"></label>
-                            <input asp-for="DisplayName" autocomplete="name" maxlength="50" />
-                            <span asp-validation-for="DisplayName"></span>
+                            <label asp-for="Campus"></label>
+                            <select asp-for="Campus">
+                                <option value="">Select a campus</option>
+                                <option value="Burnaby">Burnaby</option>
+                                <option value="Downtown">Downtown</option>
+                                <option value="Marine">Marine</option>
+                                <option value="Aerospace">Aerospace</option>
+                            </select>
+                            <span asp-validation-for="Campus"></span>
                         </div>
+                    </div>
 
-                        <div class="profile-edit-field">
-                            <label asp-for="Bio">About me</label>
-                            <textarea asp-for="Bio" rows="4" maxlength="500"
-                                      placeholder="Share a little about yourself..."></textarea>
-                            <span asp-validation-for="Bio"></span>
-                        </div>
-
-                        <div class="profile-edit-fields-row">
-                            <div class="profile-edit-field">
-                                <label asp-for="Program"></label>
-                                <input asp-for="Program" autocomplete="organization-title" />
-                                <span asp-validation-for="Program"></span>
-                            </div>
-
-                            <div class="profile-edit-field">
-                                <label asp-for="Campus"></label>
-                                <select asp-for="Campus">
-                                    <option value="">Select a campus</option>
-                                    <option value="Burnaby">Burnaby</option>
-                                    <option value="Downtown">Downtown</option>
-                                    <option value="Marine">Marine</option>
-                                    <option value="Aerospace">Aerospace</option>
-                                </select>
-                                <span asp-validation-for="Campus"></span>
-                            </div>
-                        </div>
-                        <div class="profile-photo-upload">
-                            <div class="profile-photo-upload-copy">
-                                <label for="ProfilePhoto">Change profile picture</label>
-                                <p id="profile-photo-help">Choose a PNG, JPG, or WebP image.</p>
-                    
-                                <input class="profile-photo-upload-input" type="file" id="ProfilePhoto" name="ProfilePhoto"
-                                       accept="image/png,image/jpeg,image/webp" aria-describedby="profile-photo-help" />
-                            </div>
-                        </div>
-
-                        <div class="profile-edit-actions">
-                            <a class="settings-button settings-button-secondary" asp-action="Index">Cancel</a>
-                            <button class="settings-button settings-button-primary" type="submit">Save changes</button>
-                        </div>
-                    </form>
-                </div>
-            </section>
-        </div>
+                    <div class="profile-edit-actions">
+                        <a class="settings-button settings-button-secondary" asp-action="Index">Cancel</a>
+                        <button class="settings-button settings-button-primary" type="submit">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
