@@ -197,33 +197,56 @@ public class MessagesUiTests(PlaywrightFixture fx)
     [Fact]
     public async Task StartConversation_BlocksEmptySubmit_AndLocksButtonOnValidSubmit()
     {
-        var page = await fx.OpenComponentPageAsync("/Messages", UiDomFixtures.MessagesPage(), "messages.js");
+        var page = await fx.OpenComponentPageAsync(
+            "/Messages",
+            UiDomFixtures.MessagesPage(),
+            "messages.js",
+            async p =>
+            {
+                await p.RouteAsync("**/Messages/FindUsers*", async route =>
+                {
+                    await route.FulfillAsync(new()
+                    {
+                        Status = 200,
+                        ContentType = "application/json",
+                        Body = """[{"id":"u2","name":"Maria Lopez","program":"Digital Design"}]"""
+                    });
+                });
+            });
         try
         {
-            var result = await page.EvaluateAsync<string[]>("""
+            await page.Locator("[data-new-message]").ClickAsync();
+
+            var emptyResult = await page.EvaluateAsync<string[]>("""
                 () => {
                     const form = document.querySelector("[data-start-conversation]");
-                    const button = document.querySelector("[data-start-conversation-button]");
                     const status = document.querySelector("[data-recipient-status]");
-                    const hidden = form.querySelector("input[name='recipientId']");
-
                     const emptyAllowed = form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-                    const statusAfterEmpty = status.textContent;
-
-                    // Prevent browser navigation after messages.js submit handler runs
-                    form.addEventListener("submit", (e) => e.preventDefault());
-                    hidden.value = "u2";
-                    button.disabled = false;
-                    form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-
-                    return [String(emptyAllowed), statusAfterEmpty, String(button.disabled), button.textContent];
+                    return [String(emptyAllowed), status.textContent];
                 }
                 """);
 
-            result[0].ShouldBe("false");
-            result[1].ShouldBe("Choose an alumnus first.");
-            result[2].ShouldBe("true");
-            result[3].ShouldBe("Opening...");
+            emptyResult[0].ShouldBe("false");
+            emptyResult[1].ShouldBe("Choose an alumnus first.");
+
+            await page.Locator("[data-recipient-search]").FillAsync("mar");
+            var option = page.Locator("[data-recipient-results] button");
+            await Assertions.Expect(option).ToHaveCountAsync(1);
+            await option.ClickAsync();
+
+            var submitResult = await page.EvaluateAsync<string[]>("""
+                () => {
+                    const form = document.querySelector("[data-start-conversation]");
+                    const button = document.querySelector("[data-start-conversation-button]");
+                    // Prevent browser navigation after messages.js submit handler runs
+                    form.addEventListener("submit", (e) => e.preventDefault());
+                    form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+                    return [String(button.disabled), button.textContent];
+                }
+                """);
+
+            submitResult[0].ShouldBe("true");
+            submitResult[1].ShouldBe("Opening...");
         }
         finally
         {

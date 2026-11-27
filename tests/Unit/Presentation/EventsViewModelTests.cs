@@ -11,10 +11,10 @@ public class EventsViewModelTests
     // T04
     [Theory]
     //          range sort status view  range     sort      status     view
-    [InlineData(null, null, null, null, "all", "soonest", "all", "discover")]
-    [InlineData("", "", "", "", "all", "soonest", "all", "discover")]
-    [InlineData("bogus", "x", "y", "z", "all", "soonest", "all", "discover")]
-    [InlineData("WEEK", "LATEST", "GOING", "CALENDAR", "all", "soonest", "all", "discover")] // values are case-sensitive
+    [InlineData(null, null, null, null, "all", "soonest", "all", "calendar")]
+    [InlineData("", "", "", "", "all", "soonest", "all", "calendar")]
+    [InlineData("bogus", "x", "y", "z", "all", "soonest", "all", "calendar")]
+    [InlineData("WEEK", "LATEST", "GOING", "CALENDAR", "all", "soonest", "all", "calendar")] // values are case-sensitive
     [InlineData("past", "popular", "hosting", "calendar", "past", "popular", "hosting", "calendar")]
     [InlineData("week", "latest", "interested", "discover", "week", "latest", "interested", "discover")]
     public void Constructor_InvalidOrMissingOptions_FallBackToDefaults(

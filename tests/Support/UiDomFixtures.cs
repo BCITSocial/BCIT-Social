@@ -29,17 +29,24 @@ public static class UiDomFixtures
         var bubbleMarkup = string.Concat(bubbles.Select(b => BubbleRow(b.Sender, b.Text)));
         return $"""
             <div class="messages-page is-chat-open" data-messages>
-                <dialog data-new-message-dialog>
+                <dialog data-new-message-dialog
+                        data-heading-dm="Start a conversation" data-heading-group="New group chat"
+                        data-hint-dm="Pick one person to message, or several to start a group chat."
+                        data-hint-group="Pick at least 2 people to add to the group.">
+                    <h2 data-new-message-heading>Start a conversation</h2>
+                    <p data-new-message-hint>Pick one person to message, or several to start a group chat.</p>
+                    <ul data-recipient-chips></ul>
                     <input type="search" data-recipient-search />
                     <p data-recipient-status>Enter at least 2 characters.</p>
                     <ul data-recipient-results></ul>
-                    <form data-start-conversation>
+                    <form data-start-conversation data-dm-action="/Messages/StartConversation" data-group-action="/Messages/CreateGroup">
                         <input type="hidden" name="recipientId" />
+                        <div hidden data-member-inputs></div>
                         <button type="submit" disabled data-start-conversation-button>Open conversation</button>
                     </form>
                 </dialog>
 
-                <button type="button" data-new-message data-find-users-url="/Messages/FindUsers">New message</button>
+                <button type="button" data-new-message="dm" data-find-users-url="/Messages/FindUsers">New message</button>
                 <input type="search" data-message-search />
                 <p data-message-search-status></p>
                 <p hidden data-message-search-empty>No conversations match your search.</p>

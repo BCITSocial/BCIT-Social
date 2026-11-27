@@ -173,9 +173,12 @@ public class ApplicationDbContextContractTests
             candidate.Contains(
                 $"builder.Entity<{entity}>()",
                 StringComparison.Ordinal) &&
-            candidate.Contains(
-                ".HasForeignKey(",
-                StringComparison.Ordinal) &&
+            (candidate.Contains(
+                 ".HasForeignKey(",
+                 StringComparison.Ordinal) ||
+             candidate.Contains(
+                 $".HasForeignKey<{entity}>(",
+                 StringComparison.Ordinal)) &&
             candidate.Contains(
                 $".{foreignKey})",
                 StringComparison.Ordinal));
