@@ -7,9 +7,11 @@ Renders the shared brand, centered search placeholder, notifications popup, and 
     
     <div class="header-start">
         @* Phones and tablets only: opens the left nav as a slide-out menu (nav-drawer.js). *@
-        <button class="icon-button nav-toggle" type="button" aria-label="Open menu" aria-controls="app-nav"
+        <button class="hamburger nav-toggle" type="button" aria-label="Open menu" aria-controls="app-nav"
                 aria-expanded="false" data-nav-toggle>
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
         </button>
         <a class="brand" asp-area="" asp-controller="Home" asp-action="Index">
             <span class="brand-badge brand-logo" aria-hidden="true">
@@ -39,7 +41,10 @@ Renders the shared brand, centered search placeholder, notifications popup, and 
             @* Phones only: the search box folds into this icon. *@
             <button class="icon-button header-icon header-search-toggle" type="button" aria-label="Search"
                     aria-expanded="false" data-search-toggle>
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="11" cy="11" r="6.5" />
+                    <path d="m16 16 4 4" />
+                </svg>
             </button>
             <button class="icon-button header-icon" type="button" popovertarget="notifications-panel"
                     aria-label="Notifications">
@@ -93,7 +98,10 @@ Renders the shared brand, centered search placeholder, notifications popup, and 
             @* Phones only: the search box folds into this icon. *@
             <button class="icon-button header-icon header-search-toggle" type="button" aria-label="Search"
                     aria-expanded="false" data-search-toggle>
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="11" cy="11" r="6.5" />
+                    <path d="m16 16 4 4" />
+                </svg>
             </button>
             <a class="header-auth-button header-auth-login" asp-area="Identity" asp-page="/Account/Login">Log in</a>
             <a class="header-auth-button header-auth-signup" asp-area="Identity" asp-page="/Account/Register">Sign up</a>

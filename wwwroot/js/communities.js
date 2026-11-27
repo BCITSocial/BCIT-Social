@@ -33,17 +33,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const previewCount = toCount(browsePage?.dataset.previewCount, 3);
     const pageSize = toCount(browsePage?.dataset.pageSize, 8);
 
-    let expanded = false;
+    // Start on page 1 of the pages, with the pager under them (no "See all" click needed).
+    let expanded = true;
     let page = 1;
     let matchingBrowse = browseCards;
 
     // --- Search & filter dropdowns ---
     const lower = (value) => (value || "").trim().toLowerCase();
 
-  // A card values for one filter.
-  // data-topics values are separated by "|".
-  const cardValues = (card, filter) =>
-    (card.dataset[filter] || "").split("|").map(lower).filter(Boolean);
+    // A card values for one filter.
+    // data-topics values are separated by "|".
+    const cardValues = (card, filter) =>
+        (card.dataset[filter] || "").split("|").map(lower).filter(Boolean);
 
     // A card matching the search query and chosen filters.
     function matches(card, query, chosen) {
@@ -69,9 +70,9 @@ document.addEventListener("DOMContentLoaded", () => {
             .filter((choice) => choice.value);
         const filtering = Boolean(query) || chosen.length > 0;
 
-    filterSelects.forEach((select) =>
-      select.classList.toggle("is-active", select.value !== ""),
-    );
+        filterSelects.forEach((select) =>
+            select.classList.toggle("is-active", select.value !== ""),
+        );
 
         let yourVisible = 0;
         yourCards.forEach((card) => {
@@ -204,6 +205,33 @@ document.addEventListener("DOMContentLoaded", () => {
         expanded = !expanded;
         page = 1;
         renderBrowse();
+    });
+
+    // Search toggle, closing also clears the search.
+    const searchBox = searchInput?.closest(".filter-search");
+    const searchIcon = searchBox?.querySelector(".filter-search-icon");
+    const searchIsOpen = () => searchBox.matches(":focus-within") || searchInput.value !== "";
+
+    function closeSearch() {
+        if (searchInput.value !== "") {
+            searchInput.value = "";
+            applyFilters();
+        }
+        searchInput.blur();
+    }
+
+    // While it's open, keep the click from moving focus (otherwise the box flickers closed and back open).
+    searchIcon?.addEventListener("mousedown", (event) => {
+        if (searchIsOpen()) event.preventDefault();
+    });
+    searchIcon?.addEventListener("click", (event) => {
+        if (!searchIsOpen()) return; // closed: the label opens it and puts the cursor in the box
+        event.preventDefault();
+        closeSearch();
+    });
+    // Esc closes it too.
+    searchInput?.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeSearch();
     });
 
     if (filterForm) {

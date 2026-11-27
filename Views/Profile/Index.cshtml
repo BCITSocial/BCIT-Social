@@ -82,29 +82,38 @@ This view renders the user's profile page, including their profile information, 
                             }
                             else if (Model.CanSendFriendRequest)
                             {
-                                @if (TempData["FriendRequestMessage"] is string friendRequestMessage)
-                                {
-                                    <span class="profile-friend-inline-status" role="status">@friendRequestMessage</span>
-                                }
-                                else if (Model.FriendRelationshipStatus == "Accepted")
-                                {
-                                    <span class="profile-button profile-button-outline" aria-label="You are friends">Friends</span>
-                                }
-                                else if (Model.FriendRelationshipStatus == "PendingSent")
-                                {
-                                    <span class="profile-button profile-button-outline" aria-label="Friend request pending">Request sent</span>
-                                }
-                                else if (Model.FriendRelationshipStatus == "PendingReceived")
-                                {
-                                    <span class="profile-friend-inline-status">They sent you a request. Respond from your profile.</span>
-                                }
-                                else
-                                {
-                                    <form asp-action="AddFriend" method="post">
-                                        <input type="hidden" name="userId" value="@profile.UserId" />
-                                        <button class="profile-button profile-button-primary" type="submit">Add friend</button>
+                                <div class="profile-card-button-group">
+                                    @if (TempData["FriendRequestMessage"] is string friendRequestMessage)
+                                    {
+                                        <span class="profile-friend-inline-status" role="status">@friendRequestMessage</span>
+                                    }
+                                    else if (Model.FriendRelationshipStatus == "Accepted")
+                                    {
+                                        <span class="profile-button profile-button-outline" aria-label="You are friends">Friends</span>
+                                    }
+                                    else if (Model.FriendRelationshipStatus == "PendingSent")
+                                    {
+                                        <span class="profile-button profile-button-outline" aria-label="Friend request pending">Request sent</span>
+                                    }
+                                    else if (Model.FriendRelationshipStatus == "PendingReceived")
+                                    {
+                                        <span class="profile-friend-inline-status">They sent you a request. Respond from your profile.</span>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="AddFriend" method="post">
+                                            <input type="hidden" name="userId" value="@profile.UserId" />
+                                            <button class="profile-button profile-button-primary" type="submit">Add friend</button>
+                                        </form>
+                                    }
+                                    <form asp-controller="Messages" asp-action="StartConversation" method="post">
+                                        <input type="hidden" name="recipientId" value="@profile.UserId" />
+                                        <button class="settings-button settings-button-secondary" type="submit"
+                                                aria-label="Message @profile.DisplayName">
+                                            Message
+                                        </button>
                                     </form>
-                                }
+                                </div>
                             }
                         </div>
 
@@ -132,23 +141,6 @@ This view renders the user's profile page, including their profile information, 
                             @if (Model.IsOwnProfile)
                             {
                                 <span><strong>@Model.Bookmarks.Count</strong> Bookmarks</span>
-                            }
-                            @if (!Model.IsOwnProfile && !string.IsNullOrEmpty(currentUserId))
-                            {
-                                <form class="profile-message-form"
-                                      asp-controller="Messages"
-                                      asp-action="StartConversation"
-                                      method="post">
-                                    <input type="hidden" name="recipientId" value="@profile.UserId" />
-                                    <button class="profile-button profile-button-outline profile-message-button"
-                                            type="submit"
-                                            aria-label="Message @profile.DisplayName">
-                                        Message
-                                        <svg aria-hidden="true" focusable="false">
-                                            <use href="#icon-message" />
-                                        </svg>
-                                    </button>
-                                </form>
                             }
                         </div>
                     </div>

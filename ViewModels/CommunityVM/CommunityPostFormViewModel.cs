@@ -11,6 +11,8 @@ public class CommunityPostFormViewModel
     public string Title { get; set; } = null!;
 
     [Required]
+    // Match the content limit of posts created from the Home page.
+    [StringLength(5000)]
     public string Content { get; set; } = null!;
 
     // Post type (a Tags row). Optional so posting still works before any post types exist.

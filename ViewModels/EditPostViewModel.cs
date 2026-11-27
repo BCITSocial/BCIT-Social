@@ -15,11 +15,13 @@ public class EditPostViewModel
 	[StringLength(150)]
 	public string Title { get; set; } = null!;
 
-	[Display(Name = "Post Type")]
-	[Range(1, int.MaxValue, ErrorMessage = "Please select a post type.")]
+	[Display(Name = "Tag")]
+	[Range(1, int.MaxValue, ErrorMessage = "Please select a tag.")]
 	public int TagId { get; set; }
 
 	[Required]
+	// Keep the same content limit when editing an existing post.
+	[StringLength(5000)]
 	public string Content { get; set; } = null!;
 
 	public List<SelectListItem> PostTypes { get; set; } = new();

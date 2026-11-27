@@ -13,7 +13,7 @@ namespace BCIT_Social.Controllers;
 
 /**
  * Controller for managing comments on posts.
- * This controller allows authenticated users to create comments on posts.
+ * This controller allows authenticated users to create and delete their own comments on posts.
  */
 [Authorize]
 public class CommentController : Controller
@@ -45,6 +45,12 @@ public class CommentController : Controller
         if (string.IsNullOrWhiteSpace(content))
         {
             return BadRequest("Comment content is required.");
+        }
+
+        // Apply the same character limit to comments and replies.
+        if (content.Length > 1000)
+        {
+            return BadRequest("Comments must be at most 1000 characters.");
         }
 
         var postExists = await _context.Posts.AnyAsync(post => post.Id == postId);
@@ -87,5 +93,38 @@ public class CommentController : Controller
         }
 
         return RedirectToAction("Details", "Post", new { id = postId });
+    }
+
+    /**
+     * Deletes a comment owned by the current user while preserving its replies.
+     * @param id The ID of the comment to delete.
+     * @param returnUrl (Optional) A local URL to return to after deletion.
+     * @return Redirects to the original page or the post details page.
+     */
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id, string? returnUrl = null)
+    {
+        var userId = _userManager.GetUserId(User);
+        if (userId is null) return Challenge();
+
+        var comment = await _context.Comments
+            .Include(item => item.Replies)
+            .FirstOrDefaultAsync(item => item.Id == id);
+        if (comment is null) return NotFound();
+        if (comment.AuthorId != userId) return Forbid();
+
+        // Move replies up one level so deleting a comment never deletes other users' replies.
+        foreach (var reply in comment.Replies.ToList())
+            reply.ParentCommentId = comment.ParentCommentId;
+
+        // Update the tracked reply relationships before removing their former parent.
+        _context.ChangeTracker.DetectChanges();
+        _context.Comments.Remove(comment);
+        await _context.SaveChangesAsync();
+
+        return Url.IsLocalUrl(returnUrl)
+            ? LocalRedirect(returnUrl)
+            : RedirectToAction("Post", "Home", new { id = comment.PostId });
     }
 }

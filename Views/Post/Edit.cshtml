@@ -24,7 +24,7 @@
         <select asp-for="TagId"
                 asp-items="Model.PostTypes"
                 class="form-control">
-            <option value="">Select post type...</option>
+            <option value="">Select a tag...</option>
         </select>
 
         <span asp-validation-for="TagId" class="text-danger"></span>
@@ -35,7 +35,7 @@
 
         <textarea asp-for="Content"
                   class="form-control"
-                  rows="6"></textarea>
+                  rows="6" maxlength="5000"></textarea>
 
         <span asp-validation-for="Content" class="text-danger"></span>
     </div>

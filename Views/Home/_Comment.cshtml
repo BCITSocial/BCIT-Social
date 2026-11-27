@@ -6,12 +6,37 @@
     var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 }
 <li class="comment">
-    <a class="avatar" aria-hidden="true" asp-controller="Profile" asp-action="Details"
-         asp-route-userId="@Model.AuthorId">@Model.AuthorInitials</a>
+    @if (!string.IsNullOrEmpty(Model.AuthorId))
+    {
+        @* The avatar and name open the author's popout: View profile and a quick "Message" box (user-popout.js). *@
+        <button class="avatar user-trigger" type="button" data-user-popout data-user-id="@Model.AuthorId"
+                data-user-name="@Model.AuthorName" aria-label="Open @Model.AuthorName's profile card">
+            @if (Model.AuthorHasProfilePicture)
+            {
+                <img class="post-avatar" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;"
+                     src="@Url.Action(action: "Photo", "Profile", new { id = Model.AuthorId })" alt="" />
+            }
+            else
+            {
+                <span aria-hidden="true">@Model.AuthorInitials</span>
+            }
+        </button>
+    }
+    else
+    {
+        <span class="avatar" aria-hidden="true">@Model.AuthorInitials</span>
+    }
     <div class="comment-body">
         <p class="comment-meta">
-            <a class="comment-author" asp-controller="Profile" asp-action="Details"
-             asp-route-userId="@Model.AuthorId">@Model.AuthorName</a>
+            @if (!string.IsNullOrEmpty(Model.AuthorId))
+            {
+                <button class="comment-author user-trigger user-trigger-text" type="button" data-user-popout
+                        data-user-id="@Model.AuthorId" data-user-name="@Model.AuthorName">@Model.AuthorName</button>
+            }
+            else
+            {
+                <span class="comment-author">@Model.AuthorName</span>
+            }
             @if (Model.IsPostAuthor)
             {
                 <span class="author-badge">Author</span>
@@ -20,12 +45,13 @@
         </p>
         <p class="comment-content">@Model.Content</p>
 
-        @* Delete for the comment's own author. Shown disabled until deleting comments is supported.
-           TODO(BE): add a POST action (e.g. CommentController.Delete, [Authorize] + [ValidateAntiForgeryToken]) that soft-deletes
-           the comment, then make this a form posting to it with confirm('Delete this comment?') like the post Delete button. *@
+        @* Only show Delete to the comment's author. CommentController also checks ownership. *@
         @if (signedIn && Model.AuthorId == currentUserId)
         {
-            <button class="link-action comment-delete" type="button" disabled title="Deleting comments isn't available yet">Delete</button>
+            <form method="post" asp-controller="Comment" asp-action="Delete" asp-route-id="@Model.Id"
+                  asp-route-returnUrl="@returnUrl" onsubmit="return confirm('Delete this comment?');">
+                <button class="link-action comment-delete" type="submit">Delete</button>
+            </form>
         }
 
         @if (signedIn)
@@ -39,7 +65,7 @@
                     <input type="hidden" name="postId" value="@ViewData["PostId"]" />
                     <input type="hidden" name="parentCommentId" value="@Model.Id" />
                     <label class="visually-hidden" for="reply-@Model.Id">Reply to @Model.AuthorName</label>
-                    <input class="comment-input" id="reply-@Model.Id" name="content" placeholder="Write a reply..." autocomplete="off" required />
+                    <input class="comment-input" id="reply-@Model.Id" name="content" placeholder="Write a reply..." autocomplete="off" maxlength="1000" required />
                     <button class="cta-button" type="submit">Reply</button>
                 </form>
             </details>

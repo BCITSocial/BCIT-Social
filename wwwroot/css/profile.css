@@ -54,8 +54,7 @@
 }
 
 .profile-avatar {
-    display: grid;
-    flex: none;
+    display: flex;
     place-items: center;
     width: 64px;
     height: 64px;
@@ -65,6 +64,10 @@
     color: #fff;
     font-size: 1.5rem;
     font-weight: var(--font-weight-bold);
+}
+
+.profile-avatar>span {
+    margin: auto;
 }
 
 .profile-avatar img {
@@ -290,34 +293,6 @@
 
 .profile-stats strong {
     color: var(--color-text);
-}
-
-.profile-message-form {
-    margin: 0;
-    margin-inline-start: auto;
-}
-
-.profile-message-button {
-    --message-button-min-height: 2rem;
-    --message-button-touch-height: 2.75rem;
-    --message-button-padding-y: 0.3125rem;
-    --message-button-padding-x: 0.8125rem;
-    --message-button-icon-size: 0.9375rem;
-    min-block-size: var(--message-button-min-height);
-    padding: var(--message-button-padding-y) var(--message-button-padding-x);
-    cursor: pointer;
-}
-
-.profile-message-button svg {
-    flex: none;
-    width: var(--message-button-icon-size);
-    height: var(--message-button-icon-size);
-}
-
-@media (pointer: coarse) {
-    .profile-message-button {
-        min-block-size: var(--message-button-touch-height);
-    }
 }
 
 .profile-feed-toolbar {
@@ -877,7 +852,7 @@
     margin: 0;
 }
 
-.profile-detail-list > div {
+.profile-detail-list>div {
     display: grid;
     gap: 4px;
 }
@@ -1083,24 +1058,18 @@
 
 .settings-field input:focus {
     border-color: var(--color-accent);
-    outline: 3px solid color-mix(
-        in srgb,
-        var(--color-accent) 18%,
-        transparent
-    );
+    outline: 3px solid color-mix(in srgb,
+            var(--color-accent) 18%,
+            transparent);
 }
 
 .settings-field input:disabled {
-    border-color: color-mix(
-        in srgb,
-        var(--color-border) 75%,
-        transparent
-    );
-    background: color-mix(
-        in srgb,
-        var(--color-input) 70%,
-        var(--color-surface)
-    );
+    border-color: color-mix(in srgb,
+            var(--color-border) 75%,
+            transparent);
+    background: color-mix(in srgb,
+            var(--color-input) 70%,
+            var(--color-surface));
     color: var(--color-muted);
     cursor: not-allowed;
     opacity: 1;
@@ -1180,16 +1149,12 @@
     align-items: center;
     justify-content: space-between;
     gap: 28px;
-    border-color: color-mix(
-        in srgb,
-        var(--color-danger) 45%,
-        var(--color-border)
-    );
-    background: color-mix(
-        in srgb,
-        var(--color-danger-surface) 45%,
-        var(--color-surface)
-    );
+    border-color: color-mix(in srgb,
+            var(--color-danger) 45%,
+            var(--color-border));
+    background: color-mix(in srgb,
+            var(--color-danger-surface) 45%,
+            var(--color-surface));
 }
 
 .settings-danger-copy {
@@ -1236,11 +1201,9 @@
     align-items: flex-start;
     gap: 16px;
     padding: 24px;
-    background: color-mix(
-        in srgb,
-        var(--color-danger-surface) 55%,
-        var(--color-surface)
-    );
+    background: color-mix(in srgb,
+            var(--color-danger-surface) 55%,
+            var(--color-surface));
 }
 
 .delete-warning-icon {
@@ -1314,16 +1277,12 @@
     justify-content: flex-end;
     gap: 10px;
     padding: 20px 24px;
-    border-top: 1px solid color-mix(
-        in srgb,
-        var(--color-danger) 25%,
-        var(--color-border)
-    );
-    background: color-mix(
-        in srgb,
-        var(--color-danger-surface) 40%,
-        var(--color-surface)
-    );
+    border-top: 1px solid color-mix(in srgb,
+            var(--color-danger) 25%,
+            var(--color-border));
+    background: color-mix(in srgb,
+            var(--color-danger-surface) 40%,
+            var(--color-surface));
 }
 
 .delete-actions form {

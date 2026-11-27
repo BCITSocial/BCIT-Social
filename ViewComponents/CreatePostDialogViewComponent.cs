@@ -3,6 +3,7 @@ using BCIT_Social.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace BCIT_Social.ViewComponents;
 
@@ -19,7 +20,8 @@ public class CreatePostDialogViewComponent : ViewComponent
 
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        if (UserClaimsPrincipal.Identity?.IsAuthenticated != true)
+        var userId = UserClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (UserClaimsPrincipal.Identity?.IsAuthenticated != true || userId is null)
         {
             return Content("");
         }
@@ -27,6 +29,11 @@ public class CreatePostDialogViewComponent : ViewComponent
         // PostController.Create stores the post type as one tag, so the choices are the tags.
         var model = new CreatePostViewModel
         {
+            // Only show communities the current user is allowed to post to.
+            Communities = await _context.PostableCommunities(userId)
+                .OrderBy(community => community.Name)
+                .Select(community => new SelectListItem { Value = community.Id.ToString(), Text = community.Name })
+                .ToListAsync(),
             PostTypes = await _context.Tags
                 .AsNoTracking()
                 .OrderBy(tag => tag.Name)
