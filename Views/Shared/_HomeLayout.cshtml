@@ -19,6 +19,7 @@ Provides the shared page structure, styles, header, navigation, and script secti
 </head>
 @* The theme script uses the signed-in user's ID to load their saved appearance. *@
 <body data-profile-user-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value">
+    <script src="~/js/profile-theme.js" asp-append-version="true"></script>
     @* A page shows the right rail by listing card slots, e.g. ViewData["RightRail"] = new[] { RightRailCards.Events, RightRailCards.Links }. *@
     @{ var rightRail = ViewData["RightRail"] as IReadOnlyList<string>; }
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -49,7 +50,6 @@ Provides the shared page structure, styles, header, navigation, and script secti
         <script src="~/js/create-post.js" asp-append-version="true" defer></script>
     }
     <script src="~/js/nav-drawer.js" asp-append-version="true" defer></script>
-    <script src="~/js/profile-theme.js" asp-append-version="true" defer></script>
     <script src="~/js/header-search.js" asp-append-version="true" defer></script>
     @* Small profile card with a quick message box, opened from post and comment authors (user-popout.js). *@
     <partial name="_UserPopout" />

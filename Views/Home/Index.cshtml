@@ -134,31 +134,9 @@ else
     </section>
 </div>
 
-@* The Events/Communities box sits in the layout's right column, pinned to the right edge.
-   Signed-out visitors get a call to action there instead. *@
-@section RightPanel {
-    @if (signedIn)
-    {
-        @* Upcoming events only. "Your communities" is already in the left nav, so there is no Communities tab. *@
-        <aside class="panel home-section discovery-panel" aria-labelledby="discovery-heading">
-            <h2 id="discovery-heading">Upcoming events</h2>
-            <p class="discovery-empty">No upcoming events to show.</p>
-            <a class="discovery-link" asp-controller="Events" asp-action="Index" asp-route-view="discover">View all events</a>
-        </aside>
-    }
-    else
-    {
-        <aside class="panel home-section guest-cta-panel" aria-labelledby="guest-cta-heading">
-            <h2 id="guest-cta-heading">Find your people</h2>
-            <p>Make an account to RSVP to events, join communities, and message classmates.</p>
-            <ul class="guest-cta-list">
-                <li>Join clubs and program communities</li>
-                <li>See what's happening on campus</li>
-                <li>Chat with friends and classmates</li>
-            </ul>
-        </aside>
-    }
-}
+@* Nov 26th 4:45pm Joshua Trepanier: Removed the events thing in the top right deemed not needed
+as it's not being used in the events page anymore with the calendar being implemented*@
+
 @* Post details open here when a card is clicked. post-details.js fills the body from /Home/Post/{id}. *@
 <dialog class="post-dialog" id="post-dialog" aria-labelledby="post-dialog-title">
     <div class="post-dialog-header">
