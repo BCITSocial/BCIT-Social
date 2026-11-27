@@ -85,6 +85,7 @@ public class CommunityMembersUiTests(PlaywrightFixture fx)
 
             await page.Keyboard.PressAsync("Escape");
             (await dialog.EvaluateAsync<bool>("d => d.open")).ShouldBeFalse();
+            await page.WaitForFunctionAsync("() => window.location.hash === ''");
             (await page.EvaluateAsync<string>("() => window.location.hash")).ShouldBe("");
         }
         finally
