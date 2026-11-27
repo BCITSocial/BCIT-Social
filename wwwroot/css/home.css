@@ -1594,6 +1594,16 @@ body:has(.create-dialog[open]) {
   margin-top: 0;
 }
 
+/* Title and subtitle beside the close button (create post popup). */
+.create-heading {
+    flex: 1;
+    min-width: 0;
+}
+
+    .create-heading .create-subtitle {
+        margin-top: 4px;
+    }
+
 .create-tabs {
   display: grid;
   flex: 1;

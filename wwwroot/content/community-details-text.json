@@ -33,7 +33,7 @@
     "postForm": {
         "title": "Create post",
         "subtitle": "Share something with {name}.",
-        "typeLabel": "Post type",
+        "typeLabel": "Tag",
         "showAllTypes": "Show all",
         "showLessTypes": "Show less",
         "titleLabel": "Title",

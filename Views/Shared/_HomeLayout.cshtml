@@ -15,6 +15,7 @@ Provides the shared page structure, styles, header, navigation, and script secti
     <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/right-rail.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/user-popout.css" asp-append-version="true" />
 </head>
 @* The theme script uses the signed-in user's ID to load their saved appearance. *@
 <body data-profile-user-id="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value">
@@ -50,6 +51,9 @@ Provides the shared page structure, styles, header, navigation, and script secti
     }
     <script src="~/js/nav-drawer.js" asp-append-version="true" defer></script>
     <script src="~/js/header-search.js" asp-append-version="true" defer></script>
+    @* Small profile card with a quick message box, opened from post and comment authors (user-popout.js). *@
+    <partial name="_UserPopout" />
+    <script src="~/js/user-popout.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

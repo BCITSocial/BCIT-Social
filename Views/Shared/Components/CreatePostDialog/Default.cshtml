@@ -1,7 +1,7 @@
 @model BCIT_Social.ViewModels.CreatePostViewModel
 @*
-The create post modal. Submits the post title, content, optional community, and one post type (TagId) to
-PostController.Create.
+The create post modal (Home's Create button only makes posts). Submits the post title, content, optional community,
+and one tag (TagId) to PostController.Create.
 create-post.js checks the fields and the chosen photos, shows previews, and sends the form in the background.
 After a post is published the page reloads and shows a short "published" note, so the new post appears in the feed
 as a normal card instead of opening on its own page.
@@ -13,7 +13,10 @@ TODO(BE): with JavaScript off the form is sent normally and PostController.Creat
         data-deleted-text="Your post was deleted.">
     @* Posts have their own dialog; events are created on the Events page. *@
     <div class="create-dialog-top">
-        <h2 class="create-title" id="create-post-title">Create post</h2>
+        <div class="create-heading">
+            <h2 class="create-title" id="create-post-title">Create post</h2>
+            <p class="create-subtitle">Start a conversation with your community.</p>
+        </div>
         <button class="icon-button" type="button" data-close-create aria-label="Close">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg>
         </button>
@@ -22,8 +25,6 @@ TODO(BE): with JavaScript off the form is sent normally and PostController.Creat
     <form class="create-form" method="post" enctype="multipart/form-data" asp-area="" asp-controller="Post" asp-action="Create"
           novalidate data-create-post>
         <div class="create-form-body">
-            <p class="create-subtitle">Start a conversation with your community.</p>
-
             @* Filled in by create-post.js: the error summary, or why the post couldn't be published. *@
             <p class="form-message" role="alert" data-form-message hidden></p>
 
@@ -35,8 +36,9 @@ TODO(BE): with JavaScript off the form is sent normally and PostController.Creat
                 </select>
             </div>
 
-            <fieldset class="create-field" aria-describedby="create-post-type-error" data-error="Choose a post type.">
-                <legend>Post type</legend>
+            @* One field for the post's tag: it used to be split into "Post type" and a separate, unused "Tags" field. *@
+            <fieldset class="create-field" aria-describedby="create-post-type-error" data-error="Choose a tag.">
+                <legend>Tag</legend>
                 <div class="post-type-options">
                     @foreach (var type in Model.PostTypes)
                     {

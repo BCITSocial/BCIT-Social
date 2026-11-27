@@ -8,11 +8,6 @@ public class EventsText
     // Browser tab title.
     public string PageTitle { get; init; } = "Events";
 
-    // Banner at the top of the page.
-    public string BannerLabel { get; init; } = "Events introduction";
-    public string BannerTitle { get; init; } = "Find your next campus connection.";
-    public string BannerText { get; init; } = "Discover events from across your BCIT communities.";
-
     // Panel heading and the line under it.
     public string Heading { get; init; } = "Events";
     public string Subheading { get; init; } = "Find events from across your BCIT communities.";
@@ -31,6 +26,10 @@ public class EventsText
     public string ActiveFilters { get; init; } = "{0} filters on";
     public string ActiveFiltersOne { get; init; } = "{0} filter on";
     public string ResetFilters { get; init; } = "Reset filters";
+
+    // Number of events above the Discover cards. {0} is the count; ResultCountOne is used for exactly one.
+    public string ResultCount { get; init; } = "{0} events";
+    public string ResultCountOne { get; init; } = "{0} event";
 
     // Filter menu fields. {0} in SortOption is replaced with the sort label. The Sort label above the dropdown names it,
     // so the option shows just the label ("Soonest").

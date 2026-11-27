@@ -247,6 +247,11 @@
   border-radius: var(--radius-lg);
 }
 
+/* No "See all" button: Browse always shows every community (communities.js). */
+#browse-toggle {
+  display: none;
+}
+
 /* Cards (compact): icon | name, tags, members | action, then a 2-line description */
 .community-card {
   position: relative;
@@ -310,7 +315,7 @@
   background: linear-gradient(90deg, hsla(222, 47%, 11%, 0.85) 0%, hsla(222, 47%, 11%, 0.45) 45%, hsla(222, 47%, 11%, 0) 75%);
 }
 
-/* Row 1: name | Join/Joined. Tags and members run under the name and the button. */
+/* The name gets the full width, then the tags, then members | Join/Joined on one row. */
 .community-card-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -324,19 +329,23 @@
 }
 
 .community-card-top .community-card-title {
-  grid-column: 1;
+  grid-column: 1 / -1;
   grid-row: 1;
   align-self: center;
 }
 
 .community-card-top .card-actions {
   grid-column: 2;
-  grid-row: 1;
+  align-self: center;
 }
 
-.community-card-top .badge-row,
-.community-card-top .member-count {
+.community-card-top .badge-row {
   grid-column: 1 / -1;
+}
+
+.community-card-top .member-count {
+  grid-column: 1;
+  align-self: center;
 }
 
 .community-card-title {
@@ -434,9 +443,10 @@
   border: 1px solid hsla(124, 74%, 55%, 0.4);
 }
 
+/* A slightly deeper mint, so the check and text stay readable in every theme. */
 .btn-joined:hover,
 .btn-joined[aria-expanded="true"] {
-  background-color: hsla(124, 74%, 55%, 0.3);
+  background-color: color-mix(in srgb, var(--tag-status-bg) 85%, var(--tag-status-text));
 }
 
 .btn-joined svg,
@@ -464,9 +474,9 @@
 /* On the cards, "Joined" shows as a compact check + arrow pill (the label stays for screen readers
    via aria-label), so it is about as wide as "Join" and the community name keeps its room. */
 .community-card .btn-joined {
-    font-size: 0;
-    gap: 0.25rem;
-    padding: 0.35rem 0.7rem;
+  font-size: 0;
+  gap: 0.25rem;
+  padding: 0.35rem 0.7rem;
 }
 
 /* Dropdown menu (Facebook style: View / Settings / Leave) */
@@ -855,11 +865,16 @@ body:has(.community-dialog[open]) {
 }
 
 .tag-preview-label {
-  color: var(--text-muted);
+  color: inherit;
 }
 
 .tag-preview {
-  min-height: 28px;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.7rem;
+  background-color: var(--bg-subtle);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
 }
 
 /* Post type choices in the create post pop-up */
@@ -1049,26 +1064,27 @@ body:has(.community-dialog[open]) {
 }
 
 .delete-summary .delete-summary-count {
-    margin: 0;
+  margin: 0;
 }
+
 /* Phone layout: less padding, and the filters fill the width. */
 @media (max-width: 640px) {
-    .communities-wrapper {
-        padding: 0.9rem 0.75rem;
-    }
+  .communities-wrapper {
+    padding: 0.9rem 0.75rem;
+  }
 
-    .communities-header {
-        flex-wrap: wrap;
-        gap: 0.75rem;
-    }
+  .communities-header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
 
-    .filter-selects {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        width: 100%;
-    }
+  .filter-selects {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
 
-    .filter-select {
-        width: 100%;
-    }
+  .filter-select {
+    width: 100%;
+  }
 }
