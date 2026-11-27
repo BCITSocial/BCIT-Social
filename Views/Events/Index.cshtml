@@ -87,7 +87,44 @@
                     <select name="range" class="@(Model.Range == EventsViewModel.DEFAULTRANGE ? null : "is-active")">
                         @foreach (var (value, label) in EventsViewModel.ranges)
                         {
-                            <option value="@value" selected="@(value == Model.Range)">@EventsText.Pick(text.Ranges, value, label)</option>
+                            <option value="@value" selected="@(value == Model.Range)">@EventsText.Pick(text.Ranges, value,
+                                                                                                                                                        label)</option>
+                            }
+                        </select>
+                    </label>
+                    <label>
+                        <span class="visually-hidden">@text.LabelSort</span>
+                        <select name="sort">
+                            @foreach (var (value, label) in EventsViewModel.sorts)
+                            {
+                                <option value="@value" selected="@(value == Model.Sort)">@EventsText.Format(text.SortOption,
+                                                                                                                                                                        EventsText.Pick(text.Sorts, value, label))</option>
+                                }
+                            </select>
+                        </label>
+                        <noscript><button class="primary-button" type="submit">@text.Apply</button></noscript>
+                    </form>
+                </div>
+
+                @* The calendar shows RSVP events; Discover shows event cards. *@
+                @if (Model.View == EventsViewModel.CALENDAR)
+                {
+                    <partial name="_Calendar" model="Model" />
+                }
+                else if (Model.Events.Count == 0)
+                {
+                    <div class="empty-state">
+                        <p>@text.EmptyEvents</p>
+                    </div>
+                }
+                else
+                {
+                    <ul class="event-grid">
+                        @foreach (var item in Model.Events)
+                        {
+                            <li>
+                                <partial name="_EventCard" model="item" />
+                            </li>
                         }
                     </select>
                 </label>

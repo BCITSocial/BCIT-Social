@@ -44,7 +44,7 @@ public class CommentController : Controller
     {
         if (string.IsNullOrWhiteSpace(content))
         {
-            return BadRequest("Comment content is required.");
+            return BadRequest("Comments cannot be empty.");
         }
 
         // Apply the same character limit to comments and replies.

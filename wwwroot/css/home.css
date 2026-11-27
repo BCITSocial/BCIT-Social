@@ -1263,6 +1263,7 @@ a.primary-button {
 .post-dialog {
   width: min(880px, calc(100% - 32px));
   max-height: calc(100dvh - 48px);
+  overflow: hidden;
   padding: 0;
   border: 0;
   border-radius: var(--radius);
@@ -1297,6 +1298,7 @@ a.primary-button {
 }
 
 .post-dialog-body {
+  min-height: 0;
   overflow-y: auto;
   padding: 14px 32px 24px;
 }
@@ -1509,13 +1511,24 @@ a.primary-button {
 .comment-content {
   margin-top: 4px;
   font-size: 0.875rem;
+  overflow-wrap: anywhere;
 }
 
-.reply-toggle,
-.replies {
+.comment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
   margin-top: 4px;
 }
 
+.comment-actions form,
+.comment-actions .post-show-more {
+  margin: 0;
+}
+
+.comment-actions .link-action {
+  padding: 0;
 .reply-toggle>summary,
 .replies>summary {
   display: inline-flex;
@@ -1524,10 +1537,19 @@ a.primary-button {
   min-height: 36px;
   color: var(--color-tag-text);
   font-size: 0.8125rem;
-  cursor: pointer;
-  list-style: none;
 }
 
+.reply-toggle[hidden],
+.replies[hidden] {
+  display: none;
+}
+
+.reply-toggle,
+.replies {
+  margin-top: 4px;
+}
+
+.comment-actions .post-icon {
 .reply-toggle>summary::-webkit-details-marker,
 .replies>summary::-webkit-details-marker {
   display: none;
@@ -2436,7 +2458,8 @@ body:has(.create-dialog[open]) {
 }
 
 /* Keep long posts from taking over the entire feed. */
-.feed-list .post-content.is-collapsed {
+.feed-list .post-content.is-collapsed,
+.comment-content.is-collapsed {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;

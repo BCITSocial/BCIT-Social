@@ -1,0 +1,10 @@
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <dialog class="create-dialog" id="blank-comment-dialog" aria-labelledby="blank-comment-title">
+        <form method="dialog" class="create-form-body">
+            <h2 class="create-title" id="blank-comment-title">Empty comment</h2>
+            <p>Comments cannot be empty.</p>
+            <button class="cta-button" type="submit">OK</button>
+        </form>
+    </dialog>
+}

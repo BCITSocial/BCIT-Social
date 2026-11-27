@@ -150,7 +150,7 @@ public class HomeController : Controller
     // /Home/Post/5: the post with its comments. The feed script requests it with
     // X-Requested-With to show it in a modal; opening the URL directly shows it as a page.
     [HttpGet]
-    public async Task<IActionResult> Post(int id)
+    public async Task<IActionResult> Post(int id, int? threadId = null)
     {
         var userId = _userManager.GetUserId(User);
         var post = await ProjectCards(_context.Posts.Where(post => post.Id == id && post.DateOfDel == null), userId)
@@ -164,10 +164,14 @@ public class HomeController : Controller
         var model = new PostDetailsViewModel
         {
             Post = post,
-            Comments = await LoadCommentThreadsAsync(id, postAuthorId),
+            Comments = await LoadCommentThreadsAsync(id, postAuthorId, threadId),
             CurrentUserId = userId ?? "",
             CurrentUserInitials = await CurrentUserInitialsAsync(userId),
         };
+
+        // A continued thread is always a full page, starting at the selected comment.
+        if (threadId.HasValue)
+            return model.Comments.Count == 0 ? NotFound() : View("Thread", model);
 
         return Request.Headers.XRequestedWith == "XMLHttpRequest"
             ? PartialView("_PostDetails", model)
@@ -304,7 +308,7 @@ public class HomeController : Controller
     }
 
     // Loads every comment on the post and nests replies under their parent, oldest first.
-    private async Task<IReadOnlyList<CommentViewModel>> LoadCommentThreadsAsync(int postId, string postAuthorId)
+    private async Task<IReadOnlyList<CommentViewModel>> LoadCommentThreadsAsync(int postId, string postAuthorId, int? threadId = null)
     {
         var rows = await _context.Comments
             .AsNoTracking()
@@ -344,6 +348,9 @@ public class HomeController : Controller
                 topLevel.Add(row.View);
             }
         }
+
+        if (threadId.HasValue)
+            return byId.TryGetValue(threadId.Value, out var thread) ? [thread] : [];
 
         return topLevel;
     }

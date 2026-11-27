@@ -1,0 +1,30 @@
+@model BCIT_Social.ViewModels.PostDetailsViewModel
+@* Full-page continuation of a deeply nested comment thread. *@
+@{
+    ViewData["Title"] = "Comment thread";
+    Layout = "_HomeLayout";
+    var root = Model.Comments[0];
+    ViewData["PostId"] = Model.Post.Id;
+    ViewData["ThreadRootId"] = root.Id;
+    ViewData["ReturnUrl"] = Url.Action("Post", "Home", new { id = Model.Post.Id, threadId = root.Id });
+}
+
+<div class="panel post-page">
+    <div class="post-dialog-header">
+        <h1>Comment thread</h1>
+        <a class="back-link" asp-controller="Home" asp-action="Post" asp-route-id="@Model.Post.Id">Back to post</a>
+    </div>
+    <div class="post-dialog-body">
+        <h2 class="comments-heading">@Model.Post.Title</h2>
+        <section class="comments" aria-label="Comment thread">
+            <ul class="comment-list">
+                <partial name="_Comment" model="root" view-data="ViewData" />
+            </ul>
+        </section>
+        <partial name="_BlankCommentDialog" />
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/post-details.js" asp-append-version="true" defer></script>
+}

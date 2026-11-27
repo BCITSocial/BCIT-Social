@@ -4,6 +4,10 @@
     var signedIn = User.Identity?.IsAuthenticated == true;
     var returnUrl = ViewData["ReturnUrl"] as string;
     var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var depth = ViewData["CommentDepth"] as int? ?? 1;
+    var continueThread = Model.Replies.Count > 0 && depth >= 5 && ViewData["ThreadRootId"] is null;
+    var deleteReturnUrl = ViewData["ThreadRootId"] as int? == Model.Id
+        ? Url.Action("Post", "Home", new { id = ViewData["PostId"] }) : returnUrl;
 }
 <li class="comment">
     @if (!string.IsNullOrEmpty(Model.AuthorId))
@@ -43,24 +47,41 @@
             }
             <span>· <time datetime="@Model.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")">@BCIT_Social.ViewModels.DisplayFormat.TimeAgo(Model.CreatedAt, DateTime.UtcNow)</time></span>
         </p>
-        <p class="comment-content">@Model.Content</p>
+        <p class="comment-content" id="comment-content-@Model.Id">@Model.Content</p>
+        <div class="comment-actions">
+            <button type="button" class="post-show-more" data-comment-toggle aria-controls="comment-content-@Model.Id" aria-expanded="false" hidden>Show more</button>
 
-        @* Only show Delete to the comment's author. CommentController also checks ownership. *@
-        @if (signedIn && Model.AuthorId == currentUserId)
-        {
-            <form method="post" asp-controller="Comment" asp-action="Delete" asp-route-id="@Model.Id"
-                  asp-route-returnUrl="@returnUrl" onsubmit="return confirm('Delete this comment?');">
-                <button class="link-action comment-delete" type="submit">Delete</button>
-            </form>
-        }
+            @* Only show Delete to the comment's author. CommentController also checks ownership. *@
+            @if (signedIn && Model.AuthorId == currentUserId)
+            {
+                <form method="post" asp-controller="Comment" asp-action="Delete" asp-route-id="@Model.Id"
+                      asp-route-returnUrl="@deleteReturnUrl" onsubmit="return confirm('Delete this comment?');">
+                    <button class="link-action comment-delete" type="submit">Delete</button>
+                </form>
+            }
+
+            @if (signedIn)
+            {
+                <button type="button" class="link-action" data-comment-panel aria-controls="reply-form-@Model.Id" aria-expanded="false">
+                    <svg class="post-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg>
+                    Reply<span class="visually-hidden"> to @Model.AuthorName</span>
+                </button>
+            }
+
+            @if (continueThread)
+            {
+                <a class="link-action" asp-controller="Home" asp-action="Post" asp-route-id="@ViewData["PostId"]"
+                   asp-route-threadId="@Model.Id">Continue thread (@Model.ReplyCount replies)</a>
+            }
+            else if (Model.Replies.Count > 0)
+            {
+                <button type="button" class="link-action" data-comment-panel aria-controls="replies-@Model.Id" aria-expanded="true">@Model.ReplyCount @(Model.ReplyCount == 1 ? "reply" : "replies")</button>
+            }
+        </div>
 
         @if (signedIn)
         {
-            <details class="reply-toggle">
-                <summary>
-                    <svg class="post-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4Z" /></svg>
-                    Reply<span class="visually-hidden"> to @Model.AuthorName</span>
-                </summary>
+            <div class="reply-toggle" id="reply-form-@Model.Id" hidden>
                 <form class="comment-form" method="post" asp-controller="Comment" asp-action="Create" asp-route-returnUrl="@returnUrl">
                     <input type="hidden" name="postId" value="@ViewData["PostId"]" />
                     <input type="hidden" name="parentCommentId" value="@Model.Id" />
@@ -68,20 +89,20 @@
                     <input class="comment-input" id="reply-@Model.Id" name="content" placeholder="Write a reply..." autocomplete="off" maxlength="1000" required />
                     <button class="cta-button" type="submit">Reply</button>
                 </form>
-            </details>
+            </div>
         }
 
-        @if (Model.Replies.Count > 0)
+        @* Limit nesting on the post; the dedicated thread page displays all remaining replies. *@
+        @if (Model.Replies.Count > 0 && !continueThread)
         {
-            <details class="replies" open>
-                <summary>@Model.ReplyCount @(Model.ReplyCount == 1 ? "reply" : "replies")</summary>
+            <div class="replies" id="replies-@Model.Id">
                 <ul class="comment-list">
                     @foreach (var reply in Model.Replies)
                     {
-                        <partial name="_Comment" model="reply" view-data="ViewData" />
+                        <partial name="_Comment" model="reply" view-data='@(new Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary(ViewData) { ["CommentDepth"] = depth + 1 })' />
                     }
                 </ul>
-            </details>
+            </div>
         }
     </div>
 </li>

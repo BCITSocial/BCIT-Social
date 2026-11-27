@@ -6,6 +6,54 @@
     const body = document.getElementById("post-dialog-body");
     let returnFocus = null;
 
+    // Collapse long comments to four lines, including comments inside opened reply threads.
+    function refreshComments() {
+        document.querySelectorAll("[data-comment-toggle][aria-expanded='false']").forEach(button => {
+            const content = document.getElementById(button.getAttribute("aria-controls"));
+            if (!content.clientHeight) return;
+            content.classList.add("is-collapsed");
+            button.hidden = content.scrollHeight <= content.clientHeight + 1;
+            if (button.hidden) content.classList.remove("is-collapsed");
+        });
+    }
+
+    document.addEventListener("click", event => {
+        const button = event.target.closest("[data-comment-toggle]");
+        if (!button) return;
+        const expanded = button.getAttribute("aria-expanded") === "true";
+        document.getElementById(button.getAttribute("aria-controls")).classList.toggle("is-collapsed", expanded);
+        button.setAttribute("aria-expanded", String(!expanded));
+        button.textContent = expanded ? "Show more" : "Show less";
+        if (expanded) refreshComments();
+    });
+    document.addEventListener("toggle", refreshComments, true);
+    // Keep the reply form and nested comments below their shared action row.
+    document.addEventListener("click", event => {
+        const button = event.target.closest("[data-comment-panel]");
+        if (!button) return;
+        const panel = document.getElementById(button.getAttribute("aria-controls"));
+        panel.hidden = !panel.hidden;
+        button.setAttribute("aria-expanded", String(!panel.hidden));
+        if (!panel.hidden) refreshComments();
+    });
+    window.addEventListener("resize", refreshComments);
+    refreshComments();
+
+    // Show a modal for empty comments and replies, including whitespace-only text.
+    function showBlankComment(event, input) {
+        if (!input?.matches(".comment-form .comment-input") || input.value.trim()) return;
+        event.preventDefault();
+        const message = document.getElementById("blank-comment-dialog");
+        if (message && !message.open) message.showModal();
+    }
+
+    document.addEventListener("invalid", (event) => showBlankComment(event, event.target), true);
+    document.addEventListener("submit", (event) => {
+        if (event.target.matches(".comment-form")) {
+            showBlankComment(event, event.target.querySelector(".comment-input"));
+        }
+    });
+
     async function openPost(url, addToHistory) {
         try {
             const response = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
@@ -23,6 +71,7 @@
             dialog.showModal();
         }
         body.scrollTop = 0;
+        refreshComments();
     }
 
     // Closing goes back in history when the modal added an entry, so the URL returns to the feed.
