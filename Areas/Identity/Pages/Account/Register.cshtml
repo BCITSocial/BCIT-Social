@@ -6,7 +6,7 @@ Displays the basic account signup form and password requirements.
 *@
 @{
     ViewData["Title"] = "Sign up";
-    Layout = "/Views/Shared/_AuthLayout.cshtml";
+    Layout = "_HomeLayout";
 }
 <section class="auth-panel" aria-labelledby="signup-title">
     <h1 id="signup-title">Create an account</h1>
@@ -32,7 +32,8 @@ Displays the basic account signup form and password requirements.
             <label asp-for="Input.Password"></label>
             <div class="auth-password">
                 <input asp-for="Input.Password" autocomplete="new-password" aria-describedby="password-help" required />
-                <button class="auth-reveal" type="button" aria-controls="Input_Password" aria-pressed="false" hidden data-reveal-password>Show</button>
+                <button class="auth-reveal" type="button" aria-controls="Input_Password" aria-pressed="false" hidden
+                        data-reveal-password>Show</button>
             </div>
             <p id="password-help" class="auth-help">@Model.PasswordHelp</p>
             <span asp-validation-for="Input.Password" class="auth-errors"></span>
@@ -41,7 +42,8 @@ Displays the basic account signup form and password requirements.
             <label asp-for="Input.ConfirmPassword"></label>
             <div class="auth-password">
                 <input asp-for="Input.ConfirmPassword" autocomplete="new-password" required />
-                <button class="auth-reveal" type="button" aria-controls="Input_ConfirmPassword" aria-pressed="false" hidden data-reveal-password>Show</button>
+                <button class="auth-reveal" type="button" aria-controls="Input_ConfirmPassword" aria-pressed="false"
+                        hidden data-reveal-password>Show</button>
             </div>
             <span asp-validation-for="Input.ConfirmPassword" class="auth-errors"></span>
         </div>

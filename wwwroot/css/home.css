@@ -118,7 +118,7 @@ input:disabled {
   box-shadow: 0 16px 40px rgb(16 29 67 / 18%);
 }
 
-.search-group + .search-group {
+.search-group+.search-group {
   margin-top: 4px;
   padding-top: 4px;
   border-top: 1px solid var(--color-border);
@@ -306,7 +306,7 @@ input:disabled {
   height: 100%;
 }
 
-.profile-icon > img {
+.profile-icon>img {
   width: 100%;
   height: 100%;
   border-radius: inherit;
@@ -548,9 +548,9 @@ input:disabled {
 }
 
 .sidebar-communities [aria-current="page"] {
-    background: var(--color-selected);
-    color: var(--color-accent);
-    font-weight: var(--font-weight-bold);
+  background: var(--color-selected);
+  color: var(--color-accent);
+  font-weight: var(--font-weight-bold);
 }
 
 .sidebar-community-badge {
@@ -667,7 +667,7 @@ a.primary-button {
   font-weight: var(--font-weight-bold);
 }
 
-.avatar > * {
+.avatar>* {
   margin: auto;
 }
 
@@ -675,6 +675,10 @@ a.primary-button {
   width: 52px;
   height: 52px;
   font-size: 1rem;
+}
+
+.hamburger {
+  display: none;
 }
 
 .icon-button {
@@ -815,16 +819,16 @@ a.primary-button {
   row-gap: 8px;
 }
 
-    .share-box .avatar {
-        width: 32px;
-        height: 32px;
-        font-size: 0.75rem;
-    }
+.share-box .avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 0.75rem;
+}
 
-    .share-box .cta-button {
-        min-height: 36px;
-        padding-block: 6px;
-    }
+.share-box .cta-button {
+  min-height: 36px;
+  padding-block: 6px;
+}
 
 .share-prompt {
   display: flex;
@@ -928,7 +932,7 @@ a.primary-button {
   align-items: start;
 }
 
-.home-feed-layout > .home-section {
+.home-feed-layout>.home-section {
   min-width: 0;
 }
 
@@ -1081,15 +1085,17 @@ a.primary-button {
   max-height: none;
 }
 
-.post-photo-holder > img {
+.post-photo-holder>img {
   max-width: 100%;
   margin: 2px auto;
   filter: drop-shadow(0rem 0rem 0.2rem rgba(0, 0, 0, 0.1));
   scroll-snap-align: center;
 }
+
 .post-photo {
   max-height: 600px;
 }
+
 .post-details-photo {
   max-height: none;
 }
@@ -1106,7 +1112,7 @@ a.primary-button {
   font-weight: var(--font-weight-bold);
 }
 
-.post-avatar > * {
+.post-avatar>* {
   margin: auto;
 }
 
@@ -1456,12 +1462,12 @@ a.primary-button {
   list-style: none;
 }
 
-.comments > .comment-list > .comment {
+.comments>.comment-list>.comment {
   padding: 16px 0;
   border-bottom: 1px solid var(--color-border);
 }
 
-.comments > .comment-list > .comment:last-child {
+.comments>.comment-list>.comment:last-child {
   border-bottom: 0;
 }
 
@@ -1523,6 +1529,13 @@ a.primary-button {
 
 .comment-actions .link-action {
   padding: 0;
+.reply-toggle>summary,
+.replies>summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  color: var(--color-tag-text);
   font-size: 0.8125rem;
 }
 
@@ -1537,6 +1550,12 @@ a.primary-button {
 }
 
 .comment-actions .post-icon {
+.reply-toggle>summary::-webkit-details-marker,
+.replies>summary::-webkit-details-marker {
+  display: none;
+}
+
+.reply-toggle>summary .post-icon {
   width: 16px;
   height: 16px;
 }
@@ -1545,7 +1564,7 @@ a.primary-button {
   margin: 4px 0 8px;
 }
 
-.replies > .comment-list {
+.replies>.comment-list {
   display: grid;
   gap: 16px;
   margin-top: 8px;
@@ -1597,6 +1616,16 @@ body:has(.create-dialog[open]) {
   margin-top: 0;
 }
 
+/* Title and subtitle beside the close button (create post popup). */
+.create-heading {
+    flex: 1;
+    min-width: 0;
+}
+
+    .create-heading .create-subtitle {
+        margin-top: 4px;
+    }
+
 .create-tabs {
   display: grid;
   flex: 1;
@@ -1622,7 +1651,7 @@ body:has(.create-dialog[open]) {
   text-decoration: none;
 }
 
-.create-tab + .create-tab {
+.create-tab+.create-tab {
   border-left: 1px solid var(--color-border);
 }
 
@@ -1678,8 +1707,8 @@ body:has(.create-dialog[open]) {
   border: 0;
 }
 
-.create-field > label,
-.create-field > legend,
+.create-field>label,
+.create-field>legend,
 .create-label {
   padding: 0;
   font-size: 0.875rem;
@@ -1782,14 +1811,14 @@ body:has(.create-dialog[open]) {
   cursor: pointer;
 }
 
-.post-type-option input:checked + span {
+.post-type-option input:checked+span {
   border-color: var(--color-tag-text);
   background: var(--color-tag-surface);
   color: var(--color-tag-text);
   font-weight: var(--font-weight-bold);
 }
 
-.post-type-option input:focus-visible + span {
+.post-type-option input:focus-visible+span {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
@@ -1868,7 +1897,7 @@ body:has(.create-dialog[open]) {
 }
 
 /* The file input itself is hidden (beats the input rule above), so the box shows its focus and error state. */
-.create-field > input[type="file"].visually-hidden {
+.create-field>input[type="file"].visually-hidden {
   width: 1px;
   min-height: 0;
   padding: 0;
@@ -2182,7 +2211,7 @@ body:has(.create-dialog[open]) {
   }
 
   .comment-box .avatar,
-  .comment > .avatar {
+  .comment>.avatar {
     display: none;
   }
 

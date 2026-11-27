@@ -15,8 +15,8 @@ public class CreatePostViewModel
 	[StringLength(150)]
 	public string Title { get; set; } = null!;
 
-    [Display(Name = "Post Type")]
-	[Range(1, int.MaxValue, ErrorMessage = "Please select a post type.")]
+    [Display(Name = "Tag")]
+	[Range(1, int.MaxValue, ErrorMessage = "Please select a tag.")]
 	public int TagId { get; set; }
 
 	public List<SelectListItem> PostTypes { get; set; } = new();
