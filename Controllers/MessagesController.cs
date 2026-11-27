@@ -23,13 +23,29 @@ public class MessagesController : Controller
     private readonly ApplicationDbContext _db;
     private readonly IHubContext<ChatHub> _hub;
 
+    /// <summary>
+    /// Author: Asher
+    /// Last Revised: Nov. 26, 2026
+    /// Description: Creates the controller with the database context and the hub context used to push live messages.
+    /// </summary>
+    /// <param name="db" type="ApplicationDbContext">Database context supplied by dependency injection.</param>
+    /// <param name="hub" type="IHubContext&lt;ChatHub&gt;">Chat hub context used to send saved messages to chatbox members.</param>
     public MessagesController(ApplicationDbContext db, IHubContext<ChatHub> hub)
     {
         _db = db;
         _hub = hub;
     }
 
-    // GET /Messages?c=3&filter=unread&details=true
+    /// <summary>
+    /// Author: Asher
+    /// Last Revised: Nov. 26, 2026
+    /// Description: Shows the signed-in user's inbox: every chatbox they belong to with its latest messages, with one conversation open and the details panel optionally shown. Route: GET /Messages?c=3.
+    /// </summary>
+    /// <param name="c" type="int?">Id of the chatbox to open; the first listed conversation opens when null or not found.</param>
+    /// <param name="filter" type="string?">"unread" to list only unread conversations; any other value lists all of them.</param>
+    /// <param name="details" type="bool">True to show the details panel for the open conversation.</param>
+    /// <param name="cancellationToken" type="CancellationToken">Token that cancels the database work if the request is aborted.</param>
+    /// <return type="Task&lt;IActionResult&gt;">The inbox view, or a sign-in challenge when the user cannot be identified.</return>
     [HttpGet]
     public async Task<IActionResult> Index(int? c, string? filter, bool details, CancellationToken cancellationToken)
     {
@@ -119,6 +135,15 @@ public class MessagesController : Controller
         return View(model);
     }
 
+    /// <summary>
+    /// Author: Asher
+    /// Last Revised: Nov. 26, 2026
+    /// Description: Saves a message from a chatbox member and sends it live to every member through the chat hub. Used as the fallback when the page cannot send through SignalR.
+    /// </summary>
+    /// <param name="conversationId" type="int">Id of the chatbox the message is sent to.</param>
+    /// <param name="text" type="string?">Message text; trimmed, must be 1 to MESSAGE_MAX_LENGTH characters.</param>
+    /// <param name="cancellationToken" type="CancellationToken">Token that cancels the database work if the request is aborted.</param>
+    /// <return type="Task&lt;IActionResult&gt;">A redirect back to the conversation, NotFound if the user is not a member, or a sign-in challenge.</return>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Send(int conversationId, string? text, CancellationToken cancellationToken)
@@ -170,6 +195,14 @@ public class MessagesController : Controller
         return RedirectToAction(nameof(Index), new { c = conversationId });
     }
 
+    /// <summary>
+    /// Author: Asher
+    /// Last Revised: Nov. 26, 2026
+    /// Description: Searches other users' profiles by display name for the new-message recipient picker.
+    /// </summary>
+    /// <param name="q" type="string?">Search text; at least 2 characters after trimming, otherwise no results are returned.</param>
+    /// <param name="cancellationToken" type="CancellationToken">Token that cancels the database work if the request is aborted.</param>
+    /// <return type="Task&lt;IActionResult&gt;">JSON list of up to 20 matches with id, name, and program, or a sign-in challenge.</return>
     [HttpGet]
     public async Task<IActionResult> FindUsers(string? q, CancellationToken cancellationToken)
     {
@@ -190,6 +223,14 @@ public class MessagesController : Controller
         return Json(matches);
     }
 
+    /// <summary>
+    /// Author: Asher
+    /// Last Revised: Nov. 26, 2026
+    /// Description: Opens the direct chat between the signed-in user and the chosen recipient, creating it when none exists.
+    /// </summary>
+    /// <param name="recipientId" type="string?">User id of the person to message; must be another existing user.</param>
+    /// <param name="cancellationToken" type="CancellationToken">Token that cancels the database work if the request is aborted.</param>
+    /// <return type="Task&lt;IActionResult&gt;">A redirect to the conversation, BadRequest for a missing or own id, NotFound for an unknown user, or a sign-in challenge.</return>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> StartConversation(string? recipientId, CancellationToken cancellationToken)

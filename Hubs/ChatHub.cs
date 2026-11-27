@@ -20,10 +20,10 @@ public class ChatHub : Hub
 
     /// <summary>
     /// Author: Asher
-    /// Last Revised: Nov. 12, 2026
+    /// Last Revised: Nov. 26, 2026
     /// Description: Creates the hub with the database context used to check membership and save messages.
     /// </summary>
-    /// <param name="db">Database context supplied by dependency injection.</param>
+    /// <param name="db" type="ApplicationDbContext">Database context supplied by dependency injection.</param>
     public ChatHub(ApplicationDbContext db)
     {
         _db = db;
@@ -31,13 +31,13 @@ public class ChatHub : Hub
 
     /// <summary>
     /// Author: Asher
-    /// Last Revised: Nov. 12, 2026
+    /// Last Revised: Nov. 26, 2026
     /// Description: Validates and saves a message from a chatbox member, then sends it
     /// as "ReceiveMessage" to every member of that chatbox, including the sender's other tabs.
     /// Throws a HubException if the user is unknown, not a member, or the text is invalid.
     /// </summary>
-    /// <param name="chatboxId">Id of the chatbox the message is sent to.</param>
-    /// <param name="text">Message text; trimmed, must be 1 to MESSAGE_MAX_LENGTH characters.</param>
+    /// <param name="chatboxId" type="int">Id of the chatbox the message is sent to.</param>
+    /// <param name="text" type="string">Message text; trimmed, must be 1 to MESSAGE_MAX_LENGTH characters.</param>
     public async Task SendMessage(int chatboxId, string text)
     {
         string? userId = Context.UserIdentifier;
@@ -98,11 +98,11 @@ public class ChatHub : Hub
 
     /// <summary>
     /// Author: Asher
-    /// Last Revised: Nov. 13, 2026
+    /// Last Revised: Nov. 26, 2026
     /// Description: Tells the other members of a chatbox that the caller is typing.
     /// Throws a HubException if the user is unknown or not a member of the chatbox.
     /// </summary>
-    /// <param name="chatboxId">Id of the chatbox the caller is typing in.</param>
+    /// <param name="chatboxId" type="int">Id of the chatbox the caller is typing in.</param>
     public async Task Typing(int chatboxId)
     {
         string? userId = Context.UserIdentifier;
