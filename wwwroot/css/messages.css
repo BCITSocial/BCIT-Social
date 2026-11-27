@@ -5,6 +5,9 @@ Styles the Messages page: conversation list, chat header, message bubbles, and c
 
 /* Two panels side by side that fill the window below the header. Only the message list scrolls. */
 .messages-page { display: grid; grid-template-columns: minmax(260px, 320px) minmax(0, 1fr); gap: 12px; height: calc(100dvh - 69px - 40px); min-height: 480px; }
+/* The shared nav is one window tall but starts below the 69px header, which made this page scroll and left a blank strip
+   under the panels. On wide screens, where the panels fill the window, the nav is cut to the space below the header. */
+@media (min-width: 861px) { .app-shell:has(.messages-page) .sidebar { height: calc(100dvh - 69px); } }
 .msg-panel { display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); }
 .msg-panel .icon { flex: none; width: 1.125rem; height: 1.125rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -102,10 +105,13 @@ Styles the Messages page: conversation list, chat header, message bubbles, and c
 
 /* Composer */
 .msg-composer { display: flex; align-items: flex-end; gap: 4px; margin: 0; padding: 12px 16px; border-top: 1px solid var(--color-border); }
-.msg-composer .icon-button { flex: none; border-radius: 50%; color: var(--color-muted); }
-.msg-composer .icon-button svg { width: 22px; height: 22px; stroke-width: 1.7; stroke-linejoin: round; }
-.msg-input { flex: 1; min-width: 0; margin-left: 4px; }
+.msg-input { position: relative; flex: 1; min-width: 0; }
 .msg-input textarea { display: block; width: 100%; min-height: 44px; max-height: 160px; padding: 11px 18px; border: 1px solid var(--color-transparent); border-radius: 22px; background: var(--color-input); color: var(--color-text); font: inherit; font-size: 0.9375rem; resize: none; }
+/* Browsers will not put an ellipsis on a textarea placeholder, so the hint is drawn by .msg-placeholder instead.
+   The real placeholder stays for screen readers but is hidden and kept to one line so the box does not grow. */
+.msg-input textarea::placeholder { overflow: hidden; color: transparent; white-space: nowrap; }
+.msg-placeholder { position: absolute; top: 12px; right: 19px; left: 19px; overflow: hidden; color: var(--color-muted); font-size: 0.9375rem; white-space: nowrap; text-overflow: ellipsis; pointer-events: none; }
+.msg-input:has(textarea:not(:placeholder-shown)) .msg-placeholder { display: none; }
 .msg-send { display: grid; flex: none; place-items: center; width: 44px; margin-left: 8px; padding: 0; border: 0; border-radius: 50%; background: var(--color-accent); color: var(--color-surface); cursor: pointer; }
 .msg-send:hover { filter: brightness(1.08); }
 .msg-send:disabled { background: var(--color-border); color: var(--color-muted); filter: none; }
@@ -184,8 +190,6 @@ Styles the Messages page: conversation list, chat header, message bubbles, and c
     .msg-bubble-group { max-width: 82%; }
     .msg-log { padding: 8px 12px 12px; }
     .msg-composer { gap: 0; padding: 8px; }
-    .msg-composer .icon-button { width: 38px; }
-    .msg-composer [aria-label="Add an emoji"] { display: none; }
     .msg-send { margin-left: 6px; }
 }
 
