@@ -16,7 +16,7 @@
         </div>
 
         <a class="settings-button settings-button-secondary" asp-controller="Profile" asp-action="Index">
-            Cancel
+            Back to Profile
         </a>
     </header>
 
@@ -171,6 +171,8 @@
 </section>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script src="~/js/profile-customizer.js" asp-append-version="true" defer></script>
 }
